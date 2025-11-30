@@ -122,7 +122,7 @@ export default function NewTemplatePage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/admin/templates", {
+      const response = await fetch("/api/manage-x7k9/templates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -137,7 +137,7 @@ export default function NewTemplatePage() {
       }
 
       toast.success("Template created!");
-      router.push("/admin/templates");
+      router.push("/manage-x7k9/templates");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Something went wrong");
     } finally {
@@ -151,7 +151,7 @@ export default function NewTemplatePage() {
       <header className="bg-white border-b border-warm-200">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/admin/templates" className="text-warm-500 hover:text-warm-700 transition-colors">
+            <Link href="/manage-x7k9/templates" className="text-warm-500 hover:text-warm-700 transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <h1 className="text-lg font-serif tracking-wider uppercase">New Template</h1>
@@ -370,7 +370,7 @@ export default function NewTemplatePage() {
 
           {/* Submit */}
           <div className="flex justify-end gap-4">
-            <Link href="/admin/templates">
+            <Link href="/manage-x7k9/templates">
               <Button type="button" variant="outline">Cancel</Button>
             </Link>
             <Button 

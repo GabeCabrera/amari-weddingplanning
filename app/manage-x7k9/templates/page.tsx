@@ -25,13 +25,13 @@ export default async function AdminTemplatesPage() {
       <header className="bg-white border-b border-warm-200">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/admin" className="text-warm-500 hover:text-warm-700 transition-colors">
+            <Link href="/manage-x7k9" className="text-warm-500 hover:text-warm-700 transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <h1 className="text-lg font-serif tracking-wider uppercase">Manage Templates</h1>
           </div>
           <Link
-            href="/admin/templates/new"
+            href="/manage-x7k9/templates/new"
             className="flex items-center gap-2 px-4 py-2 bg-warm-600 text-white text-sm uppercase tracking-wider hover:bg-warm-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -51,7 +51,7 @@ export default async function AdminTemplatesPage() {
             <div className="bg-white border border-warm-200 p-12 text-center">
               <p className="text-warm-500 mb-4">No custom templates yet.</p>
               <Link
-                href="/admin/templates/new"
+                href="/manage-x7k9/templates/new"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-warm-600 text-white text-sm uppercase tracking-wider hover:bg-warm-700 transition-colors"
               >
                 <Plus className="w-4 h-4" />
@@ -80,13 +80,13 @@ export default async function AdminTemplatesPage() {
                   </span>
                   <div className="flex items-center gap-2">
                     <Link
-                      href={`/admin/templates/${template.id}/edit`}
+                      href={`/manage-x7k9/templates/${template.id}/edit`}
                       className="p-2 text-warm-500 hover:text-warm-700 transition-colors"
                       title="Edit"
                     >
                       <Edit className="w-4 h-4" />
                     </Link>
-                    <form action={`/api/admin/templates/${template.id}/toggle`} method="POST">
+                    <form action={`/api/manage-x7k9/templates/${template.id}/toggle`} method="POST">
                       <button
                         type="submit"
                         className="p-2 text-warm-500 hover:text-warm-700 transition-colors"
