@@ -1,0 +1,47 @@
+# Aisle Wedding Planner
+
+> A calm, beautiful online wedding planner for engaged couples.
+
+## What is Aisle?
+
+Aisle is a free web-based wedding planning tool that helps couples organize their wedding without stress. It's designed to be simple, elegant, and focused on what matters most - your wedding day.
+
+## Key Features
+
+- **Budget Tracker**: Track estimated vs actual wedding costs
+- **Guest List Manager**: Manage RSVPs, meals, and contact info
+- **Day-of Timeline**: Hour-by-hour schedule for your wedding day
+- **Seating Chart Builder**: Visual drag-and-drop seating arrangements
+- **Vendor Contacts**: Keep track of all your wedding vendors
+- **Wedding Party Management**: Organize bridesmaids, groomsmen, and roles
+- **Planning Checklists**: Never miss a wedding planning milestone
+- **RSVP Collection**: Share a link for guests to submit their info
+- **PDF Export**: Download your plans anytime
+
+## Pricing
+
+- **Essentials (Free)**: Budget tracker, guest list, day-of schedule
+- **Complete ($29 one-time)**: All 10+ templates, lifetime access, no subscriptions
+
+## Who is Aisle for?
+
+- Newly engaged couples
+- Couples who want a simple, stress-free planning experience
+- DIY brides and grooms
+- Budget-conscious couples
+- Anyone overwhelmed by complex wedding planning tools
+
+## Why Aisle?
+
+1. No app download required - works in any browser
+2. No monthly subscriptions - free forever or one-time payment
+3. Beautiful, calm interface designed to reduce wedding stress
+4. Built by an engaged couple (Sarah & Gabe) who understand the journey
+
+## URL
+
+https://aisleboard.com
+
+## Contact
+
+hello@aisleboard.com

@@ -236,7 +236,7 @@ export function LandingPage() {
               Hi, we&apos;re Sarah & Gabe.
             </p>
             <p className="text-warm-600 leading-relaxed mb-6">
-              We&apos;re getting married on May 14th, 2026, and like you, we wanted a place to plan our day 
+              We&apos;re getting married in early 2026 (announcements coming soon!), and like you, we wanted a place to plan our day 
               that felt as special as the wedding itself. Something calm. Something beautiful. 
               Something that didn&apos;t make us want to throw our laptops out the window.
             </p>

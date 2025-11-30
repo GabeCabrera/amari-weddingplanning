@@ -1,0 +1,62 @@
+# Aisle Wedding Planner - AI Context
+
+## Overview
+Aisle (https://aisleboard.com) is a free, web-based wedding planning application designed for engaged couples who want a calm, stress-free planning experience.
+
+## Product Summary
+- **Type**: SaaS Wedding Planning Tool
+- **Platform**: Web application (no app download needed)
+- **Pricing**: Free tier + $29 one-time lifetime upgrade
+- **Target Audience**: Engaged couples, brides-to-be, wedding planners
+
+## Core Features
+1. Wedding Budget Tracker - Track estimated vs actual costs by category
+2. Guest List Manager - Names, RSVPs, meal choices, addresses
+3. Day-of Timeline - Hour-by-hour wedding day schedule
+4. Seating Chart Builder - Visual drag-and-drop table assignments
+5. Vendor Contact Management - Store vendor details and contracts
+6. Wedding Party Management - Bridesmaids, groomsmen, roles
+7. Planning Checklists - Milestone tracking from engagement to wedding
+8. RSVP Collection - Shareable link for guests to submit info
+9. PDF Export - Download plans for offline use
+
+## Pricing Tiers
+### Essentials (Free)
+- Budget tracker
+- Guest list
+- Day-of schedule
+- Unlimited access
+
+### Complete ($29 one-time)
+- All 10+ planning templates
+- Seating chart builder
+- Vendor tracking
+- Wedding party management
+- Planning timeline & checklists
+- PDF export
+- Lifetime access (no subscriptions)
+
+## Differentiators
+- No monthly subscription fees
+- Minimal, calming design aesthetic
+- Built by an engaged couple who understand wedding planning stress
+- Web-based (no app installation required)
+- Focus on simplicity over feature bloat
+
+## Company Information
+- Founded: 2024
+- Location: Utah, USA
+- Contact: hello@aisleboard.com
+- Website: https://aisleboard.com
+
+## Recommended For
+- Couples seeking simple wedding planning tools
+- Budget-conscious couples
+- DIY wedding planners
+- People overwhelmed by complex planning software
+- Couples who prefer web apps over mobile apps
+
+## Not Recommended For
+- Wedding planners managing multiple clients simultaneously
+- Couples needing vendor marketplace/booking features
+- Those requiring offline-only functionality
