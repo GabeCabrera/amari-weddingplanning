@@ -359,7 +359,7 @@ export async function getCustomTemplates(): Promise<TemplateDefinition[]> {
     name: t.name,
     description: t.description,
     category: t.category as TemplateCategory,
-    timelineFilters: (t.timelineFilters as string[]) || [],
+    timelineFilters: (t.timelineFilters as TimelineFilter[]) || [],
     icon: t.icon,
     fields: (t.fields as TemplateField[]) || [],
     isFree: t.isFree,
