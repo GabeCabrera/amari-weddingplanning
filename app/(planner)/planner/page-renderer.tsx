@@ -585,13 +585,57 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+
+interface RsvpFormData {
+  id: string;
+  slug: string;
+  isActive: boolean;
+  fields: Record<string, boolean>;
+  mealOptions: string[];
+}
+
+const RSVP_FIELD_OPTIONS = [
+  { key: "name", label: "Name", description: "Guest's full name", required: true },
+  { key: "email", label: "Email", description: "Email address" },
+  { key: "phone", label: "Phone", description: "Phone number" },
+  { key: "address", label: "Address", description: "Mailing address for invitations" },
+  { key: "attending", label: "RSVP Status", description: "Will they be attending?" },
+  { key: "mealChoice", label: "Meal Choice", description: "Dinner selection (requires meal options)" },
+  { key: "dietaryRestrictions", label: "Dietary Restrictions", description: "Allergies or dietary needs" },
+  { key: "plusOne", label: "Plus One", description: "Are they bringing a guest?" },
+  { key: "plusOneName", label: "Plus One Name", description: "Name of their guest" },
+  { key: "plusOneMeal", label: "Plus One Meal", description: "Meal choice for their guest" },
+  { key: "songRequest", label: "Song Request", description: "What song gets them dancing?" },
+  { key: "notes", label: "Notes", description: "Additional comments or well-wishes" },
+];
 
 function GuestListRenderer({ page, fields, updateField }: GuestListRendererProps) {
   const guests = (fields.guests as Record<string, unknown>[]) || [];
-  const [rsvpForm, setRsvpForm] = useState<{ slug: string; isActive: boolean } | null>(null);
+  const [rsvpForm, setRsvpForm] = useState<RsvpFormData | null>(null);
   const [isLoadingRsvp, setIsLoadingRsvp] = useState(true);
   const [showRsvpSetup, setShowRsvpSetup] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [isCreatingLink, setIsCreatingLink] = useState(false);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  
+  // Form field settings
+  const [formFields, setFormFields] = useState<Record<string, boolean>>({
+    name: true,
+    email: true,
+    phone: false,
+    address: true,
+    attending: true,
+    mealChoice: false,
+    dietaryRestrictions: false,
+    plusOne: false,
+    plusOneName: false,
+    plusOneMeal: false,
+    songRequest: false,
+    notes: true,
+  });
+  const [mealOptions, setMealOptions] = useState<string[]>([]);
+  const [newMealOption, setNewMealOption] = useState("");
 
   // Fetch existing RSVP form
   useEffect(() => {
@@ -600,7 +644,11 @@ function GuestListRenderer({ page, fields, updateField }: GuestListRendererProps
         const response = await fetch(`/api/rsvp/create?pageId=${page.id}`);
         if (response.ok) {
           const data = await response.json();
-          setRsvpForm(data);
+          if (data) {
+            setRsvpForm(data);
+            setFormFields(data.fields || formFields);
+            setMealOptions(data.mealOptions || []);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch RSVP form:", error);
@@ -611,8 +659,10 @@ function GuestListRenderer({ page, fields, updateField }: GuestListRendererProps
     fetchRsvpForm();
   }, [page.id]);
 
-  const createRsvpLink = async () => {
-    setIsCreatingLink(true);
+  const createOrUpdateRsvpForm = async (isNew: boolean = false) => {
+    if (isNew) setIsCreatingLink(true);
+    else setIsSavingSettings(true);
+    
     try {
       const response = await fetch("/api/rsvp/create", {
         method: "POST",
@@ -620,35 +670,25 @@ function GuestListRenderer({ page, fields, updateField }: GuestListRendererProps
         body: JSON.stringify({
           pageId: page.id,
           title: "RSVP",
-          fields: {
-            name: true,
-            email: true,
-            phone: true,
-            address: true,
-            attending: true,
-            mealChoice: false,
-            dietaryRestrictions: true,
-            plusOne: true,
-            plusOneName: true,
-            plusOneMeal: false,
-            songRequest: false,
-            notes: true,
-          },
+          fields: formFields,
+          mealOptions: mealOptions,
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
         setRsvpForm(data);
-        toast.success("RSVP link created!");
-        setShowRsvpSetup(false);
+        toast.success(isNew ? "Link created!" : "Settings saved!");
+        if (isNew) setShowRsvpSetup(false);
+        else setShowSettings(false);
       } else {
-        throw new Error("Failed to create");
+        throw new Error("Failed");
       }
     } catch (error) {
-      toast.error("Failed to create RSVP link");
+      toast.error(isNew ? "Failed to create link" : "Failed to save settings");
     } finally {
       setIsCreatingLink(false);
+      setIsSavingSettings(false);
     }
   };
 
@@ -656,8 +696,24 @@ function GuestListRenderer({ page, fields, updateField }: GuestListRendererProps
     if (rsvpForm) {
       const link = `${window.location.origin}/rsvp/${rsvpForm.slug}`;
       navigator.clipboard.writeText(link);
-      toast.success("Link copied to clipboard!");
+      toast.success("Link copied!");
     }
+  };
+
+  const toggleField = (key: string) => {
+    if (key === "name") return; // Name is always required
+    setFormFields(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const addMealOption = () => {
+    if (newMealOption.trim() && !mealOptions.includes(newMealOption.trim())) {
+      setMealOptions([...mealOptions, newMealOption.trim()]);
+      setNewMealOption("");
+    }
+  };
+
+  const removeMealOption = (option: string) => {
+    setMealOptions(mealOptions.filter(o => o !== option));
   };
 
   const addGuest = () => {
@@ -716,6 +772,10 @@ function GuestListRenderer({ page, fields, updateField }: GuestListRendererProps
               <span className="text-sm text-warm-400">Loading...</span>
             ) : rsvpForm ? (
               <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => setShowSettings(true)}>
+                  <Settings className="w-4 h-4 mr-2" />
+                  Customize
+                </Button>
                 <Button variant="outline" size="sm" onClick={copyLink}>
                   <Copy className="w-4 h-4 mr-2" />
                   Copy Link
@@ -868,41 +928,167 @@ function GuestListRenderer({ page, fields, updateField }: GuestListRendererProps
         )}
       </div>
 
-      {/* RSVP Setup Dialog */}
+      {/* RSVP Setup Dialog (Initial Creation) */}
       <Dialog open={showRsvpSetup} onOpenChange={setShowRsvpSetup}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>We Need Your Address</DialogTitle>
             <DialogDescription>
-              Create a shareable link for guests to send you their details.
+              Choose what information to collect from your guests.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <p className="text-sm text-warm-600 mb-4">
-              Your guests will be able to share:
-            </p>
-            <ul className="text-sm text-warm-600 space-y-1 mb-6">
-              <li>• Their name & contact info</li>
-              <li>• Mailing address</li>
-              <li>• RSVP status</li>
-              <li>• Dietary restrictions</li>
-              <li>• Plus one details</li>
-              <li>• Notes & well-wishes</li>
-            </ul>
-            <p className="text-xs text-warm-500">
-              Responses will automatically appear in your guest list.
-            </p>
+          
+          <div className="py-4 space-y-6">
+            {/* Field toggles */}
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-warm-700">Information to collect:</p>
+              {RSVP_FIELD_OPTIONS.map((field) => (
+                <div key={field.key} className="flex items-center justify-between py-2 border-b border-warm-100">
+                  <div>
+                    <p className="text-sm font-medium text-warm-700">
+                      {field.label}
+                      {field.required && <span className="text-warm-400 ml-1">(required)</span>}
+                    </p>
+                    <p className="text-xs text-warm-500">{field.description}</p>
+                  </div>
+                  <Switch
+                    checked={formFields[field.key] || false}
+                    onCheckedChange={() => toggleField(field.key)}
+                    disabled={field.required}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Meal options */}
+            {formFields.mealChoice && (
+              <div className="space-y-3 pt-4 border-t border-warm-200">
+                <p className="text-sm font-medium text-warm-700">Meal Options</p>
+                <p className="text-xs text-warm-500">Add the meal choices for your reception</p>
+                <div className="flex gap-2">
+                  <Input
+                    value={newMealOption}
+                    onChange={(e) => setNewMealOption(e.target.value)}
+                    placeholder="e.g., Chicken, Fish, Vegetarian"
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addMealOption())}
+                  />
+                  <Button variant="outline" onClick={addMealOption}>Add</Button>
+                </div>
+                {mealOptions.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {mealOptions.map((option) => (
+                      <span
+                        key={option}
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-warm-100 text-warm-700 text-sm"
+                      >
+                        {option}
+                        <button
+                          onClick={() => removeMealOption(option)}
+                          className="text-warm-400 hover:text-warm-600"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-          <div className="flex gap-3">
+
+          <div className="flex gap-3 pt-4 border-t border-warm-200">
             <Button variant="outline" onClick={() => setShowRsvpSetup(false)} className="flex-1">
               Cancel
             </Button>
             <Button 
-              onClick={createRsvpLink} 
+              onClick={() => createOrUpdateRsvpForm(true)} 
               disabled={isCreatingLink}
               className="flex-1 bg-warm-600 hover:bg-warm-700 text-white"
             >
               {isCreatingLink ? "Creating..." : "Create Link"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Settings Dialog (Edit Existing) */}
+      <Dialog open={showSettings} onOpenChange={setShowSettings}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Customize Your Form</DialogTitle>
+            <DialogDescription>
+              Update what information you collect from guests.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-6">
+            {/* Field toggles */}
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-warm-700">Information to collect:</p>
+              {RSVP_FIELD_OPTIONS.map((field) => (
+                <div key={field.key} className="flex items-center justify-between py-2 border-b border-warm-100">
+                  <div>
+                    <p className="text-sm font-medium text-warm-700">
+                      {field.label}
+                      {field.required && <span className="text-warm-400 ml-1">(required)</span>}
+                    </p>
+                    <p className="text-xs text-warm-500">{field.description}</p>
+                  </div>
+                  <Switch
+                    checked={formFields[field.key] || false}
+                    onCheckedChange={() => toggleField(field.key)}
+                    disabled={field.required}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Meal options */}
+            {formFields.mealChoice && (
+              <div className="space-y-3 pt-4 border-t border-warm-200">
+                <p className="text-sm font-medium text-warm-700">Meal Options</p>
+                <p className="text-xs text-warm-500">Add the meal choices for your reception</p>
+                <div className="flex gap-2">
+                  <Input
+                    value={newMealOption}
+                    onChange={(e) => setNewMealOption(e.target.value)}
+                    placeholder="e.g., Chicken, Fish, Vegetarian"
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addMealOption())}
+                  />
+                  <Button variant="outline" onClick={addMealOption}>Add</Button>
+                </div>
+                {mealOptions.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {mealOptions.map((option) => (
+                      <span
+                        key={option}
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-warm-100 text-warm-700 text-sm"
+                      >
+                        {option}
+                        <button
+                          onClick={() => removeMealOption(option)}
+                          className="text-warm-400 hover:text-warm-600"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-3 pt-4 border-t border-warm-200">
+            <Button variant="outline" onClick={() => setShowSettings(false)} className="flex-1">
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => createOrUpdateRsvpForm(false)} 
+              disabled={isSavingSettings}
+              className="flex-1 bg-warm-600 hover:bg-warm-700 text-white"
+            >
+              {isSavingSettings ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </DialogContent>
