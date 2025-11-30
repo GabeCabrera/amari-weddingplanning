@@ -20,6 +20,29 @@ const onboardingRoutes = [
   "/welcome",
 ];
 
+// Add security headers to response
+function addSecurityHeaders(response: NextResponse): NextResponse {
+  // Prevent clickjacking
+  response.headers.set("X-Frame-Options", "DENY");
+  
+  // Prevent MIME type sniffing
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  
+  // Enable XSS filter
+  response.headers.set("X-XSS-Protection", "1; mode=block");
+  
+  // Control referrer information
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  
+  // Permissions policy
+  response.headers.set(
+    "Permissions-Policy", 
+    "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+  );
+
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -30,7 +53,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api/stripe") ||
     pathname.includes(".") // static files
   ) {
-    return NextResponse.next();
+    return addSecurityHeaders(NextResponse.next());
   }
 
   // Check if route is public (exact match for "/" or startsWith for others)
@@ -39,7 +62,7 @@ export async function middleware(request: NextRequest) {
   );
 
   if (isPublicRoute) {
-    return NextResponse.next();
+    return addSecurityHeaders(NextResponse.next());
   }
 
   // Check authentication for protected routes
@@ -57,7 +80,7 @@ export async function middleware(request: NextRequest) {
   // Allow onboarding routes for authenticated users
   const isOnboardingRoute = onboardingRoutes.some((route) => pathname.startsWith(route));
   if (isOnboardingRoute) {
-    return NextResponse.next();
+    return addSecurityHeaders(NextResponse.next());
   }
 
   // Check if user must change password
@@ -65,7 +88,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/change-password", request.url));
   }
 
-  return NextResponse.next();
+  return addSecurityHeaders(NextResponse.next());
 }
 
 export const config = {

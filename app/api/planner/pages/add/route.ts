@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { getPlannerByTenantId, getPagesByPlannerId, createPage } from "@/lib/db/queries";
 import { getTemplateById } from "@/lib/templates/registry";
+import { addPagesSchema, validateRequest } from "@/lib/validation";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,14 +16,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { templateIds } = await request.json();
-
-    if (!templateIds || !Array.isArray(templateIds) || templateIds.length === 0) {
+    // Parse body
+    let body;
+    try {
+      body = await request.json();
+    } catch {
       return NextResponse.json(
-        { error: "At least one template is required" },
+        { error: "Invalid request body" },
         { status: 400 }
       );
     }
+
+    // Validate input
+    const validation = validateRequest(addPagesSchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error },
+        { status: 400 }
+      );
+    }
+
+    const { templateIds } = validation.data;
 
     const planner = await getPlannerByTenantId(session.user.tenantId);
 
@@ -35,6 +49,15 @@ export async function POST(request: NextRequest) {
 
     // Get current pages to determine position
     const existingPages = await getPagesByPlannerId(planner.id);
+    
+    // Limit total pages per planner
+    if (existingPages.length + templateIds.length > 50) {
+      return NextResponse.json(
+        { error: "Maximum page limit reached" },
+        { status: 400 }
+      );
+    }
+
     let nextPosition = existingPages.length;
 
     // Create pages for each template

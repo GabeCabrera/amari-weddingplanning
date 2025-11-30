@@ -2,19 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { db } from "@/lib/db";
-import { rsvpForms, pages, tenants } from "@/lib/db/schema";
+import { rsvpForms, pages, tenants, planners } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { rsvpFormSchema, validateRequest, sanitizeString } from "@/lib/validation";
 
 // Generate a cute slug from couple names
 function generateSlug(displayName: string): string {
-  // "Sarah & Gabe" -> "sarah-and-gabe"
-  // "The Johnsons" -> "the-johnsons"
   return displayName
     .toLowerCase()
     .replace(/&/g, "and")
     .replace(/[^a-z0-9\s-]/g, "")
     .trim()
-    .replace(/\s+/g, "-");
+    .replace(/\s+/g, "-")
+    .slice(0, 50);
 }
 
 export async function POST(request: NextRequest) {
@@ -25,14 +25,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { pageId, title, message, fields, mealOptions } = body;
+    // Parse body
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: 400 }
+      );
+    }
 
-    // Verify the page belongs to this tenant
+    // Validate input
+    const validation = validateRequest(rsvpFormSchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error },
+        { status: 400 }
+      );
+    }
+
+    const { pageId, title, message, fields, mealOptions } = validation.data;
+
+    // Verify the page belongs to this tenant's planner
     const [page] = await db
       .select()
       .from(pages)
-      .where(eq(pages.id, pageId))
+      .innerJoin(planners, eq(pages.plannerId, planners.id))
+      .where(
+        and(
+          eq(pages.id, pageId),
+          eq(planners.tenantId, session.user.tenantId)
+        )
+      )
       .limit(1);
 
     if (!page) {
@@ -48,6 +73,35 @@ export async function POST(request: NextRequest) {
 
     if (!tenant) {
       return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+    }
+
+    // Check if form already exists for this page
+    const [existingForm] = await db
+      .select()
+      .from(rsvpForms)
+      .where(
+        and(
+          eq(rsvpForms.pageId, pageId),
+          eq(rsvpForms.tenantId, session.user.tenantId)
+        )
+      )
+      .limit(1);
+
+    if (existingForm) {
+      // Update existing form
+      const [updatedForm] = await db
+        .update(rsvpForms)
+        .set({
+          title: title || "RSVP",
+          message: message || null,
+          fields: fields || existingForm.fields,
+          mealOptions: mealOptions || [],
+          updatedAt: new Date(),
+        })
+        .where(eq(rsvpForms.id, existingForm.id))
+        .returning();
+
+      return NextResponse.json(updatedForm);
     }
 
     // Generate cute slug from couple names
@@ -66,28 +120,17 @@ export async function POST(request: NextRequest) {
       slug = `${baseSlug}-${tenant.id.slice(-4)}`;
     }
 
-    // Check if form already exists for this page
-    const [existingForm] = await db
+    // Limit RSVP forms per tenant
+    const existingFormsCount = await db
       .select()
       .from(rsvpForms)
-      .where(eq(rsvpForms.pageId, pageId))
-      .limit(1);
-
-    if (existingForm) {
-      // Update existing form
-      const [updatedForm] = await db
-        .update(rsvpForms)
-        .set({
-          title: title || "RSVP",
-          message: message || null,
-          fields: fields || existingForm.fields,
-          mealOptions: mealOptions || [],
-          updatedAt: new Date(),
-        })
-        .where(eq(rsvpForms.id, existingForm.id))
-        .returning();
-
-      return NextResponse.json(updatedForm);
+      .where(eq(rsvpForms.tenantId, session.user.tenantId));
+    
+    if (existingFormsCount.length >= 10) {
+      return NextResponse.json(
+        { error: "Maximum RSVP forms limit reached" },
+        { status: 400 }
+      );
     }
 
     // Create new form
@@ -141,6 +184,12 @@ export async function GET(request: NextRequest) {
 
     if (!pageId) {
       return NextResponse.json({ error: "pageId required" }, { status: 400 });
+    }
+
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(pageId)) {
+      return NextResponse.json({ error: "Invalid pageId" }, { status: 400 });
     }
 
     const [form] = await db
