@@ -99,6 +99,13 @@ function applySharedDataToPage(
   return { ...page, fields: updatedFields };
 }
 
+// Helper to create a new Set with added items
+function addToSet(set: Set<string>, ...items: string[]): Set<string> {
+  const newSet = new Set<string>(set);
+  items.forEach(item => newSet.add(item));
+  return newSet;
+}
+
 // ============================================================================
 // REDUCER
 // ============================================================================
@@ -165,7 +172,7 @@ function plannerReducer(state: PlannerState, action: PlannerAction): PlannerStat
         ...state,
         pages: finalPages,
         sharedData: newSharedData,
-        pendingSaves: new Set([...state.pendingSaves, action.pageId]),
+        pendingSaves: addToSet(state.pendingSaves, action.pageId),
       };
     }
 
@@ -185,11 +192,13 @@ function plannerReducer(state: PlannerState, action: PlannerAction): PlannerStat
         return p;
       });
 
+      const allPageIds = updatedPages.map((p) => p.id);
+
       return {
         ...state,
         pages: updatedPages,
         sharedData: newSharedData,
-        pendingSaves: new Set(updatedPages.map((p) => p.id)),
+        pendingSaves: new Set<string>(allPageIds),
       };
     }
 
@@ -231,7 +240,7 @@ function plannerReducer(state: PlannerState, action: PlannerAction): PlannerStat
     }
 
     case "MARK_SAVED": {
-      const newPending = new Set(state.pendingSaves);
+      const newPending = new Set<string>(state.pendingSaves);
       newPending.delete(action.pageId);
       return {
         ...state,
@@ -243,7 +252,7 @@ function plannerReducer(state: PlannerState, action: PlannerAction): PlannerStat
     case "MARK_PENDING": {
       return {
         ...state,
-        pendingSaves: new Set([...state.pendingSaves, action.pageId]),
+        pendingSaves: addToSet(state.pendingSaves, action.pageId),
       };
     }
 
@@ -283,14 +292,16 @@ export function PlannerProvider({
 }: PlannerProviderProps) {
   const sharedData = extractSharedData(initialPages);
   
-  const [state, dispatch] = useReducer(plannerReducer, {
+  const initialState: PlannerState = {
     pages: initialPages,
     sharedData,
     selectedPageId: initialPages[0]?.id ?? null,
     isSaving: false,
-    pendingSaves: new Set(),
+    pendingSaves: new Set<string>(),
     lastSaved: null,
-  });
+  };
+
+  const [state, dispatch] = useReducer(plannerReducer, initialState);
 
   // Refs for debouncing
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
