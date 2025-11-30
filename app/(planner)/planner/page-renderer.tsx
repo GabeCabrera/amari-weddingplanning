@@ -4580,8 +4580,11 @@ function CoverPageRenderer({ page, fields, updateField }: CoverPageRendererProps
 
   const weddingDate = fields.weddingDate as string;
 
-  // Parse selected date
-  const selectedDate = weddingDate ? new Date(weddingDate) : null;
+  // Parse selected date - use local timezone to avoid off-by-one errors
+  const selectedDate = weddingDate ? (() => {
+    const [year, month, day] = weddingDate.split('-').map(Number);
+    return { year, month: month - 1, day }; // month is 0-indexed
+  })() : null;
 
   // Get days in month
   const getDaysInMonth = (year: number, month: number) => {
@@ -4621,9 +4624,9 @@ function CoverPageRenderer({ page, fields, updateField }: CoverPageRendererProps
   const isSelectedDate = (day: number) => {
     if (!selectedDate) return false;
     return (
-      selectedDate.getFullYear() === viewYear &&
-      selectedDate.getMonth() === viewMonth &&
-      selectedDate.getDate() === day
+      selectedDate.year === viewYear &&
+      selectedDate.month === viewMonth &&
+      selectedDate.day === day
     );
   };
 
@@ -4656,11 +4659,9 @@ function CoverPageRenderer({ page, fields, updateField }: CoverPageRendererProps
 
   const formatDisplayDate = () => {
     if (!weddingDate) return null;
-    const date = new Date(weddingDate);
-    const month = MONTHS[date.getMonth()];
-    const day = date.getDate();
-    const year = date.getFullYear();
-    return { month, day, year };
+    // Parse directly from string to avoid timezone issues
+    const [year, month, day] = weddingDate.split('-').map(Number);
+    return { month: MONTHS[month - 1], day, year };
   };
 
   const displayDate = formatDisplayDate();
