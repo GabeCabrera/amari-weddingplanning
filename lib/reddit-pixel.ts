@@ -3,32 +3,27 @@
 
 export const REDDIT_PIXEL_ID = process.env.NEXT_PUBLIC_REDDIT_PIXEL_ID;
 
-declare global {
-  interface Window {
-    rdt?: ((...args: unknown[]) => void) & { callQueue?: unknown[]; sendEvent?: (...args: unknown[]) => void };
-  }
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type RedditPixelFunction = (...args: any[]) => void;
 
 // Initialize the Reddit Pixel
 export const init = () => {
   if (typeof window === 'undefined' || !REDDIT_PIXEL_ID) return;
   
   // Don't initialize if already loaded
-  if (window.rdt) return;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ((window as any).rdt) return;
   
-  // Reddit Pixel base code
-  (function(w: Window, d: Document) {
+  // Reddit Pixel base code (from Reddit's official snippet)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (function(w: any, d: Document) {
     if (!w.rdt) {
-      const callQueue: unknown[] = [];
-      const rdt = function(...args: unknown[]) {
-        if (rdt.sendEvent) {
-          rdt.sendEvent.apply(rdt, args);
-        } else {
-          callQueue.push(args);
-        }
-      } as NonNullable<Window['rdt']>;
-      rdt.callQueue = callQueue;
-      w.rdt = rdt;
+      const p: RedditPixelFunction & { callQueue?: unknown[]; sendEvent?: RedditPixelFunction } = function() {
+        // eslint-disable-next-line prefer-rest-params, @typescript-eslint/no-explicit-any
+        p.sendEvent ? p.sendEvent.apply(p, arguments as any) : p.callQueue?.push(arguments);
+      };
+      p.callQueue = [];
+      w.rdt = p;
       const t = d.createElement('script');
       t.src = 'https://www.redditstatic.com/ads/pixel.js';
       t.async = true;
@@ -37,13 +32,22 @@ export const init = () => {
     }
   })(window, document);
   
-  window.rdt('init', REDDIT_PIXEL_ID);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).rdt('init', REDDIT_PIXEL_ID);
+};
+
+// Get the rdt function safely
+const getRdt = (): RedditPixelFunction | null => {
+  if (typeof window === 'undefined') return null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (window as any).rdt || null;
 };
 
 // Track page visits - call this on route changes
 export const pageVisit = () => {
-  if (typeof window === 'undefined' || !window.rdt) return;
-  window.rdt('track', 'PageVisit');
+  const rdt = getRdt();
+  if (!rdt) return;
+  rdt('track', 'PageVisit');
 };
 
 // Standard Reddit Pixel events
@@ -59,20 +63,22 @@ export type RedditPixelEvent =
 
 // Track standard events
 export const track = (event: RedditPixelEvent, data?: Record<string, unknown>) => {
-  if (typeof window === 'undefined' || !window.rdt) return;
+  const rdt = getRdt();
+  if (!rdt) return;
   
   if (data) {
-    window.rdt('track', event, data);
+    rdt('track', event, data);
   } else {
-    window.rdt('track', event);
+    rdt('track', event);
   }
 };
 
 // Track purchase with value
 export const trackPurchase = (value: number, currency = 'USD', itemCount = 1) => {
-  if (typeof window === 'undefined' || !window.rdt) return;
+  const rdt = getRdt();
+  if (!rdt) return;
   
-  window.rdt('track', 'Purchase', {
+  rdt('track', 'Purchase', {
     value,
     currency,
     itemCount,
