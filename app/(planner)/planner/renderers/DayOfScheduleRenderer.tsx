@@ -192,11 +192,11 @@ export function DayOfScheduleRenderer({ page, fields, updateField, allPages }: R
         <div className="flex flex-wrap gap-2 md:gap-3 mb-6">
           <Button variant="outline" size="sm" onClick={() => setShowTemplates(!showTemplates)} className="flex-1 sm:flex-none">
             <Sparkles className="w-4 h-4 mr-1 md:mr-2" />
-            <span className="hidden sm:inline">{showTemplates ? "Hide" : "Add from"}</span> Templates
+            {showTemplates ? "Hide Templates" : "Add from Templates"}
           </Button>
           <Button variant="outline" size="sm" onClick={addEvent} className="flex-1 sm:flex-none">
             <Plus className="w-4 h-4 mr-1 md:mr-2" />
-            <span className="hidden sm:inline">Add</span> Event
+            Add Event
           </Button>
           {events.length > 0 && (
             <Button variant="outline" size="sm" onClick={copySchedule}>
