@@ -1,0 +1,325 @@
+import { ComponentType } from "react";
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+export type TimelineFilter =
+  | "12-months"
+  | "9-months"
+  | "6-months"
+  | "3-months"
+  | "1-month"
+  | "week-of";
+
+export type TemplateCategory =
+  | "essentials"
+  | "planning"
+  | "people"
+  | "day-of"
+  | "extras";
+
+export interface TemplateField {
+  key: string;
+  label: string;
+  type: "text" | "date" | "number" | "checkbox" | "select" | "array" | "textarea";
+  required?: boolean;
+  options?: string[]; // For select type
+  arrayItemSchema?: TemplateField[]; // For array type
+}
+
+export interface TemplateDefinition {
+  id: string;
+  name: string;
+  description: string;
+  category: TemplateCategory;
+  timelineFilters: TimelineFilter[];
+  icon: string; // Lucide icon name
+  fields: TemplateField[];
+  suggestedInStarterPack?: boolean;
+}
+
+// ============================================================================
+// TEMPLATE REGISTRY
+// ============================================================================
+
+export const templates: TemplateDefinition[] = [
+  // Cover page (always first, not in marketplace)
+  {
+    id: "cover",
+    name: "Cover Page",
+    description: "Your wedding planner cover",
+    category: "essentials",
+    timelineFilters: ["12-months", "9-months", "6-months", "3-months", "1-month", "week-of"],
+    icon: "Book",
+    suggestedInStarterPack: true,
+    fields: [
+      { key: "names", label: "Names", type: "text", required: true },
+      { key: "weddingDate", label: "Wedding Date", type: "date", required: true },
+    ],
+  },
+
+  // Essentials
+  {
+    id: "overview",
+    name: "Wedding Overview",
+    description: "Key details about your wedding at a glance",
+    category: "essentials",
+    timelineFilters: ["12-months", "9-months", "6-months"],
+    icon: "LayoutDashboard",
+    suggestedInStarterPack: true,
+    fields: [
+      { key: "weddingDate", label: "Wedding Date", type: "date", required: true },
+      { key: "ceremonyTime", label: "Ceremony Time", type: "text" },
+      { key: "ceremonyVenue", label: "Ceremony Venue", type: "text" },
+      { key: "receptionVenue", label: "Reception Venue", type: "text" },
+      { key: "colorPalette", label: "Color Palette", type: "text" },
+      { key: "theme", label: "Theme / Style", type: "text" },
+      { key: "partySize", label: "Wedding Party Size", type: "number" },
+      { key: "primaryContact", label: "Primary Contact", type: "text" },
+      { key: "phone", label: "Phone", type: "text" },
+      { key: "notes", label: "Notes", type: "textarea" },
+    ],
+  },
+
+  // Planning
+  {
+    id: "budget",
+    name: "Budget Tracker",
+    description: "Track estimated vs actual costs",
+    category: "planning",
+    timelineFilters: ["12-months", "9-months", "6-months", "3-months"],
+    icon: "DollarSign",
+    suggestedInStarterPack: true,
+    fields: [
+      {
+        key: "items",
+        label: "Budget Items",
+        type: "array",
+        arrayItemSchema: [
+          { key: "category", label: "Category", type: "text", required: true },
+          { key: "estimated", label: "Estimated", type: "number" },
+          { key: "actual", label: "Actual", type: "number" },
+          { key: "paid", label: "Paid", type: "checkbox" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "guest-list",
+    name: "Guest List",
+    description: "Track invitations, RSVPs, and thank yous",
+    category: "planning",
+    timelineFilters: ["12-months", "9-months", "6-months", "3-months", "1-month"],
+    icon: "Users",
+    suggestedInStarterPack: true,
+    fields: [
+      {
+        key: "guests",
+        label: "Guests",
+        type: "array",
+        arrayItemSchema: [
+          { key: "name", label: "Name", type: "text", required: true },
+          { key: "rsvp", label: "RSVP", type: "checkbox" },
+          { key: "meal", label: "Meal Choice", type: "text" },
+          { key: "address", label: "Address", type: "text" },
+          { key: "giftReceived", label: "Gift Received", type: "checkbox" },
+          { key: "thankYouSent", label: "Thank You Sent", type: "checkbox" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "vendor-contacts",
+    name: "Vendor Contacts",
+    description: "All your vendor information in one place",
+    category: "planning",
+    timelineFilters: ["12-months", "9-months", "6-months", "3-months"],
+    icon: "Contact",
+    suggestedInStarterPack: true,
+    fields: [
+      {
+        key: "vendors",
+        label: "Vendors",
+        type: "array",
+        arrayItemSchema: [
+          { key: "service", label: "Service", type: "text", required: true },
+          { key: "company", label: "Company / Name", type: "text" },
+          { key: "phone", label: "Phone", type: "text" },
+          { key: "email", label: "Email", type: "text" },
+          { key: "depositPaid", label: "Deposit Paid", type: "checkbox" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "timeline",
+    name: "Planning Timeline",
+    description: "Checklist organized by time until wedding",
+    category: "planning",
+    timelineFilters: ["12-months", "9-months"],
+    icon: "CalendarCheck",
+    suggestedInStarterPack: true,
+    fields: [
+      {
+        key: "sections",
+        label: "Timeline Sections",
+        type: "array",
+        arrayItemSchema: [
+          { key: "title", label: "Section Title", type: "text", required: true },
+          {
+            key: "tasks",
+            label: "Tasks",
+            type: "array",
+            arrayItemSchema: [
+              { key: "task", label: "Task", type: "text", required: true },
+              { key: "completed", label: "Completed", type: "checkbox" },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // People
+  {
+    id: "wedding-party",
+    name: "Wedding Party",
+    description: "Bridesmaids, groomsmen, and special roles",
+    category: "people",
+    timelineFilters: ["12-months", "9-months", "6-months"],
+    icon: "Heart",
+    suggestedInStarterPack: true,
+    fields: [
+      {
+        key: "bridesmaids",
+        label: "Bridesmaids",
+        type: "array",
+        arrayItemSchema: [
+          { key: "name", label: "Name", type: "text", required: true },
+          { key: "contact", label: "Phone / Email", type: "text" },
+        ],
+      },
+      {
+        key: "groomsmen",
+        label: "Groomsmen",
+        type: "array",
+        arrayItemSchema: [
+          { key: "name", label: "Name", type: "text", required: true },
+          { key: "contact", label: "Phone / Email", type: "text" },
+        ],
+      },
+      { key: "flowerGirl", label: "Flower Girl", type: "text" },
+      { key: "ringBearer", label: "Ring Bearer", type: "text" },
+      { key: "officiant", label: "Officiant", type: "text" },
+      { key: "reader", label: "Reader / Speaker", type: "text" },
+    ],
+  },
+  {
+    id: "seating-chart",
+    name: "Seating Chart",
+    description: "Organize table assignments",
+    category: "people",
+    timelineFilters: ["3-months", "1-month", "week-of"],
+    icon: "Circle",
+    fields: [
+      {
+        key: "tables",
+        label: "Tables",
+        type: "array",
+        arrayItemSchema: [
+          { key: "tableNumber", label: "Table Number", type: "number", required: true },
+          {
+            key: "guests",
+            label: "Guests",
+            type: "array",
+            arrayItemSchema: [
+              { key: "name", label: "Guest Name", type: "text", required: true },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // Day-of
+  {
+    id: "day-of-schedule",
+    name: "Day-Of Schedule",
+    description: "Hour-by-hour timeline for the big day",
+    category: "day-of",
+    timelineFilters: ["1-month", "week-of"],
+    icon: "Clock",
+    suggestedInStarterPack: true,
+    fields: [
+      {
+        key: "events",
+        label: "Schedule",
+        type: "array",
+        arrayItemSchema: [
+          { key: "time", label: "Time", type: "text", required: true },
+          { key: "event", label: "Event", type: "text", required: true },
+        ],
+      },
+    ],
+  },
+
+  // Extras
+  {
+    id: "notes",
+    name: "Notes",
+    description: "Free-form notes and ideas",
+    category: "extras",
+    timelineFilters: ["12-months", "9-months", "6-months", "3-months", "1-month", "week-of"],
+    icon: "StickyNote",
+    fields: [
+      { key: "content", label: "Notes", type: "textarea" },
+    ],
+  },
+];
+
+// ============================================================================
+// HELPERS
+// ============================================================================
+
+export function getTemplateById(id: string): TemplateDefinition | undefined {
+  return templates.find((t) => t.id === id);
+}
+
+export function getTemplatesByCategory(
+  category: TemplateCategory
+): TemplateDefinition[] {
+  return templates.filter((t) => t.category === category);
+}
+
+export function getTemplatesByTimeline(
+  timeline: TimelineFilter
+): TemplateDefinition[] {
+  return templates.filter((t) => t.timelineFilters.includes(timeline));
+}
+
+export function getStarterPackTemplates(): TemplateDefinition[] {
+  return templates.filter((t) => t.suggestedInStarterPack);
+}
+
+export function getMarketplaceTemplates(): TemplateDefinition[] {
+  // Exclude cover page from marketplace
+  return templates.filter((t) => t.id !== "cover");
+}
+
+export const categoryLabels: Record<TemplateCategory, string> = {
+  essentials: "Essentials",
+  planning: "Planning & Tracking",
+  people: "People & Seating",
+  "day-of": "Day Of",
+  extras: "Extras",
+};
+
+export const timelineLabels: Record<TimelineFilter, string> = {
+  "12-months": "12+ Months Out",
+  "9-months": "9-12 Months Out",
+  "6-months": "6-9 Months Out",
+  "3-months": "3-6 Months Out",
+  "1-month": "1-3 Months Out",
+  "week-of": "Week Of",
+};
