@@ -16,3 +16,6 @@ export { CeremonyScriptRenderer } from "./CeremonyScriptRenderer";
 export { HoneymoonPlannerRenderer } from "./HoneymoonPlannerRenderer";
 export { RegistryTrackerRenderer } from "./RegistryTrackerRenderer";
 export { GiftLogRenderer } from "./GiftLogRenderer";
+export { VendorContactsRenderer } from "./VendorContactsRenderer";
+export { DayOfScheduleRenderer } from "./DayOfScheduleRenderer";
+export { SeatingChartRenderer } from "./SeatingChartRenderer";

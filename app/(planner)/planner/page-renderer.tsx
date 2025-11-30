@@ -22,6 +22,9 @@ import {
   HoneymoonPlannerRenderer,
   RegistryTrackerRenderer,
   GiftLogRenderer,
+  VendorContactsRenderer,
+  DayOfScheduleRenderer,
+  SeatingChartRenderer,
 } from "./renderers";
 
 interface PageRendererProps {
@@ -162,6 +165,42 @@ export function PageRenderer({ page, onFieldChange, allPages = [] }: PageRendere
   if (page.templateId === "gift-log") {
     return (
       <GiftLogRenderer
+        page={page}
+        fields={fields}
+        updateField={updateField}
+        allPages={allPages}
+      />
+    );
+  }
+
+  // Special rendering for vendor contacts
+  if (page.templateId === "vendor-contacts") {
+    return (
+      <VendorContactsRenderer
+        page={page}
+        fields={fields}
+        updateField={updateField}
+        allPages={allPages}
+      />
+    );
+  }
+
+  // Special rendering for day-of schedule
+  if (page.templateId === "day-of-schedule") {
+    return (
+      <DayOfScheduleRenderer
+        page={page}
+        fields={fields}
+        updateField={updateField}
+        allPages={allPages}
+      />
+    );
+  }
+
+  // Special rendering for seating chart
+  if (page.templateId === "seating-chart") {
+    return (
+      <SeatingChartRenderer
         page={page}
         fields={fields}
         updateField={updateField}
