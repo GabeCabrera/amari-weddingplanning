@@ -116,33 +116,33 @@ export function CoverPageRenderer({ page, fields, updateField }: BaseRendererPro
   const yearOptions = Array.from({ length: 7 }, (_, i) => currentYear - 1 + i);
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="bg-white shadow-lg aspect-[8.5/11] p-16 flex flex-col items-center justify-center text-center">
-        <div className="w-16 h-px bg-warm-400 mb-8" />
+    <div className="max-w-2xl mx-auto px-4 md:px-0">
+      <div className="bg-white shadow-lg aspect-auto md:aspect-[8.5/11] p-8 md:p-16 flex flex-col items-center justify-center text-center">
+        <div className="w-12 md:w-16 h-px bg-warm-400 mb-6 md:mb-8" />
         
-        <h1 className="text-5xl font-serif font-light tracking-widest uppercase mb-2">
+        <h1 className="text-3xl md:text-5xl font-serif font-light tracking-widest uppercase mb-2">
           Wedding
         </h1>
-        <p className="text-sm tracking-[0.4em] uppercase text-warm-500 mb-8">
+        <p className="text-xs md:text-sm tracking-[0.3em] md:tracking-[0.4em] uppercase text-warm-500 mb-6 md:mb-8">
           Planner
         </p>
         
-        <div className="w-16 h-px bg-warm-400 mb-12" />
+        <div className="w-12 md:w-16 h-px bg-warm-400 mb-8 md:mb-12" />
         
-        <div className="w-full max-w-xs space-y-8">
+        <div className="w-full max-w-xs space-y-6 md:space-y-8">
           {/* Names Input */}
           <div>
             <FieldLabel label="Names" fieldKey="names" />
             <Input
               value={(fields.names as string) || ""}
               onChange={(e) => updateField("names", e.target.value)}
-              className="text-center"
+              className="text-center text-sm md:text-base"
               placeholder="Your names (e.g., Emma & James)"
             />
           </div>
 
           {/* Custom Date Picker */}
-          <div>
+          <div className="relative">
             <FieldLabel label="Wedding Date" fieldKey="weddingDate" />
             
             {/* Date Display Button */}
@@ -151,41 +151,41 @@ export function CoverPageRenderer({ page, fields, updateField }: BaseRendererPro
               className="w-full group"
             >
               {displayDate ? (
-                <div className="p-4 border border-warm-200 hover:border-warm-400 transition-colors bg-gradient-to-b from-white to-warm-50">
-                  <div className="flex items-center justify-center gap-4">
+                <div className="p-3 md:p-4 border border-warm-200 hover:border-warm-400 transition-colors bg-gradient-to-b from-white to-warm-50">
+                  <div className="flex items-center justify-center gap-3 md:gap-4">
                     <div className="text-right">
-                      <p className="text-3xl font-serif font-light text-warm-700">
+                      <p className="text-xl md:text-3xl font-serif font-light text-warm-700">
                         {displayDate.month}
                       </p>
                     </div>
-                    <div className="w-px h-12 bg-warm-300" />
+                    <div className="w-px h-10 md:h-12 bg-warm-300" />
                     <div className="text-left">
-                      <p className="text-4xl font-serif font-light text-warm-800">
+                      <p className="text-2xl md:text-4xl font-serif font-light text-warm-800">
                         {displayDate.day}
                       </p>
-                      <p className="text-sm tracking-wider text-warm-500">
+                      <p className="text-xs md:text-sm tracking-wider text-warm-500">
                         {displayDate.year}
                       </p>
                     </div>
                   </div>
-                  <p className="text-xs text-warm-400 mt-3 group-hover:text-warm-600 transition-colors">
+                  <p className="text-[10px] md:text-xs text-warm-400 mt-2 md:mt-3 group-hover:text-warm-600 transition-colors">
                     Click to change date
                   </p>
                 </div>
               ) : (
-                <div className="p-6 border-2 border-dashed border-warm-300 hover:border-warm-400 transition-colors">
-                  <CalendarDays className="w-8 h-8 mx-auto text-warm-400 mb-2" />
-                  <p className="text-sm text-warm-500">Click to select your wedding date</p>
+                <div className="p-4 md:p-6 border-2 border-dashed border-warm-300 hover:border-warm-400 transition-colors">
+                  <CalendarDays className="w-6 h-6 md:w-8 md:h-8 mx-auto text-warm-400 mb-2" />
+                  <p className="text-xs md:text-sm text-warm-500">Click to select your wedding date</p>
                 </div>
               )}
             </button>
 
             {/* Calendar Dropdown */}
             {showDatePicker && (
-              <div className="absolute z-50 mt-2 left-1/2 -translate-x-1/2">
-                <div className="bg-white border border-warm-200 shadow-xl p-4 w-80">
+              <div className="absolute z-50 mt-2 left-1/2 -translate-x-1/2 w-full max-w-[300px] md:max-w-[320px]">
+                <div className="bg-white border border-warm-200 shadow-xl p-3 md:p-4">
                   {/* Month/Year Navigation */}
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-3 md:mb-4">
                     <button
                       onClick={goToPrevMonth}
                       className="p-2 hover:bg-warm-100 transition-colors"
@@ -193,11 +193,11 @@ export function CoverPageRenderer({ page, fields, updateField }: BaseRendererPro
                       <ChevronUp className="w-4 h-4 rotate-[-90deg]" />
                     </button>
                     
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 md:gap-2">
                       <select
                         value={viewMonth}
                         onChange={(e) => setViewMonth(parseInt(e.target.value))}
-                        className="px-2 py-1 text-sm border border-warm-200 bg-white font-medium"
+                        className="px-1 md:px-2 py-1 text-xs md:text-sm border border-warm-200 bg-white font-medium"
                       >
                         {MONTHS.map((month, index) => (
                           <option key={month} value={index}>{month}</option>
@@ -206,7 +206,7 @@ export function CoverPageRenderer({ page, fields, updateField }: BaseRendererPro
                       <select
                         value={viewYear}
                         onChange={(e) => setViewYear(parseInt(e.target.value))}
-                        className="px-2 py-1 text-sm border border-warm-200 bg-white font-medium"
+                        className="px-1 md:px-2 py-1 text-xs md:text-sm border border-warm-200 bg-white font-medium"
                       >
                         {yearOptions.map((year) => (
                           <option key={year} value={year}>{year}</option>
@@ -227,7 +227,7 @@ export function CoverPageRenderer({ page, fields, updateField }: BaseRendererPro
                     {DAYS_OF_WEEK.map((day) => (
                       <div
                         key={day}
-                        className="text-center text-xs font-medium text-warm-500 py-1"
+                        className="text-center text-[10px] md:text-xs font-medium text-warm-500 py-1"
                       >
                         {day}
                       </div>
@@ -242,7 +242,7 @@ export function CoverPageRenderer({ page, fields, updateField }: BaseRendererPro
                           <button
                             onClick={() => handleDateSelect(day)}
                             className={`
-                              w-full aspect-square flex items-center justify-center text-sm
+                              w-full aspect-square flex items-center justify-center text-xs md:text-sm
                               transition-all duration-150
                               ${isSelectedDate(day)
                                 ? "bg-warm-700 text-white font-medium"
@@ -262,21 +262,21 @@ export function CoverPageRenderer({ page, fields, updateField }: BaseRendererPro
                   </div>
 
                   {/* Clear/Close Buttons */}
-                  <div className="flex gap-2 mt-4 pt-4 border-t border-warm-200">
+                  <div className="flex gap-2 mt-3 md:mt-4 pt-3 md:pt-4 border-t border-warm-200">
                     {weddingDate && (
                       <button
                         onClick={() => {
                           updateField("weddingDate", "");
                           setShowDatePicker(false);
                         }}
-                        className="flex-1 px-3 py-2 text-sm text-warm-500 hover:text-warm-700 hover:bg-warm-50 transition-colors"
+                        className="flex-1 px-2 md:px-3 py-2 text-xs md:text-sm text-warm-500 hover:text-warm-700 hover:bg-warm-50 transition-colors"
                       >
                         Clear Date
                       </button>
                     )}
                     <button
                       onClick={() => setShowDatePicker(false)}
-                      className="flex-1 px-3 py-2 text-sm bg-warm-100 text-warm-700 hover:bg-warm-200 transition-colors"
+                      className="flex-1 px-2 md:px-3 py-2 text-xs md:text-sm bg-warm-100 text-warm-700 hover:bg-warm-200 transition-colors"
                     >
                       Close
                     </button>

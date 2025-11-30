@@ -1,10 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Plane, Hotel, Map, Briefcase, FileText, Sparkles, DollarSign } from "lucide-react";
+import { Plus, Trash2, Plane, Hotel, Map, Briefcase, FileText, Sparkles, DollarSign, ChevronDown, ChevronUp } from "lucide-react";
 import { type BaseRendererProps } from "./types";
 
 export function HoneymoonPlannerRenderer({ page, fields, updateField }: BaseRendererProps) {
@@ -13,6 +14,10 @@ export function HoneymoonPlannerRenderer({ page, fields, updateField }: BaseRend
   const activities = (fields.activities as Record<string, unknown>[]) || [];
   const packingList = (fields.packingList as Record<string, unknown>[]) || [];
   const documents = (fields.documents as Record<string, unknown>[]) || [];
+
+  const [expandedFlight, setExpandedFlight] = useState<number | null>(null);
+  const [expandedAccommodation, setExpandedAccommodation] = useState<number | null>(null);
+  const [expandedActivity, setExpandedActivity] = useState<number | null>(null);
 
   // Calculate trip duration
   const departureDate = fields.departureDate as string;
@@ -95,67 +100,70 @@ export function HoneymoonPlannerRenderer({ page, fields, updateField }: BaseRend
   const packedCount = packingList.filter(item => item.packed).length;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white shadow-lg p-8 md:p-12">
+    <div className="max-w-4xl mx-auto px-4 md:px-0">
+      <div className="bg-white shadow-lg p-4 md:p-8 lg:p-12">
         {/* Page Header */}
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-serif font-light tracking-wide">
+        <div className="text-center mb-6 md:mb-10">
+          <h2 className="text-2xl md:text-3xl font-serif font-light tracking-wide">
             {page.title}
           </h2>
-          <div className="w-10 h-px bg-warm-400 mx-auto mt-4" />
+          <div className="w-10 h-px bg-warm-400 mx-auto mt-3 md:mt-4" />
         </div>
 
         {/* Destination & Overview */}
-        <div className="mb-10 p-6 bg-gradient-to-br from-blue-50 to-warm-50 border border-warm-200 rounded">
-          <div className="grid md:grid-cols-2 gap-6">
+        <div className="mb-8 md:mb-10 p-4 md:p-6 bg-gradient-to-br from-blue-50 to-warm-50 border border-warm-200 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Map className="w-5 h-5 text-blue-500" />
-                <Label className="text-warm-600 font-medium">Destination</Label>
+              <div className="flex items-center gap-2 mb-2 md:mb-3">
+                <Map className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />
+                <Label className="text-warm-600 font-medium text-sm md:text-base">Destination</Label>
               </div>
               <Input
                 value={(fields.destination as string) || ""}
                 onChange={(e) => updateField("destination", e.target.value)}
-                placeholder="Where are you going? (e.g., Bali, Indonesia)"
-                className="text-lg"
+                placeholder="Where are you going?"
+                className="text-sm md:text-lg"
               />
             </div>
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <DollarSign className="w-5 h-5 text-green-500" />
-                <Label className="text-warm-600 font-medium">Budget</Label>
+              <div className="flex items-center gap-2 mb-2 md:mb-3">
+                <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
+                <Label className="text-warm-600 font-medium text-sm md:text-base">Budget</Label>
               </div>
               <Input
                 type="number"
                 value={(fields.budget as string) || ""}
                 onChange={(e) => updateField("budget", e.target.value)}
                 placeholder="Total budget"
+                className="text-sm md:text-base"
               />
             </div>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-warm-200">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-4 md:mt-6 pt-4 md:pt-6 border-t border-warm-200">
             <div className="space-y-1">
-              <Label className="text-xs text-warm-500">Departure</Label>
+              <Label className="text-[10px] md:text-xs text-warm-500">Departure</Label>
               <Input
                 type="date"
                 value={(fields.departureDate as string) || ""}
                 onChange={(e) => updateField("departureDate", e.target.value)}
+                className="text-xs md:text-sm"
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-warm-500">Return</Label>
+              <Label className="text-[10px] md:text-xs text-warm-500">Return</Label>
               <Input
                 type="date"
                 value={(fields.returnDate as string) || ""}
                 onChange={(e) => updateField("returnDate", e.target.value)}
+                className="text-xs md:text-sm"
               />
             </div>
             <div className="col-span-2 flex items-end">
               {tripDays !== null && tripDays > 0 && (
                 <div className="text-center w-full p-2 bg-white rounded">
-                  <span className="text-2xl font-light text-blue-600">{tripDays}</span>
-                  <span className="text-sm text-warm-500 ml-2">nights</span>
+                  <span className="text-xl md:text-2xl font-light text-blue-600">{tripDays}</span>
+                  <span className="text-xs md:text-sm text-warm-500 ml-1 md:ml-2">nights</span>
                 </div>
               )}
             </div>
@@ -163,205 +171,432 @@ export function HoneymoonPlannerRenderer({ page, fields, updateField }: BaseRend
         </div>
 
         {/* Flights */}
-        <div className="mb-10">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-8 md:mb-10">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
             <div className="flex items-center gap-2">
-              <Plane className="w-5 h-5 text-sky-500" />
-              <h3 className="text-lg font-medium text-warm-700">Flights</h3>
+              <Plane className="w-4 h-4 md:w-5 md:h-5 text-sky-500" />
+              <h3 className="text-base md:text-lg font-medium text-warm-700">Flights</h3>
             </div>
             <Button variant="ghost" size="sm" onClick={addFlight}>
-              <Plus className="w-4 h-4 mr-1" />
-              Add Flight
+              <Plus className="w-4 h-4 md:mr-1" />
+              <span className="hidden md:inline">Add</span>
             </Button>
           </div>
 
           {flights.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               {flights.map((flight, index) => (
-                <div key={index} className="p-4 border border-warm-200 rounded group">
-                  <div className="grid grid-cols-6 gap-3">
-                    <Input
-                      value={(flight.airline as string) || ""}
-                      onChange={(e) => updateFlight(index, "airline", e.target.value)}
-                      placeholder="Airline"
-                    />
-                    <Input
-                      value={(flight.flightNumber as string) || ""}
-                      onChange={(e) => updateFlight(index, "flightNumber", e.target.value)}
-                      placeholder="Flight #"
-                    />
-                    <Input
-                      value={(flight.departure as string) || ""}
-                      onChange={(e) => updateFlight(index, "departure", e.target.value)}
-                      placeholder="From"
-                    />
-                    <Input
-                      value={(flight.arrival as string) || ""}
-                      onChange={(e) => updateFlight(index, "arrival", e.target.value)}
-                      placeholder="To"
-                    />
-                    <Input
-                      type="date"
-                      value={(flight.date as string) || ""}
-                      onChange={(e) => updateFlight(index, "date", e.target.value)}
-                    />
-                    <div className="flex gap-2">
+                <div key={index} className="border border-warm-200 rounded-lg overflow-hidden group">
+                  {/* Mobile: Collapsible */}
+                  <div className="md:hidden">
+                    <button
+                      onClick={() => setExpandedFlight(expandedFlight === index ? null : index)}
+                      className="w-full p-3 flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Plane className="w-4 h-4 text-sky-500 flex-shrink-0" />
+                        <span className="font-medium text-sm truncate">
+                          {(flight.airline as string) || "New Flight"}
+                        </span>
+                        {flight.flightNumber && (
+                          <span className="text-xs text-warm-400">#{flight.flightNumber as string}</span>
+                        )}
+                      </div>
+                      {expandedFlight === index ? (
+                        <ChevronUp className="w-4 h-4 text-warm-400" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-warm-400" />
+                      )}
+                    </button>
+                    
+                    {expandedFlight === index && (
+                      <div className="p-3 pt-0 space-y-2 border-t border-warm-100">
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input
+                            value={(flight.airline as string) || ""}
+                            onChange={(e) => updateFlight(index, "airline", e.target.value)}
+                            placeholder="Airline"
+                            className="text-sm"
+                          />
+                          <Input
+                            value={(flight.flightNumber as string) || ""}
+                            onChange={(e) => updateFlight(index, "flightNumber", e.target.value)}
+                            placeholder="Flight #"
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input
+                            value={(flight.departure as string) || ""}
+                            onChange={(e) => updateFlight(index, "departure", e.target.value)}
+                            placeholder="From"
+                            className="text-sm"
+                          />
+                          <Input
+                            value={(flight.arrival as string) || ""}
+                            onChange={(e) => updateFlight(index, "arrival", e.target.value)}
+                            placeholder="To"
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input
+                            type="date"
+                            value={(flight.date as string) || ""}
+                            onChange={(e) => updateFlight(index, "date", e.target.value)}
+                            className="text-sm"
+                          />
+                          <Input
+                            value={(flight.confirmationCode as string) || ""}
+                            onChange={(e) => updateFlight(index, "confirmationCode", e.target.value)}
+                            placeholder="Confirmation"
+                            className="text-sm"
+                          />
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeFlight(index)}
+                          className="w-full text-red-500 hover:text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Remove
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Desktop: Row */}
+                  <div className="hidden md:block p-4">
+                    <div className="grid grid-cols-6 gap-3">
                       <Input
-                        value={(flight.confirmationCode as string) || ""}
-                        onChange={(e) => updateFlight(index, "confirmationCode", e.target.value)}
-                        placeholder="Confirmation"
-                        className="flex-1"
+                        value={(flight.airline as string) || ""}
+                        onChange={(e) => updateFlight(index, "airline", e.target.value)}
+                        placeholder="Airline"
+                        className="text-sm"
                       />
-                      <button
-                        onClick={() => removeFlight(index)}
-                        className="p-2 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <Input
+                        value={(flight.flightNumber as string) || ""}
+                        onChange={(e) => updateFlight(index, "flightNumber", e.target.value)}
+                        placeholder="Flight #"
+                        className="text-sm"
+                      />
+                      <Input
+                        value={(flight.departure as string) || ""}
+                        onChange={(e) => updateFlight(index, "departure", e.target.value)}
+                        placeholder="From"
+                        className="text-sm"
+                      />
+                      <Input
+                        value={(flight.arrival as string) || ""}
+                        onChange={(e) => updateFlight(index, "arrival", e.target.value)}
+                        placeholder="To"
+                        className="text-sm"
+                      />
+                      <Input
+                        type="date"
+                        value={(flight.date as string) || ""}
+                        onChange={(e) => updateFlight(index, "date", e.target.value)}
+                        className="text-sm"
+                      />
+                      <div className="flex gap-2">
+                        <Input
+                          value={(flight.confirmationCode as string) || ""}
+                          onChange={(e) => updateFlight(index, "confirmationCode", e.target.value)}
+                          placeholder="Confirmation"
+                          className="flex-1 text-sm"
+                        />
+                        <button
+                          onClick={() => removeFlight(index)}
+                          className="p-2 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-warm-400 italic text-center py-6 bg-warm-50 rounded">
+            <p className="text-xs md:text-sm text-warm-400 italic text-center py-4 md:py-6 bg-warm-50 rounded-lg">
               No flights added yet
             </p>
           )}
         </div>
 
         {/* Accommodations */}
-        <div className="mb-10">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-8 md:mb-10">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
             <div className="flex items-center gap-2">
-              <Hotel className="w-5 h-5 text-purple-500" />
-              <h3 className="text-lg font-medium text-warm-700">Accommodations</h3>
+              <Hotel className="w-4 h-4 md:w-5 md:h-5 text-purple-500" />
+              <h3 className="text-base md:text-lg font-medium text-warm-700">Accommodations</h3>
             </div>
             <Button variant="ghost" size="sm" onClick={addAccommodation}>
-              <Plus className="w-4 h-4 mr-1" />
-              Add Hotel
+              <Plus className="w-4 h-4 md:mr-1" />
+              <span className="hidden md:inline">Add</span>
             </Button>
           </div>
 
           {accommodations.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               {accommodations.map((acc, index) => (
-                <div key={index} className="p-4 border border-warm-200 rounded group">
-                  <div className="grid grid-cols-5 gap-3 mb-2">
-                    <Input
-                      value={(acc.name as string) || ""}
-                      onChange={(e) => updateAccommodation(index, "name", e.target.value)}
-                      placeholder="Hotel/Resort name"
-                      className="col-span-2 font-medium"
-                    />
-                    <Input
-                      type="date"
-                      value={(acc.checkIn as string) || ""}
-                      onChange={(e) => updateAccommodation(index, "checkIn", e.target.value)}
-                      placeholder="Check In"
-                    />
-                    <Input
-                      type="date"
-                      value={(acc.checkOut as string) || ""}
-                      onChange={(e) => updateAccommodation(index, "checkOut", e.target.value)}
-                      placeholder="Check Out"
-                    />
-                    <div className="flex gap-2">
-                      <Input
-                        value={(acc.confirmationCode as string) || ""}
-                        onChange={(e) => updateAccommodation(index, "confirmationCode", e.target.value)}
-                        placeholder="Confirmation"
-                        className="flex-1"
-                      />
-                      <button
-                        onClick={() => removeAccommodation(index)}
-                        className="p-2 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                <div key={index} className="border border-warm-200 rounded-lg overflow-hidden group">
+                  {/* Mobile: Collapsible */}
+                  <div className="md:hidden">
+                    <button
+                      onClick={() => setExpandedAccommodation(expandedAccommodation === index ? null : index)}
+                      className="w-full p-3 flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Hotel className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                        <span className="font-medium text-sm truncate">
+                          {(acc.name as string) || "New Accommodation"}
+                        </span>
+                      </div>
+                      {expandedAccommodation === index ? (
+                        <ChevronUp className="w-4 h-4 text-warm-400" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-warm-400" />
+                      )}
+                    </button>
+                    
+                    {expandedAccommodation === index && (
+                      <div className="p-3 pt-0 space-y-2 border-t border-warm-100">
+                        <Input
+                          value={(acc.name as string) || ""}
+                          onChange={(e) => updateAccommodation(index, "name", e.target.value)}
+                          placeholder="Hotel/Resort name"
+                          className="text-sm font-medium"
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-1">
+                            <Label className="text-[10px] text-warm-500">Check In</Label>
+                            <Input
+                              type="date"
+                              value={(acc.checkIn as string) || ""}
+                              onChange={(e) => updateAccommodation(index, "checkIn", e.target.value)}
+                              className="text-sm"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[10px] text-warm-500">Check Out</Label>
+                            <Input
+                              type="date"
+                              value={(acc.checkOut as string) || ""}
+                              onChange={(e) => updateAccommodation(index, "checkOut", e.target.value)}
+                              className="text-sm"
+                            />
+                          </div>
+                        </div>
+                        <Input
+                          value={(acc.confirmationCode as string) || ""}
+                          onChange={(e) => updateAccommodation(index, "confirmationCode", e.target.value)}
+                          placeholder="Confirmation code"
+                          className="text-sm"
+                        />
+                        <Input
+                          value={(acc.address as string) || ""}
+                          onChange={(e) => updateAccommodation(index, "address", e.target.value)}
+                          placeholder="Address"
+                          className="text-sm"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeAccommodation(index)}
+                          className="w-full text-red-500 hover:text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Remove
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                  <Input
-                    value={(acc.address as string) || ""}
-                    onChange={(e) => updateAccommodation(index, "address", e.target.value)}
-                    placeholder="Address"
-                    className="text-sm"
-                  />
+
+                  {/* Desktop: Row */}
+                  <div className="hidden md:block p-4">
+                    <div className="grid grid-cols-5 gap-3 mb-2">
+                      <Input
+                        value={(acc.name as string) || ""}
+                        onChange={(e) => updateAccommodation(index, "name", e.target.value)}
+                        placeholder="Hotel/Resort name"
+                        className="col-span-2 font-medium text-sm"
+                      />
+                      <Input
+                        type="date"
+                        value={(acc.checkIn as string) || ""}
+                        onChange={(e) => updateAccommodation(index, "checkIn", e.target.value)}
+                        placeholder="Check In"
+                        className="text-sm"
+                      />
+                      <Input
+                        type="date"
+                        value={(acc.checkOut as string) || ""}
+                        onChange={(e) => updateAccommodation(index, "checkOut", e.target.value)}
+                        placeholder="Check Out"
+                        className="text-sm"
+                      />
+                      <div className="flex gap-2">
+                        <Input
+                          value={(acc.confirmationCode as string) || ""}
+                          onChange={(e) => updateAccommodation(index, "confirmationCode", e.target.value)}
+                          placeholder="Confirmation"
+                          className="flex-1 text-sm"
+                        />
+                        <button
+                          onClick={() => removeAccommodation(index)}
+                          className="p-2 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <Input
+                      value={(acc.address as string) || ""}
+                      onChange={(e) => updateAccommodation(index, "address", e.target.value)}
+                      placeholder="Address"
+                      className="text-sm"
+                    />
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-warm-400 italic text-center py-6 bg-warm-50 rounded">
+            <p className="text-xs md:text-sm text-warm-400 italic text-center py-4 md:py-6 bg-warm-50 rounded-lg">
               No accommodations added yet
             </p>
           )}
         </div>
 
         {/* Activities */}
-        <div className="mb-10">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-8 md:mb-10">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-amber-500" />
-              <h3 className="text-lg font-medium text-warm-700">Activities & Reservations</h3>
+              <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
+              <h3 className="text-base md:text-lg font-medium text-warm-700">Activities</h3>
             </div>
             <Button variant="ghost" size="sm" onClick={addActivity}>
-              <Plus className="w-4 h-4 mr-1" />
-              Add Activity
+              <Plus className="w-4 h-4 md:mr-1" />
+              <span className="hidden md:inline">Add</span>
             </Button>
           </div>
 
           {activities.length > 0 ? (
             <div className="space-y-2">
               {activities.map((activity, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 border border-warm-200 rounded group">
-                  <Input
-                    value={(activity.activity as string) || ""}
-                    onChange={(e) => updateActivity(index, "activity", e.target.value)}
-                    placeholder="Activity name"
-                    className="flex-1"
-                  />
-                  <Input
-                    type="date"
-                    value={(activity.date as string) || ""}
-                    onChange={(e) => updateActivity(index, "date", e.target.value)}
-                    className="w-36"
-                  />
-                  <Input
-                    value={(activity.time as string) || ""}
-                    onChange={(e) => updateActivity(index, "time", e.target.value)}
-                    placeholder="Time"
-                    className="w-24"
-                  />
-                  <Input
-                    value={(activity.confirmationCode as string) || ""}
-                    onChange={(e) => updateActivity(index, "confirmationCode", e.target.value)}
-                    placeholder="Confirmation"
-                    className="w-32"
-                  />
-                  <button
-                    onClick={() => removeActivity(index)}
-                    className="p-1 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                <div key={index} className="border border-warm-200 rounded-lg overflow-hidden group">
+                  {/* Mobile: Collapsible */}
+                  <div className="md:hidden">
+                    <button
+                      onClick={() => setExpandedActivity(expandedActivity === index ? null : index)}
+                      className="w-full p-3 flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Sparkles className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                        <span className="font-medium text-sm truncate">
+                          {(activity.activity as string) || "New Activity"}
+                        </span>
+                      </div>
+                      {expandedActivity === index ? (
+                        <ChevronUp className="w-4 h-4 text-warm-400" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-warm-400" />
+                      )}
+                    </button>
+                    
+                    {expandedActivity === index && (
+                      <div className="p-3 pt-0 space-y-2 border-t border-warm-100">
+                        <Input
+                          value={(activity.activity as string) || ""}
+                          onChange={(e) => updateActivity(index, "activity", e.target.value)}
+                          placeholder="Activity name"
+                          className="text-sm"
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input
+                            type="date"
+                            value={(activity.date as string) || ""}
+                            onChange={(e) => updateActivity(index, "date", e.target.value)}
+                            className="text-sm"
+                          />
+                          <Input
+                            value={(activity.time as string) || ""}
+                            onChange={(e) => updateActivity(index, "time", e.target.value)}
+                            placeholder="Time"
+                            className="text-sm"
+                          />
+                        </div>
+                        <Input
+                          value={(activity.confirmationCode as string) || ""}
+                          onChange={(e) => updateActivity(index, "confirmationCode", e.target.value)}
+                          placeholder="Confirmation code"
+                          className="text-sm"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeActivity(index)}
+                          className="w-full text-red-500 hover:text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Remove
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Desktop: Row */}
+                  <div className="hidden md:flex items-center gap-3 p-3">
+                    <Input
+                      value={(activity.activity as string) || ""}
+                      onChange={(e) => updateActivity(index, "activity", e.target.value)}
+                      placeholder="Activity name"
+                      className="flex-1 text-sm"
+                    />
+                    <Input
+                      type="date"
+                      value={(activity.date as string) || ""}
+                      onChange={(e) => updateActivity(index, "date", e.target.value)}
+                      className="w-36 text-sm"
+                    />
+                    <Input
+                      value={(activity.time as string) || ""}
+                      onChange={(e) => updateActivity(index, "time", e.target.value)}
+                      placeholder="Time"
+                      className="w-24 text-sm"
+                    />
+                    <Input
+                      value={(activity.confirmationCode as string) || ""}
+                      onChange={(e) => updateActivity(index, "confirmationCode", e.target.value)}
+                      placeholder="Confirmation"
+                      className="w-32 text-sm"
+                    />
+                    <button
+                      onClick={() => removeActivity(index)}
+                      className="p-1 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-warm-400 italic text-center py-6 bg-warm-50 rounded">
-              No activities planned yet. Add tours, dinners, or experiences!
+            <p className="text-xs md:text-sm text-warm-400 italic text-center py-4 md:py-6 bg-warm-50 rounded-lg">
+              No activities planned yet
             </p>
           )}
         </div>
 
         {/* Two Column Layout: Documents & Packing */}
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
           {/* Travel Documents */}
           <div>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-3 md:mb-4">
               <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-red-500" />
-                <h3 className="text-lg font-medium text-warm-700">Documents</h3>
+                <FileText className="w-4 h-4 md:w-5 md:h-5 text-red-500" />
+                <h3 className="text-base md:text-lg font-medium text-warm-700">Documents</h3>
               </div>
               <Button variant="ghost" size="sm" onClick={addDocument}>
                 <Plus className="w-4 h-4" />
@@ -371,35 +606,35 @@ export function HoneymoonPlannerRenderer({ page, fields, updateField }: BaseRend
             {documents.length > 0 ? (
               <div className="space-y-2">
                 {documents.map((doc, index) => (
-                  <div key={index} className="flex items-center gap-2 p-2 border border-warm-200 rounded group">
+                  <div key={index} className="flex items-center gap-2 p-2 border border-warm-200 rounded-lg group">
                     <Input
                       value={(doc.document as string) || ""}
                       onChange={(e) => updateDocument(index, "document", e.target.value)}
                       placeholder="Document"
-                      className="flex-1 text-sm"
+                      className="flex-1 text-xs md:text-sm"
                     />
                     <select
                       value={(doc.status as string) || ""}
                       onChange={(e) => updateDocument(index, "status", e.target.value)}
-                      className="w-28 px-2 py-1.5 border border-warm-300 text-sm rounded bg-white"
+                      className="w-24 md:w-28 px-2 py-1.5 border border-warm-300 text-xs md:text-sm rounded bg-white"
                     >
                       <option value="">Status</option>
                       <option value="Have it">Have it</option>
-                      <option value="Need to get">Need to get</option>
+                      <option value="Need to get">Need</option>
                       <option value="Applied">Applied</option>
                       <option value="Expired">Expired</option>
                     </select>
                     <button
                       onClick={() => removeDocument(index)}
-                      className="p-1 opacity-0 group-hover:opacity-100 hover:text-red-500"
+                      className="p-1 md:opacity-0 group-hover:opacity-100 hover:text-red-500"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
                     </button>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-warm-400 italic text-center py-4 bg-warm-50 rounded">
+              <p className="text-xs md:text-sm text-warm-400 italic text-center py-4 bg-warm-50 rounded-lg">
                 Add passports, visas, etc.
               </p>
             )}
@@ -407,13 +642,13 @@ export function HoneymoonPlannerRenderer({ page, fields, updateField }: BaseRend
 
           {/* Packing List */}
           <div>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-3 md:mb-4">
               <div className="flex items-center gap-2">
-                <Briefcase className="w-5 h-5 text-teal-500" />
-                <h3 className="text-lg font-medium text-warm-700">Packing</h3>
+                <Briefcase className="w-4 h-4 md:w-5 md:h-5 text-teal-500" />
+                <h3 className="text-base md:text-lg font-medium text-warm-700">Packing</h3>
                 {packingList.length > 0 && (
-                  <span className="text-xs text-warm-500">
-                    {packedCount}/{packingList.length} packed
+                  <span className="text-[10px] md:text-xs text-warm-500">
+                    {packedCount}/{packingList.length}
                   </span>
                 )}
               </div>
@@ -425,7 +660,7 @@ export function HoneymoonPlannerRenderer({ page, fields, updateField }: BaseRend
             {packingList.length > 0 ? (
               <div className="space-y-1">
                 {packingList.map((item, index) => (
-                  <div key={index} className="flex items-center gap-2 p-2 border border-warm-200 rounded group hover:bg-warm-50">
+                  <div key={index} className="flex items-center gap-2 p-1.5 md:p-2 border border-warm-200 rounded-lg group hover:bg-warm-50">
                     <input
                       type="checkbox"
                       checked={(item.packed as boolean) || false}
@@ -436,11 +671,11 @@ export function HoneymoonPlannerRenderer({ page, fields, updateField }: BaseRend
                       value={(item.item as string) || ""}
                       onChange={(e) => updatePackingItem(index, "item", e.target.value)}
                       placeholder="Item"
-                      className={`flex-1 text-sm border-0 bg-transparent ${item.packed ? "line-through text-warm-400" : ""}`}
+                      className={`flex-1 text-xs md:text-sm border-0 bg-transparent ${item.packed ? "line-through text-warm-400" : ""}`}
                     />
                     <button
                       onClick={() => removePackingItem(index)}
-                      className="p-1 opacity-0 group-hover:opacity-100 hover:text-red-500"
+                      className="p-1 md:opacity-0 group-hover:opacity-100 hover:text-red-500"
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
@@ -448,7 +683,7 @@ export function HoneymoonPlannerRenderer({ page, fields, updateField }: BaseRend
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-warm-400 italic text-center py-4 bg-warm-50 rounded">
+              <p className="text-xs md:text-sm text-warm-400 italic text-center py-4 bg-warm-50 rounded-lg">
                 Start your packing list!
               </p>
             )}
@@ -456,13 +691,14 @@ export function HoneymoonPlannerRenderer({ page, fields, updateField }: BaseRend
         </div>
 
         {/* Notes */}
-        <div className="mt-10">
-          <Label className="text-warm-600 mb-2 block">Notes</Label>
+        <div className="mt-8 md:mt-10">
+          <Label className="text-warm-600 mb-2 block text-sm md:text-base">Notes</Label>
           <Textarea
             value={(fields.notes as string) || ""}
             onChange={(e) => updateField("notes", e.target.value)}
             placeholder="Any other notes, ideas, or things to remember..."
             rows={4}
+            className="text-sm"
           />
         </div>
       </div>
