@@ -198,8 +198,8 @@ export function HoneymoonPlannerRenderer({ page, fields, updateField }: BaseRend
                         <span className="font-medium text-sm truncate">
                           {(flight.airline as string) || "New Flight"}
                         </span>
-                        {flight.flightNumber && (
-                          <span className="text-xs text-warm-400">#{flight.flightNumber as string}</span>
+                        {typeof flight.flightNumber === 'string' && flight.flightNumber && (
+                          <span className="text-xs text-warm-400">#{flight.flightNumber}</span>
                         )}
                       </div>
                       {expandedFlight === index ? (
