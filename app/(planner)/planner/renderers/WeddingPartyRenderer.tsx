@@ -15,7 +15,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { type BaseRendererProps, type PartyMember, type MessageGroup, type PartyGroup } from "./types";
+import { type RendererWithAllPagesProps, type PartyMember, type MessageGroup, type PartyGroup } from "./types";
 
 // Helper to get role icon
 function getRoleIcon(role: string) {
@@ -254,7 +254,7 @@ function PartySection({
   );
 }
 
-export function WeddingPartyRenderer({ page, fields, updateField }: BaseRendererProps) {
+export function WeddingPartyRenderer({ page, fields, updateField, allPages }: RendererWithAllPagesProps) {
   const bridesmaids = (fields.bridesmaids as PartyMember[]) || [];
   const groomsmen = (fields.groomsmen as PartyMember[]) || [];
   const others = (fields.others as PartyMember[]) || [];

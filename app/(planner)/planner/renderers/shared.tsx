@@ -1,8 +1,8 @@
 "use client";
 
-import { isSharedField } from "@/lib/state";
+import { isSharedField, usePlanner } from "@/lib/state";
 import { Label } from "@/components/ui/label";
-import { Link as LinkIcon, Sparkles, ArrowRight } from "lucide-react";
+import { Link as LinkIcon, Sparkles, ArrowRight, Plus, Lock } from "lucide-react";
 import Link from "next/link";
 import {
   Tooltip,
@@ -10,6 +10,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { type Page } from "@/lib/db/schema";
+import { getTemplateById, isTemplateFree } from "@/lib/templates/registry";
+import { useUserPlan } from "../context";
 
 // Field label component with shared field indicator
 export function FieldLabel({ label, fieldKey }: { label: string; fieldKey: string }) {
@@ -32,6 +35,153 @@ export function FieldLabel({ label, fieldKey }: { label: string; fieldKey: strin
           </Tooltip>
         </TooltipProvider>
       )}
+    </div>
+  );
+}
+
+// ============================================================================
+// TEMPLATE LINK COMPONENT - Navigate between related templates
+// ============================================================================
+
+interface TemplateLinkProps {
+  templateId: string;
+  allPages: Page[];
+  children: React.ReactNode;
+  className?: string;
+}
+
+/**
+ * TemplateLink - Inline navigation between templates
+ * 
+ * Usage:
+ * <TemplateLink templateId="vendor-contacts" allPages={allPages}>
+ *   View Vendor Contacts →
+ * </TemplateLink>
+ * 
+ * Behavior:
+ * - If user has the template: clicks navigate to it
+ * - If user doesn't have it but can add it (complete plan): shows "Add template" link
+ * - If user is on free plan and template isn't free: shows upgrade prompt
+ */
+export function TemplateLink({ templateId, allPages, children, className = "" }: TemplateLinkProps) {
+  const { selectPage } = usePlanner();
+  const { isFree } = useUserPlan();
+  
+  // Find if user already has this template
+  const existingPage = allPages.find(p => p.templateId === templateId);
+  
+  // Get template info
+  const template = getTemplateById(templateId);
+  const templateIsFree = isTemplateFree(templateId);
+  const canAccess = !isFree || templateIsFree;
+  
+  // User has the template - show navigation link
+  if (existingPage) {
+    return (
+      <button
+        onClick={() => selectPage(existingPage.id)}
+        className={`inline-flex items-center gap-1 text-warm-600 hover:text-warm-800 transition-colors group ${className}`}
+      >
+        {children}
+        <ArrowRight className="w-3 h-3 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+      </button>
+    );
+  }
+  
+  // User doesn't have template but can add it
+  if (canAccess && template) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              href={`/templates?mode=add&highlight=${templateId}`}
+              className={`inline-flex items-center gap-1 text-warm-500 hover:text-warm-700 transition-colors ${className}`}
+            >
+              <Plus className="w-3 h-3" />
+              <span className="border-b border-dashed border-warm-400">{template.name}</span>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">Add {template.name} template</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+  
+  // User is on free plan and can't access - show upgrade hint
+  if (!canAccess && template) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              href="/settings?tab=plan"
+              className={`inline-flex items-center gap-1 text-purple-500 hover:text-purple-700 transition-colors ${className}`}
+            >
+              <Lock className="w-3 h-3" />
+              <span className="border-b border-dashed border-purple-400">{template.name}</span>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">Upgrade to access {template.name}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+  
+  // Fallback - template doesn't exist
+  return <span className={`text-warm-400 ${className}`}>{children}</span>;
+}
+
+// ============================================================================
+// RELATED TEMPLATES SECTION - Show at bottom of templates
+// ============================================================================
+
+interface RelatedTemplatesProps {
+  templateIds: string[];
+  allPages: Page[];
+  title?: string;
+}
+
+/**
+ * RelatedTemplates - Show a section of related template links
+ * 
+ * Usage:
+ * <RelatedTemplates 
+ *   templateIds={["vendor-contacts", "seating-chart"]} 
+ *   allPages={allPages}
+ *   title="Related"
+ * />
+ */
+export function RelatedTemplates({ templateIds, allPages, title = "Related" }: RelatedTemplatesProps) {
+  const templates = templateIds
+    .map(id => getTemplateById(id))
+    .filter(Boolean);
+  
+  if (templates.length === 0) return null;
+  
+  return (
+    <div className="mt-8 pt-6 border-t border-warm-200">
+      <p className="text-xs uppercase tracking-wider text-warm-400 mb-3">{title}</p>
+      <div className="flex flex-wrap gap-3">
+        {templateIds.map(templateId => {
+          const template = getTemplateById(templateId);
+          if (!template) return null;
+          return (
+            <TemplateLink 
+              key={templateId} 
+              templateId={templateId} 
+              allPages={allPages}
+              className="text-sm"
+            >
+              {template.name}
+            </TemplateLink>
+          );
+        })}
+      </div>
     </div>
   );
 }

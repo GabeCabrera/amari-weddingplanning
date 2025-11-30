@@ -10,7 +10,7 @@ import {
   Phone, Palette, CheckCircle2, AlertCircle, TrendingUp, Sparkles,
   ChevronRight, Circle, Music, Utensils, Camera
 } from "lucide-react";
-import { type BaseRendererProps } from "./types";
+import { type RendererWithAllPagesProps } from "./types";
 import { useWeddingData } from "../context";
 import { formatCurrency, formatDate } from "./shared";
 
@@ -101,7 +101,7 @@ function TypewriterText({
 // MAIN COMPONENT
 // ============================================================================
 
-export function OverviewRenderer({ page, fields, updateField }: BaseRendererProps) {
+export function OverviewRenderer({ page, fields, updateField, allPages }: RendererWithAllPagesProps) {
   const [showAllTasks, setShowAllTasks] = useState(false);
 
   // Get ALL wedding data from the centralized context

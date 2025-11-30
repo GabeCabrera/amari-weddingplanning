@@ -14,12 +14,12 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { type BaseRendererProps, type RsvpFormData } from "./types";
-import { RSVP_FIELD_OPTIONS, UpgradePrompt, UPGRADE_SUGGESTIONS } from "./shared";
+import { type RendererWithAllPagesProps, type RsvpFormData } from "./types";
+import { RSVP_FIELD_OPTIONS, UpgradePrompt, UPGRADE_SUGGESTIONS, RelatedTemplates } from "./shared";
 import { useUserPlan } from "../context";
 import { LayoutGrid } from "lucide-react";
 
-export function GuestListRenderer({ page, fields, updateField }: BaseRendererProps) {
+export function GuestListRenderer({ page, fields, updateField, allPages }: RendererWithAllPagesProps) {
   const { isFree } = useUserPlan();
   const guests = (fields.guests as Record<string, unknown>[]) || [];
   const [rsvpForm, setRsvpForm] = useState<RsvpFormData | null>(null);

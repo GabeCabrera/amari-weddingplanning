@@ -6,10 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, ScrollText, Heart, FileText, Mic2, ChevronUp, ChevronDown } from "lucide-react";
-import { type BaseRendererProps, type CeremonyElement, type Reading } from "./types";
+import { type RendererWithAllPagesProps, type CeremonyElement, type Reading } from "./types";
 import { CEREMONY_ELEMENTS } from "./shared";
 
-export function CeremonyScriptRenderer({ page, fields, updateField }: BaseRendererProps) {
+export function CeremonyScriptRenderer({ page, fields, updateField, allPages }: RendererWithAllPagesProps) {
   const elements = (fields.elements as CeremonyElement[]) || [];
   const readings = (fields.readings as Reading[]) || [];
   const [expandedVows, setExpandedVows] = useState<"partner1" | "partner2" | null>(null);

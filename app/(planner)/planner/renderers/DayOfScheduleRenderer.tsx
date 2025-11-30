@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { type RendererWithAllPagesProps, type ScheduleEvent, type PartyMember } from "./types";
-import { UpgradePrompt, UPGRADE_SUGGESTIONS } from "./shared";
+import { UpgradePrompt, UPGRADE_SUGGESTIONS, RelatedTemplates } from "./shared";
 import { useUserPlan } from "../context";
 import { Heart as WeddingPartyIcon } from "lucide-react";
 
@@ -446,6 +446,13 @@ export function DayOfScheduleRenderer({ page, fields, updateField, allPages }: R
             />
           </div>
         )}
+
+        {/* Related Templates */}
+        <RelatedTemplates 
+          templateIds={["wedding-party", "vendor-contacts", "music-playlist", "ceremony-script"]} 
+          allPages={allPages}
+          title="Related"
+        />
       </div>
     </div>
   );

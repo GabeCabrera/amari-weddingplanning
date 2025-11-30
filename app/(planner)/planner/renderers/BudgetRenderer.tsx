@@ -12,12 +12,12 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { type BaseRendererProps, type BudgetItem, type Payment } from "./types";
-import { formatCurrency, BUDGET_CATEGORIES, UpgradePrompt, UPGRADE_SUGGESTIONS } from "./shared";
+import { type RendererWithAllPagesProps, type BudgetItem, type Payment } from "./types";
+import { formatCurrency, BUDGET_CATEGORIES, UpgradePrompt, UPGRADE_SUGGESTIONS, RelatedTemplates } from "./shared";
 import { useUserPlan } from "../context";
 import { Contact } from "lucide-react";
 
-export function BudgetRenderer({ page, fields, updateField }: BaseRendererProps) {
+export function BudgetRenderer({ page, fields, updateField, allPages }: RendererWithAllPagesProps) {
   const { isFree } = useUserPlan();
   const rawItems = fields.items;
   const items: BudgetItem[] = Array.isArray(rawItems) ? rawItems : [];
@@ -507,6 +507,13 @@ export function BudgetRenderer({ page, fields, updateField }: BaseRendererProps)
             </Button>
           </div>
         )}
+
+        {/* Related Templates */}
+        <RelatedTemplates 
+          templateIds={["vendor-contacts", "task-board", "honeymoon-planner"]} 
+          allPages={allPages}
+          title="Related"
+        />
       </div>
 
       {/* Payment Dialog */}

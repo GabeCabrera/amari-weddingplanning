@@ -5,9 +5,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Music, Mic2, ListMusic, Ban, FileText, Sparkles } from "lucide-react";
-import { type BaseRendererProps } from "./types";
+import { type RendererWithAllPagesProps } from "./types";
 
-export function MusicPlaylistRenderer({ page, fields, updateField }: BaseRendererProps) {
+export function MusicPlaylistRenderer({ page, fields, updateField, allPages }: RendererWithAllPagesProps) {
   const mustPlaySongs = (fields.mustPlaySongs as Record<string, unknown>[]) || [];
   const doNotPlaySongs = (fields.doNotPlaySongs as Record<string, unknown>[]) || [];
 

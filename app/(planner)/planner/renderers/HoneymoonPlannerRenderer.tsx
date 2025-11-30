@@ -6,9 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Plane, Hotel, Map, Briefcase, FileText, Sparkles, DollarSign, ChevronDown, ChevronUp } from "lucide-react";
-import { type BaseRendererProps } from "./types";
+import { type RendererWithAllPagesProps } from "./types";
 
-export function HoneymoonPlannerRenderer({ page, fields, updateField }: BaseRendererProps) {
+export function HoneymoonPlannerRenderer({ page, fields, updateField, allPages }: RendererWithAllPagesProps) {
   const flights = (fields.flights as Record<string, unknown>[]) || [];
   const accommodations = (fields.accommodations as Record<string, unknown>[]) || [];
   const activities = (fields.activities as Record<string, unknown>[]) || [];

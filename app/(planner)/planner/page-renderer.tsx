@@ -60,46 +60,50 @@ export function PageRenderer({ page, onFieldChange, allPages = [] }: PageRendere
     );
   }
 
-  // Special rendering for budget page
+  // Special rendering for budget page - now with allPages for template links
   if (page.templateId === "budget") {
     return (
       <BudgetRenderer
         page={page}
         fields={fields}
         updateField={updateField}
+        allPages={allPages}
       />
     );
   }
 
-  // Special rendering for guest list page
+  // Special rendering for guest list page - now with allPages for template links
   if (page.templateId === "guest-list") {
     return (
       <GuestListRenderer
         page={page}
         fields={fields}
         updateField={updateField}
+        allPages={allPages}
       />
     );
   }
 
-  // Special rendering for wedding overview dashboard (uses context, no allPages needed)
+  // Special rendering for wedding overview dashboard - now with allPages for template links
   if (page.templateId === "overview") {
     return (
       <OverviewRenderer
         page={page}
         fields={fields}
         updateField={updateField}
+        allPages={allPages}
       />
     );
   }
 
-  // Special rendering for wedding party with messaging
+  // Special rendering for wedding party with messaging - now with allPages
   if (page.templateId === "wedding-party") {
     return (
       <WeddingPartyRenderer
         page={page}
         fields={fields}
         updateField={updateField}
+        allPages={allPages}
       />
     );
   }
@@ -116,46 +120,50 @@ export function PageRenderer({ page, onFieldChange, allPages = [] }: PageRendere
     );
   }
 
-  // Special rendering for music & playlist
+  // Special rendering for music & playlist - now with allPages
   if (page.templateId === "music-playlist") {
     return (
       <MusicPlaylistRenderer
         page={page}
         fields={fields}
         updateField={updateField}
+        allPages={allPages}
       />
     );
   }
 
-  // Special rendering for ceremony script
+  // Special rendering for ceremony script - now with allPages
   if (page.templateId === "ceremony-script") {
     return (
       <CeremonyScriptRenderer
         page={page}
         fields={fields}
         updateField={updateField}
+        allPages={allPages}
       />
     );
   }
 
-  // Special rendering for honeymoon planner
+  // Special rendering for honeymoon planner - now with allPages
   if (page.templateId === "honeymoon-planner") {
     return (
       <HoneymoonPlannerRenderer
         page={page}
         fields={fields}
         updateField={updateField}
+        allPages={allPages}
       />
     );
   }
 
-  // Special rendering for registry tracker
+  // Special rendering for registry tracker - now with allPages
   if (page.templateId === "registry-tracker") {
     return (
       <RegistryTrackerRenderer
         page={page}
         fields={fields}
         updateField={updateField}
+        allPages={allPages}
       />
     );
   }

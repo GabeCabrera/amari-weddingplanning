@@ -5,10 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Gift, ShoppingBag, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
-import { type BaseRendererProps } from "./types";
+import { type RendererWithAllPagesProps } from "./types";
 import { formatCurrency } from "./shared";
 
-export function RegistryTrackerRenderer({ page, fields, updateField }: BaseRendererProps) {
+export function RegistryTrackerRenderer({ page, fields, updateField, allPages }: RendererWithAllPagesProps) {
   const registries = (fields.registries as Record<string, unknown>[]) || [];
   const items = (fields.items as Record<string, unknown>[]) || [];
   const [expandedItem, setExpandedItem] = useState<number | null>(null);
