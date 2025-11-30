@@ -100,12 +100,12 @@ export const trackConversion = (
   });
 };
 
-// Track purchase with value and conversion ID
+// Track purchase with value and optional conversion ID
 export const trackPurchase = (
   value: number, 
-  conversionId?: string,
   currency = 'USD', 
-  itemCount = 1
+  itemCount = 1,
+  conversionId?: string
 ) => {
   const rdt = getRdt();
   if (!rdt) return;

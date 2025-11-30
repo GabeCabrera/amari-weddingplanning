@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { Toaster } from "sonner";
 import { Providers } from "@/components/providers";
@@ -221,18 +220,24 @@ export default function RootLayout({
             }),
           }}
         />
+        {/* Reddit Pixel */}
         {REDDIT_PIXEL_ID && (
-          <Script
-            id="reddit-pixel"
-            strategy="beforeInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `
-!function(w,d){if(!w.rdt){var p=w.rdt=function(){p.sendEvent?p.sendEvent.apply(p,arguments):p.callQueue.push(arguments)};p.callQueue=[];var t=d.createElement("script");t.src="https://www.redditstatic.com/ads/pixel.js",t.async=!0;var s=d.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}}(window,document);
-rdt('init','${REDDIT_PIXEL_ID}', {"optOut":false,"useDecimalCurrencyValues":true});
-rdt('track', 'PageVisit');
-              `,
-            }}
-          />
+          <>
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `!function(w,d){if(!w.rdt){var p=w.rdt=function(){p.sendEvent?p.sendEvent.apply(p,arguments):p.callQueue.push(arguments)};p.callQueue=[];var t=d.createElement("script");t.src="https://www.redditstatic.com/ads/pixel.js",t.async=!0;var s=d.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}}(window,document);rdt('init','${REDDIT_PIXEL_ID}',{"optOut":false,"useDecimalCurrencyValues":true});rdt('track','PageVisit');`,
+              }}
+            />
+            <noscript>
+              <img
+                height="1"
+                width="1"
+                style={{ display: 'none' }}
+                src={`https://alb.reddit.com/snoo.gif?q=CAAHAAABAAoACQAAAAA2t-YnAA==&s=${REDDIT_PIXEL_ID}`}
+                alt=""
+              />
+            </noscript>
+          </>
         )}
       </head>
       <body className="min-h-screen antialiased">
