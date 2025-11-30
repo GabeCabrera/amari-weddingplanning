@@ -29,7 +29,7 @@ export function LandingPage() {
           <p className="text-xl text-warm-600 mb-12 leading-relaxed font-light">
             A calm, beautiful space to plan your wedding together.
             <br />
-            No chaos. No overwhelm. Just you two, and the day you're dreaming of.
+            No chaos. No overwhelm. Just you two, and the day you&apos;re dreaming of.
           </p>
           
           <div className="w-16 h-px bg-warm-400 mx-auto mb-12" />
@@ -98,7 +98,7 @@ export function LandingPage() {
               </div>
               <h3 className="font-medium text-warm-700 mb-2">Plan Your Timeline</h3>
               <p className="text-sm text-warm-500">
-                From "just engaged" to "I do" — a clear path through every milestone.
+                From &ldquo;just engaged&rdquo; to &ldquo;I do&rdquo; — a clear path through every milestone.
               </p>
             </div>
 
@@ -233,12 +233,12 @@ export function LandingPage() {
 
           <div className="prose prose-warm mx-auto text-center">
             <p className="text-warm-600 leading-relaxed mb-6">
-              Hi, we're Sarah & Gabe.
+              Hi, we&apos;re Sarah & Gabe.
             </p>
             <p className="text-warm-600 leading-relaxed mb-6">
-              We're getting married on May 14th, 2026, and like you, we wanted a place to plan our day 
+              We&apos;re getting married on May 14th, 2026, and like you, we wanted a place to plan our day 
               that felt as special as the wedding itself. Something calm. Something beautiful. 
-              Something that didn't make us want to throw our laptops out the window.
+              Something that didn&apos;t make us want to throw our laptops out the window.
             </p>
             <p className="text-warm-600 leading-relaxed mb-6">
               So we built Aisle.
@@ -246,10 +246,10 @@ export function LandingPage() {
             <p className="text-warm-600 leading-relaxed mb-6">
               This is Gabe writing — and I just want to say: Sarah is the most patient, kind, and 
               understanding person I know. Her passion and curiosity inspire me every day. 
-              I wouldn't want to do any of this without her.
+              I wouldn&apos;t want to do any of this without her.
             </p>
             <p className="text-warm-600 leading-relaxed mb-6 italic">
-              Sarah, I love you. I made this for you. I can't wait to marry you.
+              Sarah, I love you. I made this for you. I can&apos;t wait to marry you.
             </p>
             <p className="text-warm-600 leading-relaxed">
               We hope Aisle helps you and your person plan something beautiful together.

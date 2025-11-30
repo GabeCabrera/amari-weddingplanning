@@ -453,12 +453,13 @@ export function PlannerProvider({
 
   // Cleanup on unmount
   useEffect(() => {
+    const currentPendingUpdates = pendingUpdatesRef.current;
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
       // Save any pending changes before unmounting
-      if (pendingUpdatesRef.current.size > 0) {
+      if (currentPendingUpdates.size > 0) {
         saveToDatabase();
       }
     };

@@ -659,7 +659,7 @@ function GuestListRenderer({ page, fields, updateField }: GuestListRendererProps
           const data = await response.json();
           if (data) {
             setRsvpForm(data);
-            setFormFields(data.fields || formFields);
+            setFormFields(data.fields || {});
             setMealOptions(data.mealOptions || []);
           }
         }
@@ -670,6 +670,7 @@ function GuestListRenderer({ page, fields, updateField }: GuestListRendererProps
       }
     };
     fetchRsvpForm();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page.id]);
 
   const createOrUpdateRsvpForm = async (isNew: boolean = false) => {
@@ -1417,7 +1418,7 @@ function OverviewRenderer({ page, fields, updateField, allPages }: OverviewRende
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-warm-400 italic">Click "Add Color" to start your palette</p>
+                    <p className="text-xs text-warm-400 italic">Click &quot;Add Color&quot; to start your palette</p>
                   )}
                 </div>
               </div>
