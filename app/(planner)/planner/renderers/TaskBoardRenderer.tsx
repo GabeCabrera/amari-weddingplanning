@@ -127,6 +127,19 @@ const TaskCard = memo(function TaskCard({
     setIsEditing(true);
   };
 
+  // Wrap handlers to prevent event issues
+  const handleMove = (e: Event, newStatus: Task["status"]) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onMove(task.id, newStatus);
+  };
+
+  const handleToggleComplete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onMove(task.id, task.status === "done" ? "todo" : "done");
+  };
+
   return (
     <div className="group bg-white rounded-lg border border-warm-200 hover:border-warm-300 hover:shadow-sm transition-all">
       <div className={`h-1 ${colors.dot} rounded-t-lg`} />
@@ -134,7 +147,7 @@ const TaskCard = memo(function TaskCard({
       <div className="p-3">
         <div className="flex items-start gap-2">
           <button
-            onClick={() => onMove(task.id, task.status === "done" ? "todo" : "done")}
+            onClick={handleToggleComplete}
             className={`mt-0.5 w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors ${
               task.status === "done"
                 ? "bg-green-500 border-green-500 text-white"
@@ -180,30 +193,33 @@ const TaskCard = memo(function TaskCard({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={handleStartEdit}>
+              <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleStartEdit(); }}>
                 Edit title
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
-                onClick={() => onMove(task.id, "todo")}
+                onSelect={(e) => handleMove(e, "todo")}
                 disabled={task.status === "todo"}
               >
                 <Circle className="w-3 h-3 mr-2" /> Move to To Do
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => onMove(task.id, "in-progress")}
+                onSelect={(e) => handleMove(e, "in-progress")}
                 disabled={task.status === "in-progress"}
               >
                 <Clock className="w-3 h-3 mr-2" /> Move to In Progress
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => onMove(task.id, "done")}
+                onSelect={(e) => handleMove(e, "done")}
                 disabled={task.status === "done"}
               >
                 <CheckCircle2 className="w-3 h-3 mr-2" /> Move to Done
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600" onClick={() => onDelete(task.id)}>
+              <DropdownMenuItem 
+                className="text-red-600" 
+                onSelect={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(task.id); }}
+              >
                 <Trash2 className="w-3 h-3 mr-2" /> Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -232,7 +248,7 @@ const TaskCard = memo(function TaskCard({
               {(["unassigned", "partner1", "partner2", "both"] as const).map((assignee) => (
                 <DropdownMenuItem 
                   key={assignee} 
-                  onClick={() => onUpdate(task.id, { assignee })}
+                  onSelect={(e) => { e.preventDefault(); onUpdate(task.id, { assignee }); }}
                 >
                   {assignee === "partner1" ? partner1Name :
                    assignee === "partner2" ? partner2Name :
@@ -263,7 +279,7 @@ const TaskCard = memo(function TaskCard({
                 {(["blue", "green", "purple", "pink", "yellow"] as const).map((color) => (
                   <button
                     key={color}
-                    onClick={() => onUpdate(task.id, { color })}
+                    onClick={(e) => { e.stopPropagation(); onUpdate(task.id, { color }); }}
                     className={`w-6 h-6 rounded-full ${TASK_COLORS[color].dot} ${
                       task.color === color ? "ring-2 ring-offset-1 ring-warm-400" : "hover:scale-110"
                     } transition-all`}
@@ -276,19 +292,9 @@ const TaskCard = memo(function TaskCard({
       </div>
     </div>
   );
-}, (prevProps, nextProps) => {
-  // Custom comparison - only re-render if the task itself changed
-  return (
-    prevProps.task.id === nextProps.task.id &&
-    prevProps.task.title === nextProps.task.title &&
-    prevProps.task.status === nextProps.task.status &&
-    prevProps.task.assignee === nextProps.task.assignee &&
-    prevProps.task.color === nextProps.task.color &&
-    prevProps.task.dueDate === nextProps.task.dueDate &&
-    prevProps.partner1Name === nextProps.partner1Name &&
-    prevProps.partner2Name === nextProps.partner2Name
-  );
 });
+// Note: Removed custom memo comparison - React.memo with default shallow comparison
+// handles this better and ensures callbacks are always fresh
 
 // ============================================================================
 // MAIN COMPONENT
@@ -296,13 +302,36 @@ const TaskCard = memo(function TaskCard({
 export function TaskBoardRenderer({ page, fields, updateField, allPages }: RendererWithAllPagesProps) {
   const partner1Name = (fields.partner1Name as string) || "Partner 1";
   const partner2Name = (fields.partner2Name as string) || "Partner 2";
-  const tasks: Task[] = Array.isArray(fields.tasks) ? fields.tasks : [];
+  const propTasks: Task[] = Array.isArray(fields.tasks) ? fields.tasks : [];
 
-  // Use ref to always have access to latest tasks without causing re-renders
-  const tasksRef = useRef(tasks);
+  // Use local optimistic state to handle rapid updates without race conditions
+  // This ensures each update sees the result of previous updates immediately
+  const [localTasks, setLocalTasks] = useState<Task[]>(propTasks);
+  const localTasksRef = useRef(localTasks);
+  
+  // Keep ref in sync with local state (synchronously updated)
   useEffect(() => {
-    tasksRef.current = tasks;
-  }, [tasks]);
+    localTasksRef.current = localTasks;
+  }, [localTasks]);
+
+  // Sync local state with prop when prop changes from external source
+  // (e.g., initial load, or if another component updates the same data)
+  const lastPropTasksRef = useRef(propTasks);
+  useEffect(() => {
+    // Only sync if the prop actually changed (compare by serialization)
+    const propSerialized = JSON.stringify(propTasks);
+    const lastPropSerialized = JSON.stringify(lastPropTasksRef.current);
+    
+    if (propSerialized !== lastPropSerialized) {
+      // Prop changed externally, sync local state
+      setLocalTasks(propTasks);
+      localTasksRef.current = propTasks;
+      lastPropTasksRef.current = propTasks;
+    }
+  }, [propTasks]);
+
+  // Use local tasks for rendering
+  const tasks = localTasks;
 
   // State
   const [showAddTask, setShowAddTask] = useState(false);
@@ -382,40 +411,51 @@ export function TaskBoardRenderer({ page, fields, updateField, allPages }: Rende
   }, [tasks, filterAssignee]);
 
   // ============================================================================
-  // STABLE HANDLERS - Use refs to avoid dependency on tasks
+  // STABLE HANDLERS - Use optimistic updates to prevent race conditions
+  // Each handler updates local state first (synchronously), then syncs to parent
   // ============================================================================
   const generateId = () => `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-  const handleUpdateTask = useCallback((taskId: string, updates: Partial<Task>) => {
-    const currentTasks = tasksRef.current;
-    const newTasks = currentTasks.map(t => 
-      t.id === taskId ? { ...t, ...updates } : t
-    );
+  // Helper to update tasks optimistically and sync to parent
+  const updateTasksOptimistically = useCallback((updater: (current: Task[]) => Task[]) => {
+    // Get the absolute latest local state
+    const currentTasks = localTasksRef.current;
+    const newTasks = updater(currentTasks);
+    
+    // Update local state immediately (synchronous from React's perspective)
+    setLocalTasks(newTasks);
+    localTasksRef.current = newTasks; // Keep ref in sync immediately
+    lastPropTasksRef.current = newTasks; // Prevent external sync from overwriting
+    
+    // Sync to parent (will debounce and save to DB)
     updateField("tasks", newTasks);
   }, [updateField]);
+
+  const handleUpdateTask = useCallback((taskId: string, updates: Partial<Task>) => {
+    updateTasksOptimistically(currentTasks => 
+      currentTasks.map(t => t.id === taskId ? { ...t, ...updates } : t)
+    );
+  }, [updateTasksOptimistically]);
 
   const handleDeleteTask = useCallback((taskId: string) => {
-    const currentTasks = tasksRef.current;
-    const newTasks = currentTasks.filter(t => t.id !== taskId);
-    updateField("tasks", newTasks);
+    updateTasksOptimistically(currentTasks => 
+      currentTasks.filter(t => t.id !== taskId)
+    );
     toast.success("Task deleted");
-  }, [updateField]);
+  }, [updateTasksOptimistically]);
 
   const handleMoveTask = useCallback((taskId: string, newStatus: Task["status"]) => {
-    const currentTasks = tasksRef.current;
-    const newTasks = currentTasks.map(t => 
-      t.id === taskId ? { ...t, status: newStatus } : t
+    updateTasksOptimistically(currentTasks => 
+      currentTasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t)
     );
-    updateField("tasks", newTasks);
     if (newStatus === "done") {
       toast.success("Task completed! 🎉");
     }
-  }, [updateField]);
+  }, [updateTasksOptimistically]);
 
   const handleAddTask = useCallback(() => {
     if (!newTaskTitle.trim()) return;
     
-    const currentTasks = tasksRef.current;
     const newTask: Task = {
       id: generateId(),
       title: newTaskTitle.trim(),
@@ -425,19 +465,18 @@ export function TaskBoardRenderer({ page, fields, updateField, allPages }: Rende
       dueDate: newTaskDueDate || undefined,
     };
     
-    updateField("tasks", [...currentTasks, newTask]);
+    updateTasksOptimistically(currentTasks => [...currentTasks, newTask]);
     setNewTaskTitle("");
     setNewTaskDueDate("");
     setShowAddTask(false);
     toast.success("Task added!");
-  }, [newTaskTitle, newTaskAssignee, newTaskColor, newTaskDueDate, updateField]);
+  }, [newTaskTitle, newTaskAssignee, newTaskColor, newTaskDueDate, updateTasksOptimistically]);
 
   const handleAddSuggestedTask = useCallback((title: string, category: string) => {
     const colorMap: Record<string, Task["color"]> = {
       "Venue": "blue", "Catering": "green", "Photography": "purple",
       "Florist": "pink", "Music / DJ": "yellow",
     };
-    const currentTasks = tasksRef.current;
     const newTask: Task = {
       id: generateId(),
       title,
@@ -445,15 +484,14 @@ export function TaskBoardRenderer({ page, fields, updateField, allPages }: Rende
       status: "todo",
       color: colorMap[category] || "blue",
     };
-    updateField("tasks", [...currentTasks, newTask]);
+    updateTasksOptimistically(currentTasks => [...currentTasks, newTask]);
     toast.success(`Added: ${title}`);
-  }, [updateField]);
+  }, [updateTasksOptimistically]);
 
   const handleAddAllFromCategory = useCallback((category: string, categoryTasks: string[]) => {
     const colorMap: Record<string, Task["color"]> = {
       "Venue": "blue", "Catering": "green", "Photography": "purple",
     };
-    const currentTasks = tasksRef.current;
     const newTasks = categoryTasks.map(title => ({
       id: generateId(),
       title,
@@ -461,9 +499,9 @@ export function TaskBoardRenderer({ page, fields, updateField, allPages }: Rende
       status: "todo" as const,
       color: colorMap[category] || "blue" as const,
     }));
-    updateField("tasks", [...currentTasks, ...newTasks]);
+    updateTasksOptimistically(currentTasks => [...currentTasks, ...newTasks]);
     toast.success(`Added ${categoryTasks.length} tasks`);
-  }, [updateField]);
+  }, [updateTasksOptimistically]);
 
   // Column component
   const Column = ({ status, columnTasks }: { status: Task["status"]; columnTasks: Task[] }) => {
