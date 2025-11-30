@@ -1565,6 +1565,141 @@ interface WeddingPartyRendererProps {
 }
 
 type MessageGroup = "bridesmaids" | "groomsmen" | "others" | "all";
+type PartyGroup = "bridesmaids" | "groomsmen" | "others";
+
+// Helper to get role icon
+function getRoleIcon(role: string) {
+  if (role === "Maid of Honor" || role === "Best Man") {
+    return <Crown className="w-3 h-3 text-amber-500" />;
+  }
+  return null;
+}
+
+// Party Section Component - defined outside to prevent re-creation
+interface PartySectionProps {
+  title: string;
+  icon: React.ReactNode;
+  iconColor: string;
+  group: PartyGroup;
+  members: PartyMember[];
+  roleOptions?: string[];
+  onAddMember: (group: PartyGroup) => void;
+  onUpdateMember: (group: PartyGroup, index: number, key: keyof PartyMember, value: string) => void;
+  onRemoveMember: (group: PartyGroup, index: number) => void;
+  onOpenMessage: (group: MessageGroup) => void;
+}
+
+function PartySection({
+  title,
+  icon,
+  iconColor,
+  group,
+  members,
+  roleOptions,
+  onAddMember,
+  onUpdateMember,
+  onRemoveMember,
+  onOpenMessage,
+}: PartySectionProps) {
+  return (
+    <div className="p-6 border border-warm-200">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className={iconColor}>{icon}</div>
+          <h3 className="text-sm tracking-wider uppercase text-warm-500">{title}</h3>
+          <span className="text-xs text-warm-400">({members.length})</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {members.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onOpenMessage(group)}
+              className="text-xs"
+            >
+              <MessageSquare className="w-3 h-3 mr-1" />
+              Message
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" onClick={() => onAddMember(group)}>
+            <Plus className="w-4 h-4 mr-1" />
+            Add
+          </Button>
+        </div>
+      </div>
+
+      {members.length > 0 ? (
+        <div className="space-y-3">
+          {members.map((member, index) => (
+            <div
+              key={`${group}-${index}`}
+              className="grid grid-cols-[1fr,0.8fr,1fr,1fr,40px] gap-2 items-center group border-b border-warm-100 pb-3"
+            >
+              <div className="flex items-center gap-1">
+                <Input
+                  value={member.name || ""}
+                  onChange={(e) => onUpdateMember(group, index, "name", e.target.value)}
+                  placeholder="Name"
+                  className="text-sm"
+                />
+                {getRoleIcon(member.role)}
+              </div>
+              {roleOptions ? (
+                <select
+                  value={member.role || ""}
+                  onChange={(e) => onUpdateMember(group, index, "role", e.target.value)}
+                  className="px-2 py-1.5 border border-warm-300 text-sm focus:outline-none focus:border-warm-500 bg-white"
+                >
+                  <option value="">Role...</option>
+                  {roleOptions.map((role) => (
+                    <option key={role} value={role}>{role}</option>
+                  ))}
+                </select>
+              ) : (
+                <Input
+                  value={member.role || ""}
+                  onChange={(e) => onUpdateMember(group, index, "role", e.target.value)}
+                  placeholder="Role"
+                  className="text-sm"
+                />
+              )}
+              <div className="flex items-center gap-1">
+                <Mail className="w-3 h-3 text-warm-400 flex-shrink-0" />
+                <Input
+                  value={member.email || ""}
+                  onChange={(e) => onUpdateMember(group, index, "email", e.target.value)}
+                  placeholder="Email"
+                  className="text-sm"
+                  type="email"
+                />
+              </div>
+              <div className="flex items-center gap-1">
+                <Smartphone className="w-3 h-3 text-warm-400 flex-shrink-0" />
+                <Input
+                  value={member.phone || ""}
+                  onChange={(e) => onUpdateMember(group, index, "phone", e.target.value)}
+                  placeholder="Phone"
+                  className="text-sm"
+                  type="tel"
+                />
+              </div>
+              <button
+                onClick={() => onRemoveMember(group, index)}
+                className="p-1 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-warm-400 italic text-center py-4">
+          No {title.toLowerCase()} yet. Click &quot;Add&quot; to get started.
+        </p>
+      )}
+    </div>
+  );
+}
 
 function WeddingPartyRenderer({ page, fields, updateField }: WeddingPartyRendererProps) {
   const bridesmaids = (fields.bridesmaids as PartyMember[]) || [];
@@ -1612,11 +1747,8 @@ function WeddingPartyRenderer({ page, fields, updateField }: WeddingPartyRendere
   };
 
   const sendText = () => {
-    // For SMS, we'll create individual links or a combined one
     const phones = phoneRecipients.map(r => r.phone.replace(/\D/g, "")).join(",");
     const body = encodeURIComponent(messageBody);
-    // Note: SMS to multiple recipients works differently on different platforms
-    // This opens the native SMS app
     window.open(`sms:${phones}?body=${body}`, "_blank");
     toast.success("Messages app opened!");
     setShowMessageDialog(false);
@@ -1635,29 +1767,22 @@ function WeddingPartyRenderer({ page, fields, updateField }: WeddingPartyRendere
     toast.success("Phone numbers copied to clipboard!");
   };
 
-  const addMember = (group: "bridesmaids" | "groomsmen" | "others") => {
+  const addMember = (group: PartyGroup) => {
     const newMember: PartyMember = { name: "", role: "", email: "", phone: "" };
     const current = (fields[group] as PartyMember[]) || [];
     updateField(group, [...current, newMember]);
   };
 
-  const updateMember = (group: "bridesmaids" | "groomsmen" | "others", index: number, key: keyof PartyMember, value: string) => {
+  const updateMember = (group: PartyGroup, index: number, key: keyof PartyMember, value: string) => {
     const current = (fields[group] as PartyMember[]) || [];
     const updated = [...current];
     updated[index] = { ...updated[index], [key]: value };
     updateField(group, updated);
   };
 
-  const removeMember = (group: "bridesmaids" | "groomsmen" | "others", index: number) => {
+  const removeMember = (group: PartyGroup, index: number) => {
     const current = (fields[group] as PartyMember[]) || [];
     updateField(group, current.filter((_, i) => i !== index));
-  };
-
-  const getRoleIcon = (role: string) => {
-    if (role === "Maid of Honor" || role === "Best Man") {
-      return <Crown className="w-3 h-3 text-amber-500" />;
-    }
-    return null;
   };
 
   const groupLabel: Record<MessageGroup, string> = {
@@ -1667,122 +1792,7 @@ function WeddingPartyRenderer({ page, fields, updateField }: WeddingPartyRendere
     all: "Entire Wedding Party",
   };
 
-  const PartySection = ({
-    title,
-    icon,
-    iconColor,
-    group,
-    members,
-    roleOptions,
-  }: {
-    title: string;
-    icon: React.ReactNode;
-    iconColor: string;
-    group: "bridesmaids" | "groomsmen" | "others";
-    members: PartyMember[];
-    roleOptions?: string[];
-  }) => (
-    <div className="p-6 border border-warm-200">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className={iconColor}>{icon}</div>
-          <h3 className="text-sm tracking-wider uppercase text-warm-500">{title}</h3>
-          <span className="text-xs text-warm-400">({members.length})</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {members.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => openMessageDialog(group)}
-              className="text-xs"
-            >
-              <MessageSquare className="w-3 h-3 mr-1" />
-              Message
-            </Button>
-          )}
-          <Button variant="ghost" size="sm" onClick={() => addMember(group)}>
-            <Plus className="w-4 h-4 mr-1" />
-            Add
-          </Button>
-        </div>
-      </div>
-
-      {members.length > 0 ? (
-        <div className="space-y-3">
-          {members.map((member, index) => (
-            <div
-              key={index}
-              className="grid grid-cols-[1fr,0.8fr,1fr,1fr,40px] gap-2 items-center group border-b border-warm-100 pb-3"
-            >
-              <div className="flex items-center gap-1">
-                <Input
-                  value={member.name || ""}
-                  onChange={(e) => updateMember(group, index, "name", e.target.value)}
-                  placeholder="Name"
-                  className="text-sm"
-                />
-                {getRoleIcon(member.role)}
-              </div>
-              {roleOptions ? (
-                <select
-                  value={member.role || ""}
-                  onChange={(e) => updateMember(group, index, "role", e.target.value)}
-                  className="px-2 py-1.5 border border-warm-300 text-sm focus:outline-none focus:border-warm-500 bg-white"
-                >
-                  <option value="">Role...</option>
-                  {roleOptions.map((role) => (
-                    <option key={role} value={role}>{role}</option>
-                  ))}
-                </select>
-              ) : (
-                <Input
-                  value={member.role || ""}
-                  onChange={(e) => updateMember(group, index, "role", e.target.value)}
-                  placeholder="Role"
-                  className="text-sm"
-                />
-              )}
-              <div className="flex items-center gap-1">
-                <Mail className="w-3 h-3 text-warm-400 flex-shrink-0" />
-                <Input
-                  value={member.email || ""}
-                  onChange={(e) => updateMember(group, index, "email", e.target.value)}
-                  placeholder="Email"
-                  className="text-sm"
-                  type="email"
-                />
-              </div>
-              <div className="flex items-center gap-1">
-                <Smartphone className="w-3 h-3 text-warm-400 flex-shrink-0" />
-                <Input
-                  value={member.phone || ""}
-                  onChange={(e) => updateMember(group, index, "phone", e.target.value)}
-                  placeholder="Phone"
-                  className="text-sm"
-                  type="tel"
-                />
-              </div>
-              <button
-                onClick={() => removeMember(group, index)}
-                className="p-1 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-sm text-warm-400 italic text-center py-4">
-          No {title.toLowerCase()} yet. Click &quot;Add&quot; to get started.
-        </p>
-      )}
-    </div>
-  );
-
   const allMembers = [...bridesmaids, ...groomsmen, ...others];
-  const totalWithEmail = allMembers.filter(m => m.email).length;
-  const totalWithPhone = allMembers.filter(m => m.phone).length;
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -1840,6 +1850,10 @@ function WeddingPartyRenderer({ page, fields, updateField }: WeddingPartyRendere
             group="bridesmaids"
             members={bridesmaids}
             roleOptions={["Maid of Honor", "Bridesmaid", "Junior Bridesmaid"]}
+            onAddMember={addMember}
+            onUpdateMember={updateMember}
+            onRemoveMember={removeMember}
+            onOpenMessage={openMessageDialog}
           />
 
           <PartySection
@@ -1849,6 +1863,10 @@ function WeddingPartyRenderer({ page, fields, updateField }: WeddingPartyRendere
             group="groomsmen"
             members={groomsmen}
             roleOptions={["Best Man", "Groomsman", "Junior Groomsman"]}
+            onAddMember={addMember}
+            onUpdateMember={updateMember}
+            onRemoveMember={removeMember}
+            onOpenMessage={openMessageDialog}
           />
 
           <PartySection
@@ -1857,6 +1875,10 @@ function WeddingPartyRenderer({ page, fields, updateField }: WeddingPartyRendere
             iconColor="text-amber-400"
             group="others"
             members={others}
+            onAddMember={addMember}
+            onUpdateMember={updateMember}
+            onRemoveMember={removeMember}
+            onOpenMessage={openMessageDialog}
           />
         </div>
       </div>
