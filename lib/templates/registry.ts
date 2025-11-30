@@ -37,14 +37,22 @@ export interface TemplateDefinition {
   icon: string; // Lucide icon name
   fields: TemplateField[];
   suggestedInStarterPack?: boolean;
+  isFree?: boolean; // Available to free users
 }
+
+// ============================================================================
+// FREE TEMPLATE IDS
+// ============================================================================
+
+// These 3 templates are available to free users
+export const FREE_TEMPLATE_IDS = ["day-of-schedule", "budget", "guest-list"];
 
 // ============================================================================
 // TEMPLATE REGISTRY
 // ============================================================================
 
 export const templates: TemplateDefinition[] = [
-  // Cover page (always first, not in marketplace)
+  // Cover page (always first, not in marketplace - available to all)
   {
     id: "cover",
     name: "Cover Page",
@@ -53,6 +61,7 @@ export const templates: TemplateDefinition[] = [
     timelineFilters: ["12-months", "9-months", "6-months", "3-months", "1-month", "week-of"],
     icon: "Book",
     suggestedInStarterPack: true,
+    isFree: true,
     fields: [
       { key: "names", label: "Names", type: "text", required: true },
       { key: "weddingDate", label: "Wedding Date", type: "date", required: true },
@@ -68,6 +77,7 @@ export const templates: TemplateDefinition[] = [
     timelineFilters: ["12-months", "9-months", "6-months"],
     icon: "LayoutDashboard",
     suggestedInStarterPack: true,
+    isFree: false,
     fields: [
       { key: "weddingDate", label: "Wedding Date", type: "date", required: true },
       { key: "ceremonyTime", label: "Ceremony Time", type: "text" },
@@ -91,6 +101,7 @@ export const templates: TemplateDefinition[] = [
     timelineFilters: ["12-months", "9-months", "6-months", "3-months"],
     icon: "DollarSign",
     suggestedInStarterPack: true,
+    isFree: true, // FREE TEMPLATE
     fields: [
       {
         key: "items",
@@ -113,6 +124,7 @@ export const templates: TemplateDefinition[] = [
     timelineFilters: ["12-months", "9-months", "6-months", "3-months", "1-month"],
     icon: "Users",
     suggestedInStarterPack: true,
+    isFree: true, // FREE TEMPLATE
     fields: [
       {
         key: "guests",
@@ -137,6 +149,7 @@ export const templates: TemplateDefinition[] = [
     timelineFilters: ["12-months", "9-months", "6-months", "3-months"],
     icon: "Contact",
     suggestedInStarterPack: true,
+    isFree: false,
     fields: [
       {
         key: "vendors",
@@ -160,6 +173,7 @@ export const templates: TemplateDefinition[] = [
     timelineFilters: ["12-months", "9-months"],
     icon: "CalendarCheck",
     suggestedInStarterPack: true,
+    isFree: false,
     fields: [
       {
         key: "sections",
@@ -190,6 +204,7 @@ export const templates: TemplateDefinition[] = [
     timelineFilters: ["12-months", "9-months", "6-months"],
     icon: "Heart",
     suggestedInStarterPack: true,
+    isFree: false,
     fields: [
       {
         key: "bridesmaids",
@@ -222,6 +237,7 @@ export const templates: TemplateDefinition[] = [
     category: "people",
     timelineFilters: ["3-months", "1-month", "week-of"],
     icon: "Circle",
+    isFree: false,
     fields: [
       {
         key: "tables",
@@ -251,6 +267,7 @@ export const templates: TemplateDefinition[] = [
     timelineFilters: ["1-month", "week-of"],
     icon: "Clock",
     suggestedInStarterPack: true,
+    isFree: true, // FREE TEMPLATE
     fields: [
       {
         key: "events",
@@ -272,6 +289,7 @@ export const templates: TemplateDefinition[] = [
     category: "extras",
     timelineFilters: ["12-months", "9-months", "6-months", "3-months", "1-month", "week-of"],
     icon: "StickyNote",
+    isFree: false,
     fields: [
       { key: "content", label: "Notes", type: "textarea" },
     ],
@@ -305,6 +323,22 @@ export function getStarterPackTemplates(): TemplateDefinition[] {
 export function getMarketplaceTemplates(): TemplateDefinition[] {
   // Exclude cover page from marketplace
   return templates.filter((t) => t.id !== "cover");
+}
+
+export function getFreeTemplates(): TemplateDefinition[] {
+  return templates.filter((t) => t.isFree);
+}
+
+export function isTemplateFree(templateId: string): boolean {
+  return FREE_TEMPLATE_IDS.includes(templateId) || templateId === "cover";
+}
+
+export function getTemplatesForPlan(plan: "free" | "complete"): TemplateDefinition[] {
+  if (plan === "complete") {
+    return templates.filter((t) => t.id !== "cover");
+  }
+  // Free plan only gets free templates (excluding cover which is added automatically)
+  return templates.filter((t) => t.isFree && t.id !== "cover");
 }
 
 export const categoryLabels: Record<TemplateCategory, string> = {

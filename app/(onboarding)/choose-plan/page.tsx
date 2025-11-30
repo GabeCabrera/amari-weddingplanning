@@ -3,38 +3,38 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Check, Download, Sparkles, Calendar, Users, Heart, Clock, FileText } from "lucide-react";
+import { Check, Sparkles, Calendar, Users, Heart, Clock, FileText, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 const FREE_TEMPLATES = [
   {
-    name: "Wedding Day Timeline",
-    description: "Hour-by-hour schedule for your big day",
+    name: "Day-Of Schedule",
+    description: "Hour-by-hour timeline for your big day",
     icon: Clock,
   },
   {
-    name: "Budget Overview",
-    description: "Track expenses and stay on target",
-    icon: FileText,
+    name: "Budget Tracker",
+    description: "Track estimated vs actual costs",
+    icon: DollarSign,
   },
   {
-    name: "Guest List Tracker",
+    name: "Guest List",
     description: "RSVPs, meals, and contact info",
     icon: Users,
   },
 ];
 
 const COMPLETE_BENEFITS = [
-  "Unlimited pages & templates",
-  "Vendor comparison tools",
+  "All 10+ templates included",
+  "Vendor contact tracking",
   "Seating chart builder",
-  "Ceremony & vow planner",
-  "Honeymoon planning",
-  "Vision boards & mood boards",
-  "Real-time collaboration",
+  "Wedding party management",
+  "Planning timeline & checklists",
+  "Wedding overview dashboard",
+  "Notes & free-form pages",
   "Export to PDF anytime",
-  "Lifetime access - no subscriptions",
+  "Lifetime access — no subscriptions",
 ];
 
 function ChoosePlanContent() {
@@ -63,13 +63,22 @@ function ChoosePlanContent() {
   const handleContinueWithFree = async () => {
     setIsLoading(true);
     try {
+      // Update plan to free and mark onboarding as complete
       await fetch("/api/plan/select", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan: "free" }),
       });
+
+      // Mark onboarding complete
+      await fetch("/api/settings/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ onboardingComplete: true }),
+      });
       
-      router.push("/free-templates");
+      // Go to welcome flow
+      router.push("/welcome");
     } catch (error) {
       toast.error("Something went wrong");
     } finally {
@@ -135,8 +144,8 @@ function ChoosePlanContent() {
             </div>
 
             <p className="text-warm-600 mb-6">
-              Get started with the three most essential planning templates, 
-              available as downloadable PDFs.
+              Get started with the three most essential planning templates 
+              in our full interactive planner.
             </p>
 
             <div className="space-y-4 mb-8">
@@ -152,8 +161,8 @@ function ChoosePlanContent() {
             </div>
 
             <div className="flex items-center gap-2 text-sm text-warm-500">
-              <Download className="w-4 h-4" />
-              <span>PDF downloads only</span>
+              <Sparkles className="w-4 h-4" />
+              <span>Full interactive planner</span>
             </div>
 
             {selectedPlan === "free" && (
@@ -209,7 +218,7 @@ function ChoosePlanContent() {
 
             <div className="flex items-center gap-2 text-sm text-warm-600 font-medium">
               <Sparkles className="w-4 h-4" />
-              <span>Interactive web planner</span>
+              <span>Everything you need</span>
             </div>
 
             {selectedPlan === "complete" && (

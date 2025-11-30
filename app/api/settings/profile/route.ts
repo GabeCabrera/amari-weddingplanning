@@ -13,15 +13,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { displayName, weddingDate } = await request.json();
+    const body = await request.json();
+    const { displayName, weddingDate, onboardingComplete } = body;
+
+    const updateData: Record<string, unknown> = {
+      updatedAt: new Date(),
+    };
+
+    if (displayName !== undefined) {
+      updateData.displayName = displayName;
+    }
+
+    if (weddingDate !== undefined) {
+      updateData.weddingDate = weddingDate ? new Date(weddingDate) : null;
+    }
+
+    if (onboardingComplete !== undefined) {
+      updateData.onboardingComplete = onboardingComplete;
+    }
 
     await db
       .update(tenants)
-      .set({
-        displayName: displayName || undefined,
-        weddingDate: weddingDate ? new Date(weddingDate) : null,
-        updatedAt: new Date(),
-      })
+      .set(updateData)
       .where(eq(tenants.id, session.user.tenantId));
 
     return NextResponse.json({ success: true });

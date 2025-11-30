@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth/config";
-import { getPlannerByTenantId, getPagesByPlannerId } from "@/lib/db/queries";
+import { getPlannerByTenantId, getPagesByPlannerId, getTenantById } from "@/lib/db/queries";
 import { TemplateMarketplace } from "./template-marketplace";
 
 export default async function TemplatesPage() {
@@ -10,6 +10,10 @@ export default async function TemplatesPage() {
   if (!session?.user) {
     redirect("/login");
   }
+
+  // Get tenant to check plan
+  const tenant = await getTenantById(session.user.tenantId);
+  const userPlan = tenant?.plan ?? "free";
 
   // Check if user already has a planner (adding pages vs creating new)
   const planner = await getPlannerByTenantId(session.user.tenantId);
@@ -20,6 +24,7 @@ export default async function TemplatesPage() {
     <TemplateMarketplace
       isAddingPages={existingPages.length > 0}
       existingTemplateIds={existingTemplateIds}
+      userPlan={userPlan as "free" | "complete"}
     />
   );
 }

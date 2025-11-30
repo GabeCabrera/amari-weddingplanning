@@ -60,14 +60,9 @@ export default async function HomePage() {
     redirect("/login");
   }
 
-  // If plan not selected yet, redirect to choose plan
-  if (tenant.plan === "free" && !tenant.onboardingComplete) {
-    redirect("/choose-plan");
-  }
-
-  // If onboarding not complete (paid users), redirect to welcome
+  // If onboarding not complete, redirect to choose plan (both free and paid start here)
   if (!tenant.onboardingComplete) {
-    redirect("/welcome");
+    redirect("/choose-plan");
   }
 
   // Check if they have a planner with pages
