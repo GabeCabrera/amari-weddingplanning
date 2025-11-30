@@ -23,7 +23,7 @@ export const sharedFields: SharedFieldDefinition[] = [
     key: "names",
     label: "Names",
     type: "text",
-    description: "The couple's names (e.g., Sarah & Gabe)",
+    description: "The couple's names (e.g., Emma & James)",
   },
   {
     key: "ceremonyVenue",

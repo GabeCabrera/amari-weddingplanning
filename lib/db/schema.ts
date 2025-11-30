@@ -18,7 +18,7 @@ export const tenants = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     slug: text("slug").notNull().unique(), // subdomain: "sarahandgabe"
-    displayName: text("display_name").notNull(), // "Sarah & Gabe"
+    displayName: text("display_name").notNull(), // "Emma & James"
     weddingDate: timestamp("wedding_date"),
     plan: text("plan").notNull().default("free"), // "free" | "complete"
     stripeCustomerId: text("stripe_customer_id"), // Stripe customer ID after payment

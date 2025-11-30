@@ -63,8 +63,8 @@ async function main() {
   console.log("This will create a new wedding planner for a couple.\n");
 
   // Get partner names
-  const partner1Name = await prompt("Partner 1 name (e.g., Sarah): ");
-  const partner2Name = await prompt("Partner 2 name (e.g., Gabe): ");
+  const partner1Name = await prompt("Partner 1 name (e.g., Emma): ");
+  const partner2Name = await prompt("Partner 2 name (e.g., James): ");
 
   // Generate display name and slug
   const displayName = `${partner1Name} & ${partner2Name}`;

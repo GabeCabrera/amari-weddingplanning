@@ -103,7 +103,7 @@ export default function RegisterPage() {
               type="text"
               value={formData.name}
               onChange={handleChange}
-              placeholder="Sarah & James"
+              placeholder="Your names (e.g., Emma & James)"
               required
               disabled={isLoading}
             />

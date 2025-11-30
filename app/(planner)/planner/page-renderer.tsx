@@ -60,7 +60,7 @@ export function PageRenderer({ page, onFieldChange, allPages = [] }: PageRendere
                 value={(fields.names as string) || ""}
                 onChange={(e) => updateField("names", e.target.value)}
                 className="text-center"
-                placeholder="Sarah & Gabe"
+                placeholder="Your names (e.g., Emma & James)"
               />
             </div>
             <div>

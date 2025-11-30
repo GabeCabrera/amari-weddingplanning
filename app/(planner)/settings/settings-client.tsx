@@ -175,7 +175,7 @@ export function SettingsClient({ user, tenant }: SettingsClientProps) {
                 id="displayName"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Sarah & James"
+                placeholder="Your names (e.g., Emma & James)"
               />
             </div>
 
