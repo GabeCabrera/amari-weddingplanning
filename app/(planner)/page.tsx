@@ -11,19 +11,27 @@ function getSubdomain(host: string): string | null {
   const hostWithoutPort = host.split(":")[0];
   const parts = hostWithoutPort.split(".");
   
-  // Development: sarahandgabe.localhost -> subdomain is "sarahandgabe"
-  // localhost alone -> no subdomain
+  // Development: localhost alone -> no subdomain
   if (hostWithoutPort === "localhost" || hostWithoutPort === "127.0.0.1") {
     return null;
   }
   
-  // Check if it's a .localhost subdomain (dev)
+  // Development: sarahandgabe.localhost -> subdomain is "sarahandgabe"
   if (parts.length === 2 && parts[1] === "localhost") {
     return parts[0];
   }
   
-  // Production: sarahandgabe.aisle.wedding -> subdomain is "sarahandgabe"
-  // aisle.wedding -> no subdomain
+  // Vercel preview URLs: something.vercel.app -> no subdomain
+  // sarahandgabe.amari-weddingplanning.vercel.app -> subdomain is "sarahandgabe"
+  if (hostWithoutPort.endsWith(".vercel.app")) {
+    if (parts.length > 3 && parts[0] !== "www") {
+      return parts[0];
+    }
+    return null;
+  }
+  
+  // Production: aisle.wedding -> no subdomain
+  // sarahandgabe.aisle.wedding -> subdomain is "sarahandgabe"
   if (parts.length > 2 && parts[0] !== "www") {
     return parts[0];
   }
@@ -36,10 +44,36 @@ export default async function HomePage() {
   const host = headersList.get("host") || "";
   const subdomain = getSubdomain(host);
   
-  console.log("Host:", host, "Subdomain:", subdomain);
+  console.log("[HomePage] Host:", host, "Subdomain:", subdomain);
 
-  // If no subdomain, show marketing/landing page
+  // If no subdomain, check if user is logged in and show appropriate page
   if (!subdomain) {
+    const session = await getServerSession(authOptions);
+    
+    // If logged in, show their dashboard based on their tenant
+    if (session?.user?.tenantId) {
+      const tenant = await getTenantById(session.user.tenantId);
+      
+      if (tenant) {
+        // User is logged in - show their planner home
+        if (!tenant.onboardingComplete) {
+          redirect("/welcome");
+        }
+        
+        const planner = await getPlannerByTenantId(tenant.id);
+        const pages = planner ? await getPagesByPlannerId(planner.id) : [];
+        const hasStartedPlanning = pages.length > 0;
+        
+        return (
+          <HomeClient
+            displayName={tenant.displayName}
+            hasStartedPlanning={hasStartedPlanning}
+          />
+        );
+      }
+    }
+    
+    // Not logged in - show marketing/landing page
     return (
       <main className="min-h-screen flex flex-col items-center justify-center p-8">
         <div className="text-center max-w-md">

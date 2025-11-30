@@ -5,11 +5,43 @@ import { getToken } from "next-auth/jwt";
 // Routes that don't require authentication
 const publicRoutes = ["/login", "/forgot-password", "/reset-password"];
 
-// Routes that require authentication but not tenant resolution
-const authOnlyRoutes = ["/api/auth"];
+function getSubdomain(host: string): string | null {
+  // Remove port if present
+  const hostWithoutPort = host.split(":")[0];
+  const parts = hostWithoutPort.split(".");
+
+  // Development: localhost alone -> no subdomain
+  if (hostWithoutPort === "localhost" || hostWithoutPort === "127.0.0.1") {
+    return null;
+  }
+
+  // Development: sarahandgabe.localhost -> subdomain is "sarahandgabe"
+  if (parts.length === 2 && parts[1] === "localhost") {
+    return parts[0];
+  }
+
+  // Vercel preview URLs: something.vercel.app -> no subdomain (it's the project name)
+  // sarahandgabe.amari-weddingplanning.vercel.app -> subdomain is "sarahandgabe"
+  if (hostWithoutPort.endsWith(".vercel.app")) {
+    // Count parts: project.vercel.app = 3 parts, subdomain.project.vercel.app = 4 parts
+    if (parts.length > 3 && parts[0] !== "www") {
+      return parts[0];
+    }
+    return null;
+  }
+
+  // Production: aisle.wedding -> no subdomain
+  // sarahandgabe.aisle.wedding -> subdomain is "sarahandgabe"
+  if (parts.length > 2 && parts[0] !== "www") {
+    return parts[0];
+  }
+
+  return null;
+}
 
 export async function middleware(request: NextRequest) {
-  const { pathname, host } = request.nextUrl;
+  const { pathname } = request.nextUrl;
+  const host = request.headers.get("host") || "";
 
   // Skip static files and Next.js internals
   if (
@@ -20,30 +52,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Extract subdomain from host
-  // In production: sarahandgabe.aisle.wedding
-  // In development: sarahandgabe.localhost:3000
-  const hostParts = host.split(".");
-  let subdomain: string | null = null;
+  // Extract subdomain
+  const subdomain = getSubdomain(host);
+  
+  console.log(`[Middleware] Host: ${host}, Subdomain: ${subdomain}, Path: ${pathname}`);
 
-  if (process.env.NODE_ENV === "development") {
-    // localhost:3000 -> no subdomain
-    // sarahandgabe.localhost:3000 -> "sarahandgabe"
-    if (hostParts.length > 1 && hostParts[0] !== "www") {
-      subdomain = hostParts[0];
-    }
-  } else {
-    // aisle.wedding -> no subdomain
-    // sarahandgabe.aisle.wedding -> "sarahandgabe"
-    // Assumes main domain is 2 parts (aisle.wedding)
-    if (hostParts.length > 2 && hostParts[0] !== "www") {
-      subdomain = hostParts[0];
-    }
-  }
-
-  // If no subdomain, redirect to main marketing site (or show error)
+  // If no subdomain, allow access (marketing site or root Vercel URL)
   if (!subdomain) {
-    // For now, just continue - in production you might redirect to marketing
     return NextResponse.next();
   }
 
@@ -66,6 +81,8 @@ export async function middleware(request: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   });
 
+  console.log(`[Middleware] Token:`, token ? `User ${token.email}, Tenant: ${token.tenantSlug}` : "No token");
+
   if (!token) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
@@ -74,8 +91,10 @@ export async function middleware(request: NextRequest) {
 
   // Verify user belongs to this tenant
   if (token.tenantSlug !== subdomain) {
+    console.log(`[Middleware] Tenant mismatch: token has ${token.tenantSlug}, URL has ${subdomain}`);
     // User is trying to access a different tenant's site
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", request.url);
+    return NextResponse.redirect(loginUrl);
   }
 
   // Check if user must change password
