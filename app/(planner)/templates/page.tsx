@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth/config";
 import { getPlannerByTenantId, getPagesByPlannerId, getTenantById } from "@/lib/db/queries";
-import { getMarketplaceTemplatesWithCustom } from "@/lib/templates/registry";
+import { getMarketplaceTemplatesWithCustom } from "@/lib/templates/registry.server";
 import { TemplateMarketplace } from "./template-marketplace";
 
 export default async function TemplatesPage() {
