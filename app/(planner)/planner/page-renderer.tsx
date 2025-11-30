@@ -2439,7 +2439,7 @@ function TaskBoardRenderer({ page, fields, updateField, allPages }: TaskBoardRen
         onDragStart={(e) => handleDragStart(e, task.id)}
         onDragEnd={handleDragEnd}
         className={`
-          relative p-4 border-2 rounded-sm
+          relative p-4 pb-10 border-2 rounded-sm
           ${POST_IT_COLORS[task.color]}
           shadow-md ${POST_IT_SHADOWS[task.color]}
           transition-all duration-200
@@ -2449,7 +2449,7 @@ function TaskBoardRenderer({ page, fields, updateField, allPages }: TaskBoardRen
         `}
         style={{ 
           transform: `rotate(${rotation}deg)`,
-          minHeight: '120px'
+          minHeight: '160px'
         }}
       >
         {/* Drag handle */}
