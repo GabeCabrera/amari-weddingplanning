@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, memo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { 
   Plus, Trash2, User, Users as UsersIcon, Check, 
   CheckCircle2, Circle, Clock, Sparkles,
-  Calendar, ListTodo, Zap, Target, MoreHorizontal,
-  ChevronRight, GripVertical
+  Calendar, ListTodo, Zap, Target, MoreHorizontal
 } from "lucide-react";
 import {
   Dialog,
@@ -66,6 +65,229 @@ const STATUS_CONFIG = {
 };
 
 // ============================================================================
+// TASK CARD COMPONENT (Extracted and memoized)
+// ============================================================================
+interface TaskCardProps {
+  task: Task;
+  partner1Name: string;
+  partner2Name: string;
+  onUpdate: (taskId: string, updates: Partial<Task>) => void;
+  onDelete: (taskId: string) => void;
+  onMove: (taskId: string, status: Task["status"]) => void;
+}
+
+const TaskCard = memo(function TaskCard({
+  task,
+  partner1Name,
+  partner2Name,
+  onUpdate,
+  onDelete,
+  onMove,
+}: TaskCardProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(task.title);
+  
+  const colors = TASK_COLORS[task.color];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const isOverdue = task.dueDate && new Date(task.dueDate) < today && task.status !== "done";
+  const isDueSoon = task.dueDate && !isOverdue && task.status !== "done";
+
+  const getAssigneeName = (assignee: Task["assignee"]) => {
+    switch (assignee) {
+      case "partner1": return partner1Name;
+      case "partner2": return partner2Name;
+      case "both": return "Both";
+      default: return "Unassigned";
+    }
+  };
+
+  const getAssigneeInitial = (assignee: Task["assignee"]) => {
+    switch (assignee) {
+      case "partner1": return partner1Name.charAt(0).toUpperCase();
+      case "partner2": return partner2Name.charAt(0).toUpperCase();
+      case "both": return "★";
+      default: return "?";
+    }
+  };
+
+  const handleSaveTitle = () => {
+    const trimmed = editValue.trim();
+    if (trimmed && trimmed !== task.title) {
+      onUpdate(task.id, { title: trimmed });
+    } else {
+      setEditValue(task.title); // Reset if empty
+    }
+    setIsEditing(false);
+  };
+
+  const handleStartEdit = () => {
+    setEditValue(task.title);
+    setIsEditing(true);
+  };
+
+  return (
+    <div className="group bg-white rounded-lg border border-warm-200 hover:border-warm-300 hover:shadow-sm transition-all">
+      {/* Color bar */}
+      <div className={`h-1 ${colors.dot} rounded-t-lg`} />
+      
+      <div className="p-3">
+        {/* Title row */}
+        <div className="flex items-start gap-2">
+          {/* Checkbox */}
+          <button
+            onClick={() => onMove(task.id, task.status === "done" ? "todo" : "done")}
+            className={`mt-0.5 w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors ${
+              task.status === "done"
+                ? "bg-green-500 border-green-500 text-white"
+                : "border-warm-300 hover:border-green-400"
+            }`}
+          >
+            {task.status === "done" && <Check className="w-2.5 h-2.5" />}
+          </button>
+
+          {/* Title */}
+          <div className="flex-1 min-w-0">
+            {isEditing ? (
+              <input
+                type="text"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onBlur={handleSaveTitle}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveTitle();
+                  if (e.key === "Escape") {
+                    setEditValue(task.title);
+                    setIsEditing(false);
+                  }
+                }}
+                className="w-full text-sm bg-warm-50 border border-warm-200 rounded px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                autoFocus
+              />
+            ) : (
+              <p
+                onClick={handleStartEdit}
+                className={`text-sm cursor-text ${
+                  task.status === "done" ? "line-through text-warm-400" : "text-warm-800"
+                }`}
+              >
+                {task.title}
+              </p>
+            )}
+          </div>
+
+          {/* Actions dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-1 rounded hover:bg-warm-100 opacity-0 group-hover:opacity-100 transition-opacity">
+                <MoreHorizontal className="w-4 h-4 text-warm-400" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={handleStartEdit}>
+                Edit title
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={() => onMove(task.id, "todo")}
+                disabled={task.status === "todo"}
+              >
+                <Circle className="w-3 h-3 mr-2" /> Move to To Do
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => onMove(task.id, "in-progress")}
+                disabled={task.status === "in-progress"}
+              >
+                <Clock className="w-3 h-3 mr-2" /> Move to In Progress
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => onMove(task.id, "done")}
+                disabled={task.status === "done"}
+              >
+                <CheckCircle2 className="w-3 h-3 mr-2" /> Move to Done
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-red-600" onClick={() => onDelete(task.id)}>
+                <Trash2 className="w-3 h-3 mr-2" /> Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Meta row */}
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
+          {/* Assignee */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded hover:bg-warm-100 transition-colors ${
+                task.assignee !== "unassigned" ? colors.text : "text-warm-400"
+              }`}>
+                {task.assignee === "both" ? (
+                  <UsersIcon className="w-3 h-3" />
+                ) : task.assignee !== "unassigned" ? (
+                  <span className="w-4 h-4 rounded-full bg-warm-200 text-warm-600 text-[10px] flex items-center justify-center font-medium">
+                    {getAssigneeInitial(task.assignee)}
+                  </span>
+                ) : (
+                  <User className="w-3 h-3" />
+                )}
+                <span>{task.assignee === "unassigned" ? "Assign" : getAssigneeName(task.assignee)}</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {(["unassigned", "partner1", "partner2", "both"] as const).map((assignee) => (
+                <DropdownMenuItem 
+                  key={assignee} 
+                  onClick={() => onUpdate(task.id, { assignee })}
+                >
+                  {assignee === "partner1" ? partner1Name :
+                   assignee === "partner2" ? partner2Name :
+                   assignee === "both" ? "Both" : "Unassigned"}
+                  {task.assignee === assignee && <Check className="w-3 h-3 ml-auto" />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Due date */}
+          {task.dueDate && (
+            <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${
+              isOverdue ? "bg-red-100 text-red-700" :
+              isDueSoon ? "bg-amber-100 text-amber-700" :
+              "bg-warm-100 text-warm-600"
+            }`}>
+              <Calendar className="w-3 h-3" />
+              {new Date(task.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+            </span>
+          )}
+
+          {/* Color picker */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className={`w-3 h-3 rounded-full ${colors.dot} hover:ring-2 hover:ring-offset-1 hover:ring-warm-300 transition-all`} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="p-2">
+              <div className="flex gap-1">
+                {(["blue", "green", "purple", "pink", "yellow"] as const).map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => onUpdate(task.id, { color })}
+                    className={`w-6 h-6 rounded-full ${TASK_COLORS[color].dot} ${
+                      task.color === color ? "ring-2 ring-offset-1 ring-warm-400" : "hover:scale-110"
+                    } transition-all`}
+                  />
+                ))}
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+// ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 export function TaskBoardRenderer({ page, fields, updateField, allPages }: RendererWithAllPagesProps) {
@@ -76,7 +298,6 @@ export function TaskBoardRenderer({ page, fields, updateField, allPages }: Rende
   // State
   const [showAddTask, setShowAddTask] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskAssignee, setNewTaskAssignee] = useState<Task["assignee"]>("unassigned");
   const [newTaskColor, setNewTaskColor] = useState<Task["color"]>("blue");
@@ -154,13 +375,41 @@ export function TaskBoardRenderer({ page, fields, updateField, allPages }: Rende
   }, [tasks, filterAssignee]);
 
   // ============================================================================
-  // HANDLERS
+  // HANDLERS - Use functional updates to avoid stale closure
   // ============================================================================
   const generateId = () => `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-  const addTask = useCallback(() => {
+  const handleUpdateTask = useCallback((taskId: string, updates: Partial<Task>) => {
+    // Use functional form to get latest tasks
+    const currentTasks: Task[] = Array.isArray(fields.tasks) ? fields.tasks : [];
+    const newTasks = currentTasks.map(t => 
+      t.id === taskId ? { ...t, ...updates } : t
+    );
+    updateField("tasks", newTasks);
+  }, [fields.tasks, updateField]);
+
+  const handleDeleteTask = useCallback((taskId: string) => {
+    const currentTasks: Task[] = Array.isArray(fields.tasks) ? fields.tasks : [];
+    const newTasks = currentTasks.filter(t => t.id !== taskId);
+    updateField("tasks", newTasks);
+    toast.success("Task deleted");
+  }, [fields.tasks, updateField]);
+
+  const handleMoveTask = useCallback((taskId: string, newStatus: Task["status"]) => {
+    const currentTasks: Task[] = Array.isArray(fields.tasks) ? fields.tasks : [];
+    const newTasks = currentTasks.map(t => 
+      t.id === taskId ? { ...t, status: newStatus } : t
+    );
+    updateField("tasks", newTasks);
+    if (newStatus === "done") {
+      toast.success("Task completed! 🎉");
+    }
+  }, [fields.tasks, updateField]);
+
+  const handleAddTask = useCallback(() => {
     if (!newTaskTitle.trim()) return;
     
+    const currentTasks: Task[] = Array.isArray(fields.tasks) ? fields.tasks : [];
     const newTask: Task = {
       id: generateId(),
       title: newTaskTitle.trim(),
@@ -170,265 +419,50 @@ export function TaskBoardRenderer({ page, fields, updateField, allPages }: Rende
       dueDate: newTaskDueDate || undefined,
     };
     
-    updateField("tasks", [...tasks, newTask]);
+    updateField("tasks", [...currentTasks, newTask]);
     setNewTaskTitle("");
     setNewTaskDueDate("");
     setShowAddTask(false);
     toast.success("Task added!");
-  }, [newTaskTitle, newTaskAssignee, newTaskColor, newTaskDueDate, tasks, updateField]);
+  }, [newTaskTitle, newTaskAssignee, newTaskColor, newTaskDueDate, fields.tasks, updateField]);
 
-  const updateTask = useCallback((taskId: string, updates: Partial<Task>) => {
-    updateField("tasks", tasks.map(t => t.id === taskId ? { ...t, ...updates } : t));
-  }, [tasks, updateField]);
-
-  const deleteTask = useCallback((taskId: string) => {
-    updateField("tasks", tasks.filter(t => t.id !== taskId));
-    toast.success("Task deleted");
-  }, [tasks, updateField]);
-
-  const moveTask = useCallback((taskId: string, newStatus: Task["status"]) => {
-    updateField("tasks", tasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
-    if (newStatus === "done") {
-      toast.success("Task completed! 🎉");
-    }
-  }, [tasks, updateField]);
-
-  const addSuggestedTask = useCallback((title: string, category: string) => {
+  const handleAddSuggestedTask = useCallback((title: string, category: string) => {
     const colorMap: Record<string, Task["color"]> = {
       "Venue": "blue", "Catering": "green", "Photography": "purple",
       "Florist": "pink", "Music / DJ": "yellow",
     };
-    updateField("tasks", [...tasks, {
+    const currentTasks: Task[] = Array.isArray(fields.tasks) ? fields.tasks : [];
+    const newTask: Task = {
       id: generateId(),
       title,
-      assignee: "unassigned" as const,
-      status: "todo" as const,
+      assignee: "unassigned",
+      status: "todo",
       color: colorMap[category] || "blue",
-    }]);
+    };
+    updateField("tasks", [...currentTasks, newTask]);
     toast.success(`Added: ${title}`);
-  }, [tasks, updateField]);
+  }, [fields.tasks, updateField]);
 
-  const addAllFromCategory = useCallback((category: string, categoryTasks: string[]) => {
+  const handleAddAllFromCategory = useCallback((category: string, categoryTasks: string[]) => {
     const colorMap: Record<string, Task["color"]> = {
       "Venue": "blue", "Catering": "green", "Photography": "purple",
     };
+    const currentTasks: Task[] = Array.isArray(fields.tasks) ? fields.tasks : [];
     const newTasks = categoryTasks.map(title => ({
       id: generateId(),
       title,
       assignee: "unassigned" as const,
       status: "todo" as const,
-      color: colorMap[category] || "blue",
+      color: colorMap[category] || "blue" as const,
     }));
-    updateField("tasks", [...tasks, ...newTasks]);
+    updateField("tasks", [...currentTasks, ...newTasks]);
     toast.success(`Added ${categoryTasks.length} tasks`);
-  }, [tasks, updateField]);
+  }, [fields.tasks, updateField]);
 
   // ============================================================================
-  // HELPER FUNCTIONS
+  // COLUMN COMPONENT
   // ============================================================================
-  const getAssigneeName = (assignee: Task["assignee"]) => {
-    switch (assignee) {
-      case "partner1": return partner1Name;
-      case "partner2": return partner2Name;
-      case "both": return "Both";
-      default: return "Unassigned";
-    }
-  };
-
-  const getAssigneeInitial = (assignee: Task["assignee"]) => {
-    switch (assignee) {
-      case "partner1": return partner1Name.charAt(0).toUpperCase();
-      case "partner2": return partner2Name.charAt(0).toUpperCase();
-      case "both": return "★";
-      default: return "?";
-    }
-  };
-
-  // ============================================================================
-  // TASK CARD
-  // ============================================================================
-  const TaskCard = ({ task }: { task: Task }) => {
-    const colors = TASK_COLORS[task.color];
-    const isEditing = editingTaskId === task.id;
-    const [editValue, setEditValue] = useState(task.title);
-    
-    const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== "done";
-    const isDueSoon = task.dueDate && !isOverdue && task.status !== "done";
-
-    const handleSaveTitle = () => {
-      if (editValue.trim() && editValue !== task.title) {
-        updateTask(task.id, { title: editValue.trim() });
-      }
-      setEditingTaskId(null);
-    };
-
-    return (
-      <div className={`group bg-white rounded-lg border border-warm-200 hover:border-warm-300 hover:shadow-sm transition-all`}>
-        {/* Color bar */}
-        <div className={`h-1 ${colors.dot} rounded-t-lg`} />
-        
-        <div className="p-3">
-          {/* Title row */}
-          <div className="flex items-start gap-2">
-            {/* Checkbox */}
-            <button
-              onClick={() => moveTask(task.id, task.status === "done" ? "todo" : "done")}
-              className={`mt-0.5 w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors ${
-                task.status === "done"
-                  ? "bg-green-500 border-green-500 text-white"
-                  : "border-warm-300 hover:border-green-400"
-              }`}
-            >
-              {task.status === "done" && <Check className="w-2.5 h-2.5" />}
-            </button>
-
-            {/* Title */}
-            <div className="flex-1 min-w-0">
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  onBlur={handleSaveTitle}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleSaveTitle();
-                    if (e.key === "Escape") {
-                      setEditValue(task.title);
-                      setEditingTaskId(null);
-                    }
-                  }}
-                  className="w-full text-sm bg-warm-50 border border-warm-200 rounded px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-violet-400"
-                  autoFocus
-                />
-              ) : (
-                <p
-                  onClick={() => {
-                    setEditValue(task.title);
-                    setEditingTaskId(task.id);
-                  }}
-                  className={`text-sm cursor-text ${
-                    task.status === "done" ? "line-through text-warm-400" : "text-warm-800"
-                  }`}
-                >
-                  {task.title}
-                </p>
-              )}
-            </div>
-
-            {/* Actions dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="p-1 rounded hover:bg-warm-100 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <MoreHorizontal className="w-4 h-4 text-warm-400" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => { setEditValue(task.title); setEditingTaskId(task.id); }}>
-                  Edit title
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={() => moveTask(task.id, "todo")}
-                  disabled={task.status === "todo"}
-                >
-                  <Circle className="w-3 h-3 mr-2" /> Move to To Do
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => moveTask(task.id, "in-progress")}
-                  disabled={task.status === "in-progress"}
-                >
-                  <Clock className="w-3 h-3 mr-2" /> Move to In Progress
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => moveTask(task.id, "done")}
-                  disabled={task.status === "done"}
-                >
-                  <CheckCircle2 className="w-3 h-3 mr-2" /> Move to Done
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600" onClick={() => deleteTask(task.id)}>
-                  <Trash2 className="w-3 h-3 mr-2" /> Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Meta row */}
-          <div className="flex items-center gap-2 mt-2 flex-wrap">
-            {/* Assignee */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded hover:bg-warm-100 transition-colors ${
-                  task.assignee !== "unassigned" ? colors.text : "text-warm-400"
-                }`}>
-                  {task.assignee === "both" ? (
-                    <UsersIcon className="w-3 h-3" />
-                  ) : task.assignee !== "unassigned" ? (
-                    <span className="w-4 h-4 rounded-full bg-warm-200 text-warm-600 text-[10px] flex items-center justify-center font-medium">
-                      {getAssigneeInitial(task.assignee)}
-                    </span>
-                  ) : (
-                    <User className="w-3 h-3" />
-                  )}
-                  <span>{task.assignee === "unassigned" ? "Assign" : getAssigneeName(task.assignee)}</span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                {(["unassigned", "partner1", "partner2", "both"] as const).map((assignee) => (
-                  <DropdownMenuItem 
-                    key={assignee} 
-                    onClick={() => updateTask(task.id, { assignee })}
-                  >
-                    {assignee === "partner1" ? partner1Name :
-                     assignee === "partner2" ? partner2Name :
-                     assignee === "both" ? "Both" : "Unassigned"}
-                    {task.assignee === assignee && <Check className="w-3 h-3 ml-auto" />}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Due date */}
-            {task.dueDate && (
-              <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${
-                isOverdue ? "bg-red-100 text-red-700" :
-                isDueSoon ? "bg-amber-100 text-amber-700" :
-                "bg-warm-100 text-warm-600"
-              }`}>
-                <Calendar className="w-3 h-3" />
-                {new Date(task.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-              </span>
-            )}
-
-            {/* Color picker */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className={`w-3 h-3 rounded-full ${colors.dot} hover:ring-2 hover:ring-offset-1 hover:ring-warm-300 transition-all`} />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="p-2">
-                <div className="flex gap-1">
-                  {(["blue", "green", "purple", "pink", "yellow"] as const).map((color) => (
-                    <button
-                      key={color}
-                      onClick={() => updateTask(task.id, { color })}
-                      className={`w-6 h-6 rounded-full ${TASK_COLORS[color].dot} ${
-                        task.color === color ? "ring-2 ring-offset-1 ring-warm-400" : "hover:scale-110"
-                      } transition-all`}
-                    />
-                  ))}
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // ============================================================================
-  // COLUMN
-  // ============================================================================
-  const Column = ({ status, tasks: columnTasks }: { status: Task["status"]; tasks: Task[] }) => {
+  const Column = ({ status, columnTasks }: { status: Task["status"]; columnTasks: Task[] }) => {
     const config = STATUS_CONFIG[status];
     const StatusIcon = config.icon;
 
@@ -450,7 +484,15 @@ export function TaskBoardRenderer({ page, fields, updateField, allPages }: Rende
         {/* Tasks */}
         <div className={`flex-1 ${config.bg} rounded-b-lg p-2 border ${config.border} border-t-0 space-y-2 min-h-[300px]`}>
           {columnTasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
+            <TaskCard
+              key={task.id}
+              task={task}
+              partner1Name={partner1Name}
+              partner2Name={partner2Name}
+              onUpdate={handleUpdateTask}
+              onDelete={handleDeleteTask}
+              onMove={handleMoveTask}
+            />
           ))}
           
           {columnTasks.length === 0 && (
@@ -660,7 +702,15 @@ export function TaskBoardRenderer({ page, fields, updateField, allPages }: Rende
           {/* Mobile Tasks */}
           <div className="md:hidden space-y-2">
             {getMobileColumnTasks().map((task) => (
-              <TaskCard key={task.id} task={task} />
+              <TaskCard
+                key={task.id}
+                task={task}
+                partner1Name={partner1Name}
+                partner2Name={partner2Name}
+                onUpdate={handleUpdateTask}
+                onDelete={handleDeleteTask}
+                onMove={handleMoveTask}
+              />
             ))}
             {getMobileColumnTasks().length === 0 && (
               <div className="text-center py-12 bg-warm-50 rounded-xl border border-dashed border-warm-200">
@@ -681,9 +731,9 @@ export function TaskBoardRenderer({ page, fields, updateField, allPages }: Rende
 
           {/* Desktop Columns */}
           <div className="hidden md:flex gap-4">
-            <Column status="todo" tasks={calculations.todoTasks} />
-            <Column status="in-progress" tasks={calculations.inProgressTasks} />
-            <Column status="done" tasks={calculations.doneTasks} />
+            <Column status="todo" columnTasks={calculations.todoTasks} />
+            <Column status="in-progress" columnTasks={calculations.inProgressTasks} />
+            <Column status="done" columnTasks={calculations.doneTasks} />
           </div>
 
           {/* Related Templates */}
@@ -716,7 +766,7 @@ export function TaskBoardRenderer({ page, fields, updateField, allPages }: Rende
                 value={newTaskTitle}
                 onChange={(e) => setNewTaskTitle(e.target.value)}
                 placeholder="e.g., Book photographer"
-                onKeyDown={(e) => e.key === "Enter" && addTask()}
+                onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
                 className="mt-1.5"
                 autoFocus
               />
@@ -775,7 +825,7 @@ export function TaskBoardRenderer({ page, fields, updateField, allPages }: Rende
               Cancel
             </Button>
             <Button
-              onClick={addTask}
+              onClick={handleAddTask}
               disabled={!newTaskTitle.trim()}
               className="flex-1 bg-violet-600 hover:bg-violet-700 text-white"
             >
@@ -815,7 +865,7 @@ export function TaskBoardRenderer({ page, fields, updateField, allPages }: Rende
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => addAllFromCategory(category, categoryTasks)}
+                      onClick={() => handleAddAllFromCategory(category, categoryTasks)}
                       className="text-xs h-7 text-violet-600"
                     >
                       <Plus className="w-3 h-3 mr-1" />
@@ -829,7 +879,7 @@ export function TaskBoardRenderer({ page, fields, updateField, allPages }: Rende
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => addSuggestedTask(task, category)}
+                          onClick={() => handleAddSuggestedTask(task, category)}
                           className="opacity-0 group-hover:opacity-100 h-7 px-2 text-violet-600"
                         >
                           <Plus className="w-4 h-4" />
