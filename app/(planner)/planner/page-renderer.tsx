@@ -130,6 +130,7 @@ export function PageRenderer({ page, onFieldChange, allPages = [] }: PageRendere
         page={page}
         fields={fields}
         updateField={updateField}
+        allPages={allPages}
       />
     );
   }
@@ -1153,6 +1154,7 @@ function OverviewRenderer({ page, fields, updateField, allPages }: OverviewRende
   const guestListPage = allPages.find(p => p.templateId === "guest-list");
   const weddingPartyPage = allPages.find(p => p.templateId === "wedding-party");
   const timelinePage = allPages.find(p => p.templateId === "timeline");
+  const taskBoardPage = allPages.find(p => p.templateId === "task-board");
 
   // Extract data from cover page
   const coverFields = (coverPage?.fields || {}) as Record<string, unknown>;
@@ -1190,13 +1192,21 @@ function OverviewRenderer({ page, fields, updateField, allPages }: OverviewRende
   // Extract timeline tasks
   const timelineFields = (timelinePage?.fields || {}) as Record<string, unknown>;
   const sections = (timelineFields.sections as Record<string, unknown>[]) || [];
-  const allTasks: { task: string; completed: boolean }[] = [];
+  const allTimelineTasks: { task: string; completed: boolean }[] = [];
   sections.forEach(section => {
     const tasks = (section.tasks as Record<string, unknown>[]) || [];
-    tasks.forEach(t => allTasks.push({ task: t.task as string, completed: t.completed as boolean }));
+    tasks.forEach(t => allTimelineTasks.push({ task: t.task as string, completed: t.completed as boolean }));
   });
-  const completedTasks = allTasks.filter(t => t.completed).length;
-  const pendingTasks = allTasks.filter(t => !t.completed).slice(0, 5);
+  const completedTimelineTasks = allTimelineTasks.filter(t => t.completed).length;
+  const pendingTimelineTasks = allTimelineTasks.filter(t => !t.completed).slice(0, 5);
+
+  // Extract task board data
+  const taskBoardFields = (taskBoardPage?.fields || {}) as Record<string, unknown>;
+  const boardTasks = (taskBoardFields.tasks as { id: string; title: string; status: string; assignee: string }[]) || [];
+  const totalBoardTasks = boardTasks.length;
+  const completedBoardTasks = boardTasks.filter(t => t.status === "done").length;
+  const inProgressBoardTasks = boardTasks.filter(t => t.status === "in-progress").length;
+  const pendingBoardTasks = boardTasks.filter(t => t.status === "todo").slice(0, 5);
 
   // Color palette
   const colorPalette = (fields.colorPalette as Record<string, unknown>[]) || [];
@@ -1449,44 +1459,66 @@ function OverviewRenderer({ page, fields, updateField, allPages }: OverviewRende
 
           {/* Right Column */}
           <div className="space-y-8">
-            {/* Upcoming Tasks */}
-            {allTasks.length > 0 && (
-              <div className="p-6 border border-warm-200">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
-                    <h3 className="text-sm tracking-wider uppercase text-warm-500">Tasks</h3>
-                  </div>
+            {/* Task Board Tasks */}
+            <div className="p-6 border border-warm-200">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  <h3 className="text-sm tracking-wider uppercase text-warm-500">Task Board</h3>
+                </div>
+                {totalBoardTasks > 0 && (
                   <span className="text-xs text-warm-500">
-                    {completedTasks}/{allTasks.length} done
+                    {completedBoardTasks}/{totalBoardTasks} done
                   </span>
-                </div>
-                <div className="space-y-2">
-                  {pendingTasks.length > 0 ? (
-                    pendingTasks.map((task, i) => (
-                      <div key={i} className="flex items-center gap-2 text-sm text-warm-600">
-                        <div className="w-1.5 h-1.5 bg-amber-400 rounded-full" />
-                        {task.task}
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-green-600">All tasks complete! 🎉</p>
-                  )}
-                  {allTasks.length > 5 && pendingTasks.length > 0 && (
-                    <p className="text-xs text-warm-400 mt-2">
-                      +{allTasks.filter(t => !t.completed).length - 5} more tasks
-                    </p>
-                  )}
-                </div>
-                {/* Progress bar */}
-                <div className="mt-4 h-1.5 bg-warm-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-green-500 transition-all duration-300"
-                    style={{ width: `${allTasks.length > 0 ? (completedTasks / allTasks.length) * 100 : 0}%` }}
-                  />
-                </div>
+                )}
               </div>
-            )}
+              {totalBoardTasks > 0 ? (
+                <>
+                  {/* Stats row */}
+                  <div className="flex gap-4 mb-4 text-xs">
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-warm-300 rounded-full" />
+                      <span className="text-warm-500">To Do: {boardTasks.filter(t => t.status === "todo").length}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-amber-400 rounded-full" />
+                      <span className="text-warm-500">In Progress: {inProgressBoardTasks}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-green-500 rounded-full" />
+                      <span className="text-warm-500">Done: {completedBoardTasks}</span>
+                    </div>
+                  </div>
+                  {/* Pending tasks */}
+                  <div className="space-y-2">
+                    {pendingBoardTasks.length > 0 ? (
+                      pendingBoardTasks.map((task) => (
+                        <div key={task.id} className="flex items-center gap-2 text-sm text-warm-600">
+                          <div className="w-1.5 h-1.5 bg-amber-400 rounded-full" />
+                          {task.title}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-green-600">All tasks complete! 🎉</p>
+                    )}
+                    {boardTasks.filter(t => t.status === "todo").length > 5 && (
+                      <p className="text-xs text-warm-400 mt-2">
+                        +{boardTasks.filter(t => t.status === "todo").length - 5} more to do
+                      </p>
+                    )}
+                  </div>
+                  {/* Progress bar */}
+                  <div className="mt-4 h-1.5 bg-warm-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-green-500 transition-all duration-300"
+                      style={{ width: `${totalBoardTasks > 0 ? (completedBoardTasks / totalBoardTasks) * 100 : 0}%` }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-warm-400 italic">Add a Task Board page to track your to-dos!</p>
+              )}
+            </div>
 
             {/* Day-Of Contacts */}
             <div className="p-6 border border-warm-200">
@@ -2046,7 +2078,113 @@ interface TaskBoardRendererProps {
   page: Page;
   fields: Record<string, unknown>;
   updateField: (key: string, value: unknown) => void;
+  allPages: Page[];
 }
+
+// Suggested tasks by budget category
+const SUGGESTED_TASKS_BY_CATEGORY: Record<string, string[]> = {
+  "Venue": [
+    "Schedule venue tour",
+    "Review and sign venue contract",
+    "Confirm venue capacity",
+    "Discuss layout and floor plan",
+    "Confirm parking arrangements",
+  ],
+  "Catering": [
+    "Schedule tasting appointment",
+    "Finalize menu selections",
+    "Confirm dietary accommodations",
+    "Decide on bar package",
+    "Review catering contract",
+  ],
+  "Photography": [
+    "Review photographer portfolio",
+    "Create shot list",
+    "Schedule engagement photos",
+    "Discuss timeline for day-of",
+    "Confirm delivery timeline",
+  ],
+  "Videography": [
+    "Review videographer samples",
+    "Discuss highlight reel length",
+    "Confirm audio requirements",
+  ],
+  "Florist": [
+    "Create flower inspiration board",
+    "Schedule floral consultation",
+    "Finalize bouquet design",
+    "Confirm centerpiece arrangements",
+    "Discuss ceremony arch/decor",
+  ],
+  "Music / DJ": [
+    "Create must-play song list",
+    "Create do-not-play list",
+    "Discuss ceremony music",
+    "Plan first dance song",
+    "Confirm MC announcements",
+  ],
+  "Wedding Attire": [
+    "Shop for wedding dress/suit",
+    "Schedule fittings",
+    "Choose accessories",
+    "Plan rehearsal dinner outfit",
+    "Coordinate wedding party attire",
+  ],
+  "Hair & Makeup": [
+    "Schedule hair/makeup trial",
+    "Create inspiration photos",
+    "Confirm day-of timeline",
+    "Book wedding party appointments",
+  ],
+  "Invitations & Stationery": [
+    "Design save-the-dates",
+    "Send save-the-dates",
+    "Design wedding invitations",
+    "Order invitations",
+    "Send invitations",
+    "Design programs and menus",
+  ],
+  "Wedding Cake": [
+    "Schedule cake tasting",
+    "Choose cake flavor and filling",
+    "Finalize cake design",
+    "Confirm delivery/setup",
+  ],
+  "Decorations": [
+    "Create decoration mood board",
+    "Order table numbers",
+    "Plan photo booth props",
+    "Order signage",
+  ],
+  "Transportation": [
+    "Book wedding party transportation",
+    "Arrange guest shuttle if needed",
+    "Plan getaway car",
+  ],
+  "Officiant": [
+    "Meet with officiant",
+    "Discuss ceremony structure",
+    "Write/finalize vows",
+    "Schedule rehearsal",
+  ],
+  "Wedding Rings": [
+    "Shop for wedding bands",
+    "Order rings (allow time for sizing)",
+    "Pick up rings before wedding",
+  ],
+  "Favors & Gifts": [
+    "Choose wedding favors",
+    "Order wedding party gifts",
+    "Get parent thank-you gifts",
+  ],
+  "Honeymoon": [
+    "Research honeymoon destinations",
+    "Book flights",
+    "Book accommodations",
+    "Plan activities",
+    "Check passport expiration",
+  ],
+};
 
 const POST_IT_COLORS = {
   yellow: "bg-yellow-100 border-yellow-300 hover:bg-yellow-50",
@@ -2064,17 +2202,44 @@ const POST_IT_SHADOWS = {
   purple: "shadow-purple-200/50",
 };
 
-function TaskBoardRenderer({ page, fields, updateField }: TaskBoardRendererProps) {
+function TaskBoardRenderer({ page, fields, updateField, allPages }: TaskBoardRendererProps) {
   const partner1Name = (fields.partner1Name as string) || "Partner 1";
   const partner2Name = (fields.partner2Name as string) || "Partner 2";
   const tasks = (fields.tasks as Task[]) || [];
 
   const [editingTask, setEditingTask] = useState<string | null>(null);
   const [showAddTask, setShowAddTask] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskAssignee, setNewTaskAssignee] = useState<Task["assignee"]>("unassigned");
   const [newTaskColor, setNewTaskColor] = useState<Task["color"]>("yellow");
   const [filterAssignee, setFilterAssignee] = useState<Task["assignee"] | "all">("all");
+
+  // Get budget categories from budget page
+  const budgetPage = allPages.find(p => p.templateId === "budget");
+  const budgetFields = (budgetPage?.fields || {}) as Record<string, unknown>;
+  const budgetItems = (budgetFields.items as Record<string, unknown>[]) || [];
+  const budgetCategories = [...new Set(budgetItems.map(item => item.category as string).filter(Boolean))];
+
+  // Get suggested tasks based on budget categories
+  const getSuggestedTasks = () => {
+    const suggestions: { category: string; tasks: string[] }[] = [];
+    const existingTaskTitles = tasks.map(t => t.title.toLowerCase());
+    
+    budgetCategories.forEach(category => {
+      const categoryTasks = SUGGESTED_TASKS_BY_CATEGORY[category] || [];
+      const newSuggestions = categoryTasks.filter(
+        task => !existingTaskTitles.includes(task.toLowerCase())
+      );
+      if (newSuggestions.length > 0) {
+        suggestions.push({ category, tasks: newSuggestions });
+      }
+    });
+    
+    return suggestions;
+  };
+
+  const suggestedTasks = getSuggestedTasks();
 
   // Generate unique ID
   const generateId = () => `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -2098,6 +2263,73 @@ function TaskBoardRenderer({ page, fields, updateField }: TaskBoardRendererProps
     updateField("tasks", [...tasks, newTask]);
     setNewTaskTitle("");
     setShowAddTask(false);
+  };
+
+  // Add a suggested task
+  const addSuggestedTask = (title: string, category: string) => {
+    // Assign a color based on category
+    const colorMap: Record<string, Task["color"]> = {
+      "Venue": "blue",
+      "Catering": "green",
+      "Photography": "purple",
+      "Videography": "purple",
+      "Florist": "pink",
+      "Music / DJ": "yellow",
+      "Wedding Attire": "pink",
+      "Hair & Makeup": "pink",
+      "Invitations & Stationery": "yellow",
+      "Wedding Cake": "green",
+      "Decorations": "purple",
+      "Transportation": "blue",
+      "Officiant": "blue",
+      "Wedding Rings": "yellow",
+      "Favors & Gifts": "green",
+      "Honeymoon": "blue",
+    };
+
+    const newTask: Task = {
+      id: generateId(),
+      title,
+      assignee: "unassigned",
+      status: "todo",
+      color: colorMap[category] || "yellow",
+    };
+    
+    updateField("tasks", [...tasks, newTask]);
+    toast.success(`Added: ${title}`);
+  };
+
+  // Add all suggested tasks from a category
+  const addAllFromCategory = (category: string, categoryTasks: string[]) => {
+    const colorMap: Record<string, Task["color"]> = {
+      "Venue": "blue",
+      "Catering": "green",
+      "Photography": "purple",
+      "Videography": "purple",
+      "Florist": "pink",
+      "Music / DJ": "yellow",
+      "Wedding Attire": "pink",
+      "Hair & Makeup": "pink",
+      "Invitations & Stationery": "yellow",
+      "Wedding Cake": "green",
+      "Decorations": "purple",
+      "Transportation": "blue",
+      "Officiant": "blue",
+      "Wedding Rings": "yellow",
+      "Favors & Gifts": "green",
+      "Honeymoon": "blue",
+    };
+
+    const newTasks: Task[] = categoryTasks.map(title => ({
+      id: generateId(),
+      title,
+      assignee: "unassigned" as const,
+      status: "todo" as const,
+      color: colorMap[category] || "yellow",
+    }));
+    
+    updateField("tasks", [...tasks, ...newTasks]);
+    toast.success(`Added ${categoryTasks.length} tasks from ${category}`);
   };
 
   const updateTask = (taskId: string, updates: Partial<Task>) => {
@@ -2343,6 +2575,16 @@ function TaskBoardRenderer({ page, fields, updateField }: TaskBoardRendererProps
               />
             </div>
             <div className="flex-1" />
+            {suggestedTasks.length > 0 && (
+              <Button
+                variant="outline"
+                onClick={() => setShowSuggestions(true)}
+                className="mr-2"
+              >
+                <Star className="w-4 h-4 mr-2" />
+                Get Suggestions ({suggestedTasks.reduce((acc, cat) => acc + cat.tasks.length, 0)})
+              </Button>
+            )}
             <Button
               onClick={() => setShowAddTask(true)}
               className="bg-warm-600 hover:bg-warm-700 text-white"
@@ -2491,6 +2733,77 @@ function TaskBoardRenderer({ page, fields, updateField }: TaskBoardRendererProps
               className="flex-1 bg-warm-600 hover:bg-warm-700 text-white"
             >
               Add Task
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Suggestions Dialog */}
+      <Dialog open={showSuggestions} onOpenChange={setShowSuggestions}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-amber-500" />
+              Suggested Tasks
+            </DialogTitle>
+            <DialogDescription>
+              Based on your budget items, here are some tasks you might want to add.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-6">
+            {suggestedTasks.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-warm-500">No suggestions available.</p>
+                <p className="text-sm text-warm-400 mt-2">
+                  Add vendors to your budget to get task suggestions!
+                </p>
+              </div>
+            ) : (
+              suggestedTasks.map(({ category, tasks: categoryTasks }) => (
+                <div key={category} className="border border-warm-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium text-warm-700">{category}</h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => addAllFromCategory(category, categoryTasks)}
+                      className="text-xs"
+                    >
+                      <Plus className="w-3 h-3 mr-1" />
+                      Add All ({categoryTasks.length})
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {categoryTasks.map((task) => (
+                      <div
+                        key={task}
+                        className="flex items-center justify-between py-2 px-3 bg-warm-50 rounded hover:bg-warm-100 group"
+                      >
+                        <span className="text-sm text-warm-600">{task}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => addSuggestedTask(task, category)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="flex gap-3 pt-4 border-t border-warm-200">
+            <Button
+              variant="outline"
+              onClick={() => setShowSuggestions(false)}
+              className="flex-1"
+            >
+              Close
             </Button>
           </div>
         </DialogContent>
