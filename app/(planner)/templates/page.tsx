@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth/config";
 import { getPlannerByTenantId, getPagesByPlannerId, getTenantById } from "@/lib/db/queries";
+import { getMarketplaceTemplatesWithCustom } from "@/lib/templates/registry";
 import { TemplateMarketplace } from "./template-marketplace";
 
 export default async function TemplatesPage() {
@@ -20,11 +21,15 @@ export default async function TemplatesPage() {
   const existingPages = planner ? await getPagesByPlannerId(planner.id) : [];
   const existingTemplateIds = existingPages.map((p) => p.templateId);
 
+  // Get all templates including custom ones from database
+  const allTemplates = await getMarketplaceTemplatesWithCustom();
+
   return (
     <TemplateMarketplace
       isAddingPages={existingPages.length > 0}
       existingTemplateIds={existingTemplateIds}
       userPlan={userPlan as "free" | "complete"}
+      templates={allTemplates}
     />
   );
 }

@@ -13,10 +13,6 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import {
-  getMarketplaceTemplates,
-  getStarterPackTemplates,
-  getFreeTemplates,
-  isTemplateFree,
   categoryLabels,
   timelineLabels,
   type TemplateDefinition,
@@ -39,6 +35,18 @@ import {
   Sparkles,
   Lock,
   Crown,
+  FileText,
+  MapPin,
+  Camera,
+  Music,
+  Utensils,
+  Gift,
+  Plane,
+  Home,
+  Star,
+  CheckCircle,
+  List,
+  Clipboard,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -53,18 +61,32 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Circle,
   Clock,
   StickyNote,
+  FileText,
+  MapPin,
+  Camera,
+  Music,
+  Utensils,
+  Gift,
+  Plane,
+  Home,
+  Star,
+  CheckCircle,
+  List,
+  Clipboard,
 };
 
 interface TemplateMarketplaceProps {
   isAddingPages?: boolean;
   existingTemplateIds?: string[];
   userPlan?: "free" | "complete";
+  templates: TemplateDefinition[];
 }
 
 export function TemplateMarketplace({
   isAddingPages = false,
   existingTemplateIds = [],
   userPlan = "free",
+  templates: allTemplates,
 }: TemplateMarketplaceProps) {
   const router = useRouter();
   const [selectedTimeline, setSelectedTimeline] = useState<TimelineFilter | "all">("all");
@@ -74,9 +96,8 @@ export function TemplateMarketplace({
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
-  const allTemplates = getMarketplaceTemplates();
-  const starterPackTemplates = getStarterPackTemplates();
-  const freeTemplates = getFreeTemplates();
+  const starterPackTemplates = allTemplates.filter((t) => t.suggestedInStarterPack);
+  const freeTemplates = allTemplates.filter((t) => t.isFree);
 
   const filteredTemplates = allTemplates.filter((template) => {
     if (selectedTimeline !== "all" && !template.timelineFilters.includes(selectedTimeline)) {
@@ -88,11 +109,17 @@ export function TemplateMarketplace({
     return true;
   });
 
+  // Helper to check if template is free
+  const checkIsTemplateFree = (templateId: string) => {
+    const template = allTemplates.find((t) => t.id === templateId);
+    return template?.isFree ?? false;
+  };
+
   // Sort templates: free first for free users
   const sortedTemplates = userPlan === "free" 
     ? [...filteredTemplates].sort((a, b) => {
-        const aFree = isTemplateFree(a.id);
-        const bFree = isTemplateFree(b.id);
+        const aFree = a.isFree;
+        const bFree = b.isFree;
         if (aFree && !bFree) return -1;
         if (!aFree && bFree) return 1;
         return 0;
@@ -101,7 +128,7 @@ export function TemplateMarketplace({
 
   const toggleTemplate = (templateId: string) => {
     // Check if user can select this template
-    if (userPlan === "free" && !isTemplateFree(templateId)) {
+    if (userPlan === "free" && !checkIsTemplateFree(templateId)) {
       setShowUpgradeDialog(true);
       return;
     }
@@ -118,7 +145,7 @@ export function TemplateMarketplace({
     const starterIds = starterPackTemplates
       .map((t) => t.id)
       .filter((id) => !existingTemplateIds.includes(id))
-      .filter((id) => userPlan === "complete" || isTemplateFree(id));
+      .filter((id) => userPlan === "complete" || checkIsTemplateFree(id));
     setSelectedTemplates(starterIds);
     setShowStarterPackDialog(false);
     toast.success("Starter pack selected!");
@@ -155,7 +182,7 @@ export function TemplateMarketplace({
     }
   };
 
-  const freeTemplateCount = freeTemplates.filter(t => t.id !== "cover").length;
+  const freeTemplateCount = freeTemplates.length;
   const totalTemplateCount = allTemplates.length;
 
   return (
@@ -303,7 +330,7 @@ export function TemplateMarketplace({
               template={template}
               isSelected={selectedTemplates.includes(template.id)}
               alreadyHasTemplate={existingTemplateIds.includes(template.id)}
-              isLocked={userPlan === "free" && !isTemplateFree(template.id)}
+              isLocked={userPlan === "free" && !template.isFree}
               onToggle={() => toggleTemplate(template.id)}
               delay={index * 0.05}
             />
@@ -417,6 +444,13 @@ function TemplateCard({
         ${isSelected ? "border-warm-400 shadow-md" : "border-warm-200 hover:border-warm-300"}
       `}
     >
+      {/* Custom badge */}
+      {template.isCustom && (
+        <div className="absolute top-2 left-2 text-[9px] tracking-wider uppercase px-2 py-0.5 bg-warm-500 text-white">
+          New
+        </div>
+      )}
+
       {/* Locked badge */}
       {isLocked && (
         <div className="absolute top-2 right-2 flex items-center gap-1 text-[9px] tracking-wider uppercase px-2 py-0.5 bg-warm-200 text-warm-600">

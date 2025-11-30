@@ -50,6 +50,7 @@ export const users = pgTable(
     passwordHash: text("password_hash").notNull(),
     name: text("name"),
     role: text("role").notNull().default("member"), // "owner" | "member"
+    isAdmin: boolean("is_admin").default(false).notNull(), // Site-wide admin
     mustChangePassword: boolean("must_change_password").default(true).notNull(),
     emailVerified: timestamp("email_verified"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -125,6 +126,25 @@ export const pagesRelations = relations(pages, ({ one }) => ({
 }));
 
 // ============================================================================
+// CUSTOM TEMPLATES - Admin-created templates stored in database
+// ============================================================================
+export const customTemplates = pgTable("custom_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  templateId: text("template_id").notNull().unique(), // Unique identifier like "honeymoon-checklist"
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull(), // "essentials" | "planning" | "people" | "day-of" | "extras"
+  icon: text("icon").notNull().default("StickyNote"), // Lucide icon name
+  timelineFilters: jsonb("timeline_filters").notNull().default([]), // Array of timeline filters
+  fields: jsonb("fields").notNull().default([]), // Array of field definitions
+  isFree: boolean("is_free").default(false).notNull(),
+  isPublished: boolean("is_published").default(false).notNull(),
+  position: integer("position").notNull().default(0), // For ordering in marketplace
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ============================================================================
 // TYPE EXPORTS
 // ============================================================================
 export type Tenant = typeof tenants.$inferSelect;
@@ -138,3 +158,6 @@ export type NewPlanner = typeof planners.$inferInsert;
 
 export type Page = typeof pages.$inferSelect;
 export type NewPage = typeof pages.$inferInsert;
+
+export type CustomTemplate = typeof customTemplates.$inferSelect;
+export type NewCustomTemplate = typeof customTemplates.$inferInsert;
