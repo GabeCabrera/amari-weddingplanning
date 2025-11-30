@@ -13,7 +13,7 @@ import {
 
 export function LandingPage() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen select-none">
       {/* Hero Section */}
       <section className="min-h-[78vh] flex flex-col items-center justify-center px-8 py-16 bg-gradient-to-b from-warm-50 to-white">
         <div className="text-center max-w-2xl">
