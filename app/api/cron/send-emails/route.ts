@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Get all pending emails that are due
+    // Get all pending emails that are due (only for opted-in users)
     const pendingEmails = await getPendingScheduledEmails();
 
     if (pendingEmails.length === 0) {
@@ -31,11 +31,21 @@ export async function GET(request: NextRequest) {
     let failed = 0;
 
     for (const email of pendingEmails) {
+      // Skip if user doesn't have an unsubscribe token (shouldn't happen but safety check)
+      if (!email.user.unsubscribeToken) {
+        await markEmailAsFailed(email.id, "No unsubscribe token");
+        failed++;
+        continue;
+      }
+
       try {
         const result = await sendEmail({
           to: email.user.email,
           template: email.emailType as EmailTemplate,
-          data: { name: email.user.name || "there" },
+          data: {
+            name: email.user.name || "there",
+            unsubscribeToken: email.user.unsubscribeToken,
+          },
         });
 
         if (result.success) {

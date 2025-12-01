@@ -54,6 +54,10 @@ export const users = pgTable(
     isAdmin: boolean("is_admin").default(false).notNull(), // Site-wide admin
     mustChangePassword: boolean("must_change_password").default(true).notNull(),
     emailVerified: timestamp("email_verified"),
+    // Email preferences
+    emailOptIn: boolean("email_opt_in").default(false).notNull(),
+    unsubscribeToken: text("unsubscribe_token").unique(),
+    unsubscribedAt: timestamp("unsubscribed_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },

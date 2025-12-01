@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
     const name = sanitizeString(result.data.name);
     const email = result.data.email.toLowerCase().trim();
     const password = result.data.password;
+    const emailOptIn = result.data.emailOptIn ?? false;
 
     // Check if user already exists
     const existingUser = await getUserByEmail(email);
@@ -72,6 +73,9 @@ export async function POST(request: NextRequest) {
     // Use proper UUIDs for database IDs
     const tenantId = randomUUID();
     const userId = randomUUID();
+    
+    // Generate unsubscribe token for email management
+    const unsubscribeToken = nanoid(32);
 
     // Create tenant first
     await db.insert(tenants).values({
@@ -82,7 +86,7 @@ export async function POST(request: NextRequest) {
       onboardingComplete: false,
     });
 
-    // Create user
+    // Create user with email preferences
     await db.insert(users).values({
       id: userId,
       tenantId,
@@ -91,39 +95,43 @@ export async function POST(request: NextRequest) {
       passwordHash,
       role: "owner",
       mustChangePassword: false,
+      emailOptIn,
+      unsubscribeToken,
     });
 
     // =========================================================================
-    // EMAIL SEQUENCE
+    // EMAIL SEQUENCE (only if user opted in)
     // =========================================================================
     
-    // Send welcome email immediately (fire and forget - don't block registration)
-    sendEmail({
-      to: email,
-      template: "welcome",
-      data: { name },
-    }).catch((err) => console.error("Failed to send welcome email:", err));
+    if (emailOptIn) {
+      // Send welcome email immediately (fire and forget - don't block registration)
+      sendEmail({
+        to: email,
+        template: "welcome",
+        data: { name, unsubscribeToken },
+      }).catch((err) => console.error("Failed to send welcome email:", err));
 
-    // Schedule follow-up emails
-    try {
-      // "Why we charge $29" email - 1 hour later
-      await scheduleEmail(
-        userId,
-        tenantId,
-        "why_29",
-        getScheduledTime("why_29")
-      );
+      // Schedule follow-up emails
+      try {
+        // "Why we charge $29" email - 1 hour later
+        await scheduleEmail(
+          userId,
+          tenantId,
+          "why_29",
+          getScheduledTime("why_29")
+        );
 
-      // "Tips for your first week" email - 3 days later
-      await scheduleEmail(
-        userId,
-        tenantId,
-        "tips_week_1",
-        getScheduledTime("tips_week_1")
-      );
-    } catch (err) {
-      // Don't fail registration if email scheduling fails
-      console.error("Failed to schedule emails:", err);
+        // "Tips for your first week" email - 3 days later
+        await scheduleEmail(
+          userId,
+          tenantId,
+          "tips_week_1",
+          getScheduledTime("tips_week_1")
+        );
+      } catch (err) {
+        // Don't fail registration if email scheduling fails
+        console.error("Failed to schedule emails:", err);
+      }
     }
 
     return NextResponse.json({

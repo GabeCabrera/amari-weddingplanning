@@ -390,7 +390,7 @@ export async function scheduleEmail(
 }
 
 export async function getPendingScheduledEmails(): Promise<
-  Array<ScheduledEmail & { user: { email: string; name: string | null } }>
+  Array<ScheduledEmail & { user: { email: string; name: string | null; unsubscribeToken: string | null } }>
 > {
   const now = new Date();
   const emails = await db
@@ -407,6 +407,7 @@ export async function getPendingScheduledEmails(): Promise<
       user: {
         email: users.email,
         name: users.name,
+        unsubscribeToken: users.unsubscribeToken,
       },
     })
     .from(scheduledEmails)
@@ -414,7 +415,8 @@ export async function getPendingScheduledEmails(): Promise<
     .where(
       and(
         eq(scheduledEmails.status, "pending"),
-        lte(scheduledEmails.scheduledFor, now)
+        lte(scheduledEmails.scheduledFor, now),
+        eq(users.emailOptIn, true) // Only send to opted-in users
       )
     );
   return emails;
@@ -441,4 +443,54 @@ export async function markEmailAsFailed(
       error,
     })
     .where(eq(scheduledEmails.id, emailId));
+}
+
+// ============================================================================
+// EMAIL SUBSCRIPTION QUERIES (for admin)
+// ============================================================================
+
+import { count, isNull } from "drizzle-orm";
+
+export interface EmailStats {
+  totalUsers: number;
+  subscribedUsers: number;
+  unsubscribedUsers: number;
+}
+
+export async function getEmailStats(): Promise<EmailStats> {
+  const [total] = await db.select({ count: count() }).from(users);
+  const [subscribed] = await db
+    .select({ count: count() })
+    .from(users)
+    .where(eq(users.emailOptIn, true));
+  const [unsubscribed] = await db
+    .select({ count: count() })
+    .from(users)
+    .where(
+      and(
+        eq(users.emailOptIn, false),
+        isNull(users.unsubscribedAt).not() // They explicitly unsubscribed
+      )
+    );
+
+  return {
+    totalUsers: total?.count ?? 0,
+    subscribedUsers: subscribed?.count ?? 0,
+    unsubscribedUsers: unsubscribed?.count ?? 0,
+  };
+}
+
+export async function getSubscribedUsers(): Promise<
+  Array<{ id: string; email: string; name: string | null; unsubscribeToken: string | null }>
+> {
+  const subscribedUsers = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      name: users.name,
+      unsubscribeToken: users.unsubscribeToken,
+    })
+    .from(users)
+    .where(eq(users.emailOptIn, true));
+  return subscribedUsers;
 }

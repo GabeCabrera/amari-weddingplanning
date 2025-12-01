@@ -17,13 +17,15 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
+    emailOptIn: true, // Default to checked
   });
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
@@ -51,6 +53,7 @@ export default function RegisterPage() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
+          emailOptIn: formData.emailOptIn,
         }),
       });
 
@@ -154,6 +157,22 @@ export default function RegisterPage() {
               required
               disabled={isLoading}
             />
+          </div>
+
+          {/* Email Opt-In Checkbox */}
+          <div className="flex items-start gap-3 pt-2">
+            <input
+              type="checkbox"
+              id="emailOptIn"
+              name="emailOptIn"
+              checked={formData.emailOptIn}
+              onChange={handleChange}
+              disabled={isLoading}
+              className="mt-1 h-4 w-4 rounded border-warm-300 text-warm-600 focus:ring-warm-500"
+            />
+            <label htmlFor="emailOptIn" className="text-sm text-warm-600 leading-relaxed">
+              Send me helpful wedding planning tips and updates. You can unsubscribe anytime.
+            </label>
           </div>
 
           <Button

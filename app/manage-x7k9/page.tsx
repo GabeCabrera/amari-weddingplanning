@@ -359,6 +359,12 @@ export default function AdminDashboard() {
                   Templates
                 </Button>
               </Link>
+              <Link href="/manage-x7k9/email">
+                <Button variant="outline" size="sm">
+                  <Send className="w-4 h-4 mr-2" />
+                  Email
+                </Button>
+              </Link>
               <Link href="/manage-x7k9/settings">
                 <Button variant="outline" size="sm">
                   <Settings className="w-4 h-4 mr-2" />
