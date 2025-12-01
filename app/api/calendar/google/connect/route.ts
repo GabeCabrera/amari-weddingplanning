@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { getAuthUrl } from "@/lib/calendar/google-client";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/calendar/google/connect - Initiate OAuth flow
 export async function GET() {
   try {

@@ -7,6 +7,8 @@ import {
 } from "@/lib/db/queries";
 import { deleteWeddingCalendar } from "@/lib/calendar/google-client";
 
+export const dynamic = "force-dynamic";
+
 // POST /api/calendar/google/disconnect - Disconnect Google Calendar
 export async function POST() {
   try {

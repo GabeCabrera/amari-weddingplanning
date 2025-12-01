@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth/config";
 import { getGoogleCalendarConnection } from "@/lib/db/queries";
 import { getCalendarShareLink } from "@/lib/calendar/google-client";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/calendar/google/status - Get Google Calendar connection status
 export async function GET() {
   try {

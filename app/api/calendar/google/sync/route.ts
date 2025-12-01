@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth/config";
 import { getGoogleCalendarConnection } from "@/lib/db/queries";
 import { syncCalendar } from "@/lib/calendar/sync-engine";
 
+export const dynamic = "force-dynamic";
+
 // POST /api/calendar/google/sync - Trigger calendar sync
 export async function POST() {
   try {
