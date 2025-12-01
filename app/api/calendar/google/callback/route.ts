@@ -12,6 +12,9 @@ import {
 } from "@/lib/db/queries";
 import { google } from "googleapis";
 
+// Force dynamic rendering since this route uses searchParams
+export const dynamic = "force-dynamic";
+
 // GET /api/calendar/google/callback - Handle OAuth callback
 export async function GET(request: NextRequest) {
   try {
