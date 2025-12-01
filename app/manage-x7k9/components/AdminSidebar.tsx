@@ -9,10 +9,10 @@ import {
   FileText,
   Tag,
   Activity,
-  Settings,
   ExternalLink,
   LogOut,
   Sparkles,
+  Image,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -43,6 +43,12 @@ const navItems = [
     href: "/manage-x7k9/templates",
     icon: FileText,
     description: "Wedding planner templates",
+  },
+  {
+    label: "Marketing",
+    href: "/manage-x7k9/marketing",
+    icon: Image,
+    description: "Ad creatives & assets",
   },
   {
     label: "Discounts",
