@@ -30,11 +30,11 @@ export function LandingPage() {
             Aisle
           </p>
 
-          {/* Benefit-first H1 */}
+          {/* Benefit-first H1 with SEO keywords */}
           <h1 className="text-4xl md:text-5xl font-serif font-light tracking-wide mb-4 text-warm-800">
-            Plan Your Wedding
+            The Stress-Free
             <br />
-            <span className="text-warm-600">Without the Stress</span>
+            <span className="text-warm-600">Wedding Planner App</span>
           </h1>
 
           {/* No Subscription Badge */}
@@ -78,7 +78,7 @@ export function LandingPage() {
         {/* Product Preview - "Peeking" from bottom, above the fold */}
         <div className="flex-1 flex items-end justify-center max-w-5xl mx-auto w-full">
           <div className="w-full transform translate-y-12 md:translate-y-16">
-            <div className="bg-gradient-to-br from-warm-50 to-warm-100 rounded-t-xl shadow-2xl overflow-hidden border border-warm-200 border-b-0">
+            <div className="bg-white rounded-t-xl shadow-[0_-10px_60px_-15px_rgba(0,0,0,0.2)] overflow-hidden border border-warm-200 border-b-0">
               {/* Browser Chrome */}
               <div className="bg-warm-200/50 px-4 py-3 flex items-center gap-2">
                 <div className="flex gap-1.5">
@@ -230,8 +230,55 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Congratulations Section */}
+      {/* How It Works - Address "60 seconds" claim */}
       <section className="py-20 px-8 bg-warm-50/50">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
+            <h2 className="text-3xl font-serif font-light tracking-wide mb-4 text-warm-800">
+              Ready in 60 Seconds
+            </h2>
+            <p className="text-warm-600">
+              No endless questionnaires. Just start planning.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-12 h-12 rounded-full bg-warm-100 flex items-center justify-center mx-auto mb-4 text-warm-600 font-serif text-xl">
+                1
+              </div>
+              <h3 className="font-medium text-warm-700 mb-2">Create your account</h3>
+              <p className="text-sm text-warm-500">
+                Just your email and a password. That&apos;s it.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-12 h-12 rounded-full bg-warm-100 flex items-center justify-center mx-auto mb-4 text-warm-600 font-serif text-xl">
+                2
+              </div>
+              <h3 className="font-medium text-warm-700 mb-2">Set your wedding date</h3>
+              <p className="text-sm text-warm-500">
+                We&apos;ll create a timeline tailored to your day.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-12 h-12 rounded-full bg-warm-100 flex items-center justify-center mx-auto mb-4 text-warm-600 font-serif text-xl">
+                3
+              </div>
+              <h3 className="font-medium text-warm-700 mb-2">Start planning together</h3>
+              <p className="text-sm text-warm-500">
+                Invite your partner and dive in. Everything auto-saves.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Congratulations Section */}
+      <section className="py-20 px-8 bg-white">
         <div className="max-w-2xl mx-auto text-center">
           <Heart className="w-8 h-8 text-warm-400 mx-auto mb-6" />
           <h2 className="text-3xl font-serif font-light tracking-wide mb-6">
@@ -248,7 +295,7 @@ export function LandingPage() {
       </section>
 
       {/* Features Section - Updated H2s for SEO */}
-      <section className="py-20 px-8 bg-white">
+      <section className="py-20 px-8 bg-warm-50/50">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
@@ -299,7 +346,7 @@ export function LandingPage() {
       <PricingSection />
 
       {/* About Section */}
-      <section className="py-20 px-8 bg-warm-50/50">
+      <section className="py-20 px-8 bg-white">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-12">
             <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
@@ -334,7 +381,7 @@ export function LandingPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 px-8 bg-white">
+      <section className="py-20 px-8 bg-warm-50/50">
         <div className="max-w-xl mx-auto text-center">
           <Sparkles className="w-8 h-8 text-warm-400 mx-auto mb-6" />
           <h2 className="text-3xl font-serif font-light tracking-wide mb-4">
