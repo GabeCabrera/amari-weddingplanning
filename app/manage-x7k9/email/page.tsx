@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import {
-  ArrowLeft,
   Mail,
   Users,
   UserMinus,
@@ -80,7 +78,6 @@ export default function EmailManagementPage() {
       setSendResult(data);
       toast.success(`Sent ${data.sent} emails successfully`);
       
-      // Clear form on success
       if (data.failed === 0) {
         setSubject("");
         setContent("");
@@ -93,183 +90,178 @@ export default function EmailManagementPage() {
   };
 
   return (
-    <main className="min-h-screen bg-warm-50">
-      {/* Header */}
-      <header className="bg-white border-b border-warm-200 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/manage-x7k9" className="text-warm-500 hover:text-warm-700 transition-colors">
-                <ArrowLeft className="w-5 h-5" />
-              </Link>
-              <div>
-                <h1 className="text-xl font-serif tracking-wider uppercase">Email Management</h1>
-                <p className="text-xs text-warm-400">Broadcast emails to subscribers</p>
-              </div>
-            </div>
-            <Button variant="outline" size="sm" onClick={fetchStats} disabled={isLoading}>
-              <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
-              Refresh
-            </Button>
-          </div>
+    <div className="p-8">
+      {/* Page Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-serif tracking-wider uppercase text-warm-800">
+            Email
+          </h1>
+          <p className="text-warm-500 mt-1">
+            Manage subscribers and send broadcasts
+          </p>
         </div>
-      </header>
+        <Button variant="outline" size="sm" onClick={fetchStats} disabled={isLoading}>
+          <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+          Refresh
+        </Button>
+      </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-white border border-warm-200 p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="w-5 h-5 text-blue-600" />
-              </div>
-              <span className="text-sm text-warm-500">Total Users</span>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="bg-white border border-warm-200 p-5 rounded-lg">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Users className="w-5 h-5 text-blue-600" />
             </div>
-            <p className="text-3xl font-light text-warm-800">
-              {isLoading ? "..." : stats?.totalUsers || 0}
-            </p>
+            <span className="text-sm text-warm-500">Total Users</span>
           </div>
-
-          <div className="bg-white border border-warm-200 p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Mail className="w-5 h-5 text-green-600" />
-              </div>
-              <span className="text-sm text-warm-500">Subscribed</span>
-            </div>
-            <p className="text-3xl font-light text-green-600">
-              {isLoading ? "..." : stats?.subscribedUsers || 0}
-            </p>
-            <p className="text-xs text-warm-400 mt-1">
-              {stats && stats.totalUsers > 0
-                ? `${((stats.subscribedUsers / stats.totalUsers) * 100).toFixed(1)}% of users`
-                : ""}
-            </p>
-          </div>
-
-          <div className="bg-white border border-warm-200 p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <UserMinus className="w-5 h-5 text-red-600" />
-              </div>
-              <span className="text-sm text-warm-500">Unsubscribed</span>
-            </div>
-            <p className="text-3xl font-light text-red-500">
-              {isLoading ? "..." : stats?.unsubscribedUsers || 0}
-            </p>
-          </div>
+          <p className="text-3xl font-light text-warm-800">
+            {isLoading ? "..." : stats?.totalUsers || 0}
+          </p>
         </div>
 
-        {/* Broadcast Form */}
-        <div className="bg-white border border-warm-200 p-6 mb-8">
-          <h2 className="text-lg font-medium text-warm-800 flex items-center gap-2 mb-6">
+        <div className="bg-white border border-warm-200 p-5 rounded-lg">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <Mail className="w-5 h-5 text-green-600" />
+            </div>
+            <span className="text-sm text-warm-500">Subscribed</span>
+          </div>
+          <p className="text-3xl font-light text-green-600">
+            {isLoading ? "..." : stats?.subscribedUsers || 0}
+          </p>
+          <p className="text-xs text-warm-400 mt-1">
+            {stats && stats.totalUsers > 0
+              ? `${((stats.subscribedUsers / stats.totalUsers) * 100).toFixed(1)}% of users`
+              : ""}
+          </p>
+        </div>
+
+        <div className="bg-white border border-warm-200 p-5 rounded-lg">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 bg-red-100 rounded-lg">
+              <UserMinus className="w-5 h-5 text-red-600" />
+            </div>
+            <span className="text-sm text-warm-500">Unsubscribed</span>
+          </div>
+          <p className="text-3xl font-light text-red-500">
+            {isLoading ? "..." : stats?.unsubscribedUsers || 0}
+          </p>
+        </div>
+      </div>
+
+      {/* Broadcast Form */}
+      <div className="bg-white border border-warm-200 rounded-lg mb-8">
+        <div className="p-6 border-b border-warm-100">
+          <h2 className="text-lg font-medium text-warm-800 flex items-center gap-2">
             <Send className="w-5 h-5 text-warm-400" />
             Send Broadcast Email
           </h2>
+        </div>
+        
+        <div className="p-6 space-y-4">
+          <div>
+            <label htmlFor="subject" className="block text-sm font-medium text-warm-700 mb-1">
+              Subject Line
+            </label>
+            <input
+              type="text"
+              id="subject"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="e.g., New Feature: Wedding Calendar"
+              className="w-full px-4 py-2 border border-warm-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-warm-500 focus:border-transparent"
+              disabled={isSending}
+            />
+          </div>
 
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="subject" className="block text-sm font-medium text-warm-700 mb-1">
-                Subject Line
-              </label>
-              <input
-                type="text"
-                id="subject"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="e.g., New Feature: Wedding Calendar"
-                className="w-full px-4 py-2 border border-warm-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-warm-500 focus:border-transparent"
-                disabled={isSending}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="content" className="block text-sm font-medium text-warm-700 mb-1">
-                Email Content
-              </label>
-              <textarea
-                id="content"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Write your email content here. Each paragraph will be wrapped in a styled block.
+          <div>
+            <label htmlFor="content" className="block text-sm font-medium text-warm-700 mb-1">
+              Email Content
+            </label>
+            <textarea
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Write your email content here. Each paragraph will be wrapped in a styled block.
 
 You can write multiple paragraphs by adding blank lines between them.
 
 Keep it personal and helpful!"
-                rows={10}
-                className="w-full px-4 py-3 border border-warm-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-warm-500 focus:border-transparent font-mono text-sm"
-                disabled={isSending}
-              />
-              <p className="text-xs text-warm-400 mt-1">
-                Plain text only. Each line break creates a new paragraph.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-between pt-4 border-t border-warm-100">
-              <div className="text-sm text-warm-500">
-                Will be sent to <strong className="text-warm-700">{stats?.subscribedUsers || 0}</strong> subscribers
-              </div>
-              <Button
-                onClick={handleSendBroadcast}
-                disabled={isSending || !subject.trim() || !content.trim() || !stats?.subscribedUsers}
-                className="bg-warm-600 hover:bg-warm-700"
-              >
-                {isSending ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4 mr-2" />
-                    Send Broadcast
-                  </>
-                )}
-              </Button>
-            </div>
+              rows={10}
+              className="w-full px-4 py-3 border border-warm-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-warm-500 focus:border-transparent font-mono text-sm"
+              disabled={isSending}
+            />
+            <p className="text-xs text-warm-400 mt-1">
+              Plain text only. Each line break creates a new paragraph.
+            </p>
           </div>
-        </div>
 
-        {/* Send Result */}
-        {sendResult && (
-          <div className={`border p-6 rounded-lg ${
-            sendResult.failed === 0 ? "bg-green-50 border-green-200" : "bg-yellow-50 border-yellow-200"
-          }`}>
-            <div className="flex items-start gap-4">
-              {sendResult.failed === 0 ? (
-                <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
+          <div className="flex items-center justify-between pt-4 border-t border-warm-100">
+            <div className="text-sm text-warm-500">
+              Will be sent to <strong className="text-warm-700">{stats?.subscribedUsers || 0}</strong> subscribers
+            </div>
+            <Button
+              onClick={handleSendBroadcast}
+              disabled={isSending || !subject.trim() || !content.trim() || !stats?.subscribedUsers}
+              className="bg-warm-600 hover:bg-warm-700"
+            >
+              {isSending ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Sending...
+                </>
               ) : (
-                <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0" />
+                <>
+                  <Send className="w-4 h-4 mr-2" />
+                  Send Broadcast
+                </>
               )}
-              <div>
-                <h3 className={`font-medium ${sendResult.failed === 0 ? "text-green-800" : "text-yellow-800"}`}>
-                  Broadcast Complete
-                </h3>
-                <div className="mt-2 space-y-1 text-sm">
-                  <p className="text-green-700">✓ {sendResult.sent} emails sent successfully</p>
-                  {sendResult.failed > 0 && (
-                    <p className="text-red-600">✗ {sendResult.failed} emails failed</p>
-                  )}
-                  <p className="text-warm-600">Total: {sendResult.total} subscribers</p>
-                </div>
-              </div>
-            </div>
+            </Button>
           </div>
-        )}
-
-        {/* Tips */}
-        <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg mt-8">
-          <h3 className="font-medium text-blue-800 mb-3">Tips for Effective Emails</h3>
-          <ul className="space-y-2 text-sm text-blue-700">
-            <li>• Keep subject lines under 50 characters</li>
-            <li>• Lead with value — what's in it for them?</li>
-            <li>• Use personal language ("you" and "your")</li>
-            <li>• Include a clear call-to-action</li>
-            <li>• Emails are styled with your brand colors automatically</li>
-            <li>• Unsubscribe link is added automatically to every email</li>
-          </ul>
         </div>
       </div>
-    </main>
+
+      {/* Send Result */}
+      {sendResult && (
+        <div className={`border rounded-lg p-6 mb-8 ${
+          sendResult.failed === 0 ? "bg-green-50 border-green-200" : "bg-yellow-50 border-yellow-200"
+        }`}>
+          <div className="flex items-start gap-4">
+            {sendResult.failed === 0 ? (
+              <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
+            ) : (
+              <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0" />
+            )}
+            <div>
+              <h3 className={`font-medium ${sendResult.failed === 0 ? "text-green-800" : "text-yellow-800"}`}>
+                Broadcast Complete
+              </h3>
+              <div className="mt-2 space-y-1 text-sm">
+                <p className="text-green-700">✓ {sendResult.sent} emails sent successfully</p>
+                {sendResult.failed > 0 && (
+                  <p className="text-red-600">✗ {sendResult.failed} emails failed</p>
+                )}
+                <p className="text-warm-600">Total: {sendResult.total} subscribers</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tips */}
+      <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
+        <h3 className="font-medium text-blue-800 mb-3">Tips for Effective Emails</h3>
+        <ul className="space-y-2 text-sm text-blue-700">
+          <li>• Keep subject lines under 50 characters</li>
+          <li>• Lead with value — what's in it for them?</li>
+          <li>• Use personal language ("you" and "your")</li>
+          <li>• Include a clear call-to-action</li>
+          <li>• Emails are styled with your brand colors automatically</li>
+          <li>• Unsubscribe link is added automatically to every email</li>
+        </ul>
+      </div>
+    </div>
   );
 }
