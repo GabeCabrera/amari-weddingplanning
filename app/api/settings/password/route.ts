@@ -17,9 +17,9 @@ export async function POST(request: NextRequest) {
 
     const { currentPassword, newPassword } = await request.json();
 
-    if (!currentPassword || !newPassword) {
+    if (!newPassword) {
       return NextResponse.json(
-        { error: "Current and new password are required" },
+        { error: "New password is required" },
         { status: 400 }
       );
     }
@@ -31,16 +31,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get user and verify current password
+    // Get user
     const user = await getUserByEmail(session.user.email);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
-    if (!isValid) {
-      return NextResponse.json({ error: "Current password is incorrect" }, { status: 400 });
+    // If user has a password, verify current password
+    if (user.passwordHash) {
+      if (!currentPassword) {
+        return NextResponse.json(
+          { error: "Current password is required" },
+          { status: 400 }
+        );
+      }
+
+      const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!isValid) {
+        return NextResponse.json({ error: "Current password is incorrect" }, { status: 400 });
+      }
     }
+    // If user doesn't have a password (Google-only), they're setting one for the first time
 
     // Hash new password and update
     const newPasswordHash = await bcrypt.hash(newPassword, 12);
