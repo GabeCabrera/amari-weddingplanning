@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { db } from "@/lib/db";
 import { users, tenants } from "@/lib/db/schema";
-import { eq, desc, like, or, count } from "drizzle-orm";
+import { eq, desc, like, or, count, and } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -20,12 +20,33 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const search = searchParams.get("search") || "";
-    const plan = searchParams.get("plan") || "";
+    const planFilter = searchParams.get("plan") || "";
 
     const offset = (page - 1) * limit;
 
-    // Build base query
-    let query = db
+    // Build where conditions
+    const conditions = [];
+    
+    if (search) {
+      conditions.push(
+        or(
+          like(users.email, `%${search}%`),
+          like(users.name, `%${search}%`),
+          like(tenants.displayName, `%${search}%`)
+        )
+      );
+    }
+    
+    if (planFilter === "free" || planFilter === "complete") {
+      conditions.push(eq(tenants.plan, planFilter));
+    }
+
+    // Get total count
+    const [totalResult] = await db.select({ count: count() }).from(users);
+    const total = totalResult?.count || 0;
+
+    // Get paginated results
+    const results = await db
       .select({
         id: users.id,
         email: users.email,
@@ -45,30 +66,10 @@ export async function GET(request: NextRequest) {
       })
       .from(users)
       .innerJoin(tenants, eq(users.tenantId, tenants.id))
-      .orderBy(desc(users.createdAt));
-
-    // Apply search filter
-    if (search) {
-      query = query.where(
-        or(
-          like(users.email, `%${search}%`),
-          like(users.name, `%${search}%`),
-          like(tenants.displayName, `%${search}%`)
-        )
-      ) as typeof query;
-    }
-
-    // Apply plan filter
-    if (plan && (plan === "free" || plan === "complete")) {
-      query = query.where(eq(tenants.plan, plan)) as typeof query;
-    }
-
-    // Get total count
-    const [totalResult] = await db.select({ count: count() }).from(users);
-    const total = totalResult?.count || 0;
-
-    // Get paginated results
-    const results = await query.limit(limit).offset(offset);
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(users.createdAt))
+      .limit(limit)
+      .offset(offset);
 
     return NextResponse.json({
       users: results,
