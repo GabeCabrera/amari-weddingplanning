@@ -1,5 +1,5 @@
 import { db } from "./index";
-import { eq, and } from "drizzle-orm";
+import { eq, and, lte, count, isNotNull } from "drizzle-orm";
 import {
   tenants,
   users,
@@ -9,6 +9,7 @@ import {
   calendarEvents,
   googleCalendarConnections,
   calendarSyncLog,
+  scheduledEmails,
   type Tenant,
   type User,
   type Planner,
@@ -17,6 +18,7 @@ import {
   type NewCalendarEvent,
   type GoogleCalendarConnection,
   type NewGoogleCalendarConnection,
+  type ScheduledEmail,
 } from "./schema";
 
 // ============================================================================
@@ -367,9 +369,6 @@ export async function createCalendarSyncLog(
 // SCHEDULED EMAIL QUERIES
 // ============================================================================
 
-import { scheduledEmails, type ScheduledEmail } from "./schema";
-import { and, lte } from "drizzle-orm";
-
 export async function scheduleEmail(
   userId: string,
   tenantId: string,
@@ -449,8 +448,6 @@ export async function markEmailAsFailed(
 // EMAIL SUBSCRIPTION QUERIES (for admin)
 // ============================================================================
 
-import { count, isNull } from "drizzle-orm";
-
 export interface EmailStats {
   totalUsers: number;
   subscribedUsers: number;
@@ -469,7 +466,7 @@ export async function getEmailStats(): Promise<EmailStats> {
     .where(
       and(
         eq(users.emailOptIn, false),
-        isNull(users.unsubscribedAt).not() // They explicitly unsubscribed
+        isNotNull(users.unsubscribedAt) // They explicitly unsubscribed
       )
     );
 
