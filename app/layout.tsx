@@ -14,6 +14,12 @@ export const metadata: Metadata = {
     template: '%s | Aisle Wedding Planner',
   },
   description: 'Plan your wedding stress-free with Aisle. Free online wedding planner with budget tracker, guest list manager, seating charts, day-of timeline, and more. Start planning today.',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
   keywords: [
     'wedding planner',
     'wedding planning app',

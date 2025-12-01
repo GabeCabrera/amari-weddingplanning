@@ -6,7 +6,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Logo } from "@/components/logo";
 import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
 import * as redditPixel from "@/lib/reddit-pixel";
 
 function GoogleIcon() {
@@ -54,7 +56,6 @@ export default function RegisterPage() {
   const handleGoogleSignUp = async () => {
     setIsGoogleLoading(true);
     try {
-      // Track sign up conversion for Google sign ups
       redditPixel.trackSignUp();
       await signIn("google", { callbackUrl: "/choose-plan" });
     } catch {
@@ -116,17 +117,27 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-12">
-          <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
-          <h1 className="text-3xl font-serif font-light tracking-widest uppercase mb-2">
-            Aisle
-          </h1>
+    <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-warm-50">
+      {/* Back to Home */}
+      <div className="absolute top-6 left-6">
+        <Link 
+          href="/"
+          className="inline-flex items-center gap-2 text-warm-500 hover:text-warm-700 transition-colors text-sm"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Home</span>
+        </Link>
+      </div>
+
+      <div className="w-full max-w-sm bg-white p-8 rounded-lg shadow-sm border border-warm-200">
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <Logo size="lg" href="/" />
+          </div>
           <p className="text-xs tracking-[0.25em] uppercase text-warm-500">
             Create Your Account
           </p>
-          <div className="w-12 h-px bg-warm-400 mx-auto mt-6" />
+          <div className="w-12 h-px bg-warm-300 mx-auto mt-4" />
         </div>
 
         {/* Google Sign Up Button */}
@@ -151,7 +162,7 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="name">Your Names</Label>
             <Input
@@ -160,7 +171,7 @@ export default function RegisterPage() {
               type="text"
               value={formData.name}
               onChange={handleChange}
-              placeholder="Your names (e.g., Emma & James)"
+              placeholder="e.g., Emma & James"
               required
               disabled={isLoading || isGoogleLoading}
             />
@@ -219,17 +230,17 @@ export default function RegisterPage() {
               disabled={isLoading || isGoogleLoading}
               className="mt-1 h-4 w-4 rounded border-warm-300 text-warm-600 focus:ring-warm-500"
             />
-            <label htmlFor="emailOptIn" className="text-sm text-warm-600 leading-relaxed">
+            <label htmlFor="emailOptIn" className="text-xs text-warm-600 leading-relaxed">
               Send me helpful wedding planning tips and updates. You can unsubscribe anytime.
             </label>
           </div>
 
           <Button
             type="submit"
-            className="w-full mt-8 bg-warm-600 hover:bg-warm-700 text-white"
+            className="w-full mt-6 bg-warm-600 hover:bg-warm-700 text-white"
             disabled={isLoading || isGoogleLoading}
           >
-            {isLoading ? "Creating Account..." : "Create Account with Email"}
+            {isLoading ? "Creating Account..." : "Create Account"}
           </Button>
         </form>
 

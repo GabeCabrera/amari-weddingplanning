@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/logo";
 import * as redditPixel from "@/lib/reddit-pixel";
 
 function PaymentSuccessContent() {
@@ -56,8 +57,11 @@ function PaymentSuccessContent() {
 
   if (isVerifying) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center p-8">
+      <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-warm-50">
         <div className="text-center">
+          <div className="flex justify-center mb-6">
+            <Logo size="lg" href={undefined} />
+          </div>
           <div className="w-16 h-16 border-2 border-warm-300 border-t-warm-600 rounded-full animate-spin mx-auto mb-8" />
           <p className="text-warm-600 tracking-wider uppercase text-sm">
             Confirming your purchase...
@@ -69,8 +73,11 @@ function PaymentSuccessContent() {
 
   if (!verified) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center p-8">
+      <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-warm-50">
         <div className="text-center">
+          <div className="flex justify-center mb-6">
+            <Logo size="lg" href="/" />
+          </div>
           <p className="text-warm-600">
             Something went wrong. Please contact support.
           </p>
@@ -87,8 +94,13 @@ function PaymentSuccessContent() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8">
+    <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-warm-50">
       <div className="text-center max-w-md">
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <Logo size="lg" href="/" />
+        </div>
+
         {/* Success animation */}
         <div className="relative mb-8">
           <div className="w-24 h-24 rounded-full bg-warm-100 mx-auto flex items-center justify-center">
@@ -135,7 +147,10 @@ export default function PaymentSuccessPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen flex flex-col items-center justify-center p-8">
+        <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-warm-50">
+          <div className="flex justify-center mb-6">
+            <Logo size="lg" href={undefined} />
+          </div>
           <div className="w-16 h-16 border-2 border-warm-300 border-t-warm-600 rounded-full animate-spin" />
         </main>
       }

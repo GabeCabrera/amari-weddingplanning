@@ -7,7 +7,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Logo } from "@/components/logo";
 import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
 
 function GoogleIcon() {
   return (
@@ -145,17 +147,27 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-12">
-          <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
-          <h1 className="text-3xl font-serif font-light tracking-widest uppercase mb-2">
-            Aisle
-          </h1>
+    <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-warm-50">
+      {/* Back to Home */}
+      <div className="absolute top-6 left-6">
+        <Link 
+          href="/"
+          className="inline-flex items-center gap-2 text-warm-500 hover:text-warm-700 transition-colors text-sm"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Home</span>
+        </Link>
+      </div>
+
+      <div className="w-full max-w-sm bg-white p-8 rounded-lg shadow-sm border border-warm-200">
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <Logo size="lg" href="/" />
+          </div>
           <p className="text-xs tracking-[0.25em] uppercase text-warm-500">
             Welcome Back
           </p>
-          <div className="w-12 h-px bg-warm-400 mx-auto mt-6" />
+          <div className="w-12 h-px bg-warm-300 mx-auto mt-4" />
         </div>
 
         <Suspense fallback={<div>Loading...</div>}>

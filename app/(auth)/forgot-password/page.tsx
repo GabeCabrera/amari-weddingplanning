@@ -5,7 +5,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Logo } from "@/components/logo";
 import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -28,7 +30,7 @@ export default function ForgotPasswordPage() {
       }
 
       setIsSubmitted(true);
-    } catch (error) {
+    } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
@@ -37,19 +39,32 @@ export default function ForgotPasswordPage() {
 
   if (isSubmitted) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center p-8">
-        <div className="w-full max-w-sm text-center">
-          <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
-          <h1 className="text-2xl font-serif font-light tracking-wide mb-4">
+      <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-warm-50">
+        <div className="absolute top-6 left-6">
+          <Link 
+            href="/"
+            className="inline-flex items-center gap-2 text-warm-500 hover:text-warm-700 transition-colors text-sm"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Home</span>
+          </Link>
+        </div>
+
+        <div className="w-full max-w-sm bg-white p-8 rounded-lg shadow-sm border border-warm-200 text-center">
+          <div className="flex justify-center mb-6">
+            <Logo size="lg" href="/" />
+          </div>
+          <div className="w-12 h-px bg-warm-300 mx-auto mb-6" />
+          <h1 className="text-xl font-serif font-light tracking-wide mb-4">
             Check Your Email
           </h1>
           <p className="text-sm text-warm-500 mb-8">
             If an account exists for {email}, you&apos;ll receive a password reset link shortly.
           </p>
-          <div className="w-12 h-px bg-warm-400 mx-auto mb-8" />
+          <div className="w-12 h-px bg-warm-300 mx-auto mb-8" />
           <Link
             href="/login"
-            className="text-xs tracking-wider uppercase text-warm-500 hover:text-warm-600 transition-colors"
+            className="text-xs tracking-wider uppercase text-warm-600 hover:text-warm-700 transition-colors"
           >
             Back to Sign In
           </Link>
@@ -59,20 +74,33 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-12">
-          <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
-          <h1 className="text-2xl font-serif font-light tracking-wide mb-2">
+    <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-warm-50">
+      <div className="absolute top-6 left-6">
+        <Link 
+          href="/"
+          className="inline-flex items-center gap-2 text-warm-500 hover:text-warm-700 transition-colors text-sm"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Home</span>
+        </Link>
+      </div>
+
+      <div className="w-full max-w-sm bg-white p-8 rounded-lg shadow-sm border border-warm-200">
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <Logo size="lg" href="/" />
+          </div>
+          <p className="text-xs tracking-[0.25em] uppercase text-warm-500">
             Reset Password
-          </h1>
-          <p className="text-sm text-warm-500">
-            Enter your email and we&apos;ll send you a reset link.
           </p>
-          <div className="w-12 h-px bg-warm-400 mx-auto mt-6" />
+          <div className="w-12 h-px bg-warm-300 mx-auto mt-4" />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <p className="text-sm text-warm-500 text-center mb-6">
+          Enter your email and we&apos;ll send you a reset link.
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input

@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Check, Sparkles, Calendar, Users, Heart, Clock, FileText, DollarSign } from "lucide-react";
+import Link from "next/link";
+import { Check, Sparkles, Calendar, Users, Heart, Clock, FileText, DollarSign, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/logo";
 import { PriceDisplay, useDiscount } from "@/components/price-display";
 import { toast } from "sonner";
 import * as redditPixel from "@/lib/reddit-pixel";
@@ -115,10 +117,24 @@ function ChoosePlanContent() {
   };
 
   return (
-    <main className="min-h-screen py-16 px-8">
+    <main className="min-h-screen py-16 px-8 relative">
+      {/* Back to Home */}
+      <div className="absolute top-6 left-6">
+        <Link 
+          href="/"
+          className="inline-flex items-center gap-2 text-warm-500 hover:text-warm-700 transition-colors text-sm"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Home</span>
+        </Link>
+      </div>
+
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
+          <div className="flex justify-center mb-6">
+            <Logo size="lg" href="/" />
+          </div>
           <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
           <h1 className="text-3xl font-serif font-light tracking-widest uppercase mb-4">
             Choose Your Experience

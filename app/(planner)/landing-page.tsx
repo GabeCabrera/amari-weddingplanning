@@ -1,20 +1,17 @@
 import Link from "next/link";
-import Image from "next/image";
 import { 
   Heart, 
   Calendar, 
   Users, 
   DollarSign, 
-  Clock, 
-  CheckCircle2,
   Sparkles,
   ArrowRight,
   Check,
-  Star,
   BadgeCheck,
   X
 } from "lucide-react";
 import { PricingSection } from "@/components/pricing-section";
+import { Logo } from "@/components/logo";
 
 export function LandingPage() {
   return (
@@ -23,12 +20,12 @@ export function LandingPage() {
       <section className="min-h-screen flex flex-col px-8 pt-12 pb-8 bg-gradient-to-b from-warm-50 to-white overflow-hidden">
         {/* Top content */}
         <div className="text-center max-w-2xl mx-auto flex-shrink-0">
-          <div className="w-16 h-px bg-warm-400 mx-auto mb-6" />
+          {/* Logo */}
+          <div className="flex justify-center mb-6">
+            <Logo size="lg" href={undefined} />
+          </div>
           
-          {/* Brand mark - smaller */}
-          <p className="text-sm tracking-[0.3em] uppercase text-warm-400 mb-4">
-            Aisle
-          </p>
+          <div className="w-16 h-px bg-warm-400 mx-auto mb-6" />
 
           {/* Benefit-first H1 with SEO keywords */}
           <h1 className="text-4xl md:text-5xl font-serif font-light tracking-wide mb-4 text-warm-800">
@@ -407,10 +404,8 @@ export function LandingPage() {
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center gap-8">
             <div className="text-center md:text-left">
-              <p className="font-serif tracking-widest uppercase text-warm-700 mb-1">
-                Aisle
-              </p>
-              <p className="text-xs text-warm-500">
+              <Logo size="sm" href={undefined} />
+              <p className="text-xs text-warm-500 mt-1">
                 Made with love in Utah
               </p>
             </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/logo";
 import { 
   Settings, BookOpen, Sparkles, Users, TrendingUp, 
   DollarSign, Calendar, Clock, Heart, Send, Plus,
@@ -194,9 +195,7 @@ export function HomeClient({ displayName, hasStartedPlanning }: HomeClientProps)
       <header className="bg-white border-b border-warm-200 sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
           <div className="flex items-center gap-3 md:gap-4">
-            <Link href="/" className="text-lg md:text-xl font-serif tracking-widest uppercase">
-              Aisle
-            </Link>
+            <Logo size="sm" href="/" />
             <span className="text-warm-300 hidden sm:inline">|</span>
             <span className="text-sm text-warm-500 hidden sm:inline">{displayName}</span>
           </div>

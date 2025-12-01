@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { signOut } from "next-auth/react";
+import { Logo, LogoIcon } from "@/components/logo";
 import {
   DndContext,
   closestCenter,
@@ -137,9 +138,7 @@ function PlannerEditorContent({
               <Menu className="w-5 h-5 text-warm-600" />
             </button>
             
-            <Link href="/" className="text-lg font-serif tracking-widest uppercase">
-              Aisle
-            </Link>
+            <Logo size="sm" href="/" />
             
             <div className="flex items-center gap-2">
               {isSaving ? (
@@ -257,10 +256,10 @@ function PlannerEditorContent({
           >
             {/* Sidebar Header */}
             <div className="p-4 border-b border-warm-200 flex items-center justify-between">
-              {!sidebarCollapsed && (
-                <Link href="/" className="text-lg font-serif tracking-widest uppercase">
-                  Aisle
-                </Link>
+              {sidebarCollapsed ? (
+                <LogoIcon size="sm" />
+              ) : (
+                <Logo size="sm" href="/" />
               )}
               <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
