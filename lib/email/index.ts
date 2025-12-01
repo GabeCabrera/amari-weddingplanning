@@ -1,0 +1,371 @@
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+const FROM_EMAIL = "Aisle <hello@aisleboard.com>";
+
+export type EmailTemplate = "welcome" | "why_29" | "tips_week_1";
+
+interface SendEmailOptions {
+  to: string;
+  template: EmailTemplate;
+  data: {
+    name: string;
+    [key: string]: string;
+  };
+}
+
+// ============================================================================
+// EMAIL TEMPLATES
+// ============================================================================
+
+function getWelcomeEmail(name: string) {
+  const firstName = name.split(" ")[0] || name;
+  
+  return {
+    subject: `Welcome to Aisle, ${firstName}! 💍`,
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: Georgia, 'Times New Roman', serif; background-color: #faf9f7; color: #5c5147;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f7; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border: 1px solid #e8e4df; max-width: 100%;">
+          <!-- Header -->
+          <tr>
+            <td style="padding: 40px 40px 20px; text-align: center;">
+              <div style="width: 60px; height: 1px; background-color: #c9b99a; margin: 0 auto 20px;"></div>
+              <h1 style="margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 4px; text-transform: uppercase; color: #5c5147;">
+                AISLE
+              </h1>
+              <p style="margin: 8px 0 0; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #9a8d7f;">
+                Wedding Planner
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 20px 40px 40px;">
+              <h2 style="margin: 0 0 20px; font-size: 24px; font-weight: 300; color: #5c5147; text-align: center;">
+                Welcome, ${firstName}!
+              </h2>
+              
+              <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #6b6157;">
+                Congratulations on your engagement! We're so excited you've chosen Aisle to help plan your special day.
+              </p>
+              
+              <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #6b6157;">
+                Your planner is ready and waiting. Here's what you can do right now:
+              </p>
+              
+              <ul style="margin: 0 0 30px; padding-left: 20px; font-size: 16px; line-height: 1.8; color: #6b6157;">
+                <li>Set your wedding date to unlock your personalized timeline</li>
+                <li>Invite your partner to plan together</li>
+                <li>Start tracking your budget</li>
+                <li>Begin your guest list</li>
+              </ul>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="https://aisleboard.com/planner" style="display: inline-block; padding: 16px 32px; background-color: #8b7355; color: #ffffff; text-decoration: none; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">
+                  Open Your Planner
+                </a>
+              </div>
+              
+              <p style="margin: 30px 0 0; font-size: 14px; line-height: 1.6; color: #9a8d7f; text-align: center;">
+                Questions? Just reply to this email — we read every message.
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 30px 40px; background-color: #faf9f7; border-top: 1px solid #e8e4df;">
+              <p style="margin: 0; font-size: 12px; color: #9a8d7f; text-align: center;">
+                Made with love in Utah<br>
+                <a href="https://aisleboard.com" style="color: #8b7355; text-decoration: none;">aisleboard.com</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `,
+  };
+}
+
+function getWhy29Email(name: string) {
+  const firstName = name.split(" ")[0] || name;
+  
+  return {
+    subject: "Why we charge $29 (and why it saves you money)",
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: Georgia, 'Times New Roman', serif; background-color: #faf9f7; color: #5c5147;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f7; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border: 1px solid #e8e4df; max-width: 100%;">
+          <!-- Header -->
+          <tr>
+            <td style="padding: 40px 40px 20px; text-align: center;">
+              <div style="width: 60px; height: 1px; background-color: #c9b99a; margin: 0 auto 20px;"></div>
+              <h1 style="margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 4px; text-transform: uppercase; color: #5c5147;">
+                AISLE
+              </h1>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 20px 40px 40px;">
+              <h2 style="margin: 0 0 24px; font-size: 22px; font-weight: 300; color: #5c5147; text-align: center; line-height: 1.4;">
+                Hey ${firstName} — a quick note about pricing
+              </h2>
+              
+              <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.7; color: #6b6157;">
+                You might be wondering why we charge a one-time $29 fee for the Complete plan when other wedding apps are "free."
+              </p>
+              
+              <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.7; color: #6b6157;">
+                Here's the truth: those "free" apps aren't really free.
+              </p>
+              
+              <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.7; color: #6b6157;">
+                <strong style="color: #5c5147;">They make money by:</strong>
+              </p>
+              
+              <ul style="margin: 0 0 24px; padding-left: 20px; font-size: 16px; line-height: 1.8; color: #6b6157;">
+                <li>Selling your data to vendors who then spam you</li>
+                <li>Showing you ads for services you didn't ask for</li>
+                <li>Charging monthly fees that add up over your engagement ($10/month × 12 months = $120+)</li>
+                <li>Upselling premium features one by one</li>
+              </ul>
+              
+              <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.7; color: #6b6157;">
+                <strong style="color: #5c5147;">With Aisle's $29 Complete plan, you get:</strong>
+              </p>
+              
+              <ul style="margin: 0 0 24px; padding-left: 20px; font-size: 16px; line-height: 1.8; color: #6b6157;">
+                <li>Every feature, unlocked forever</li>
+                <li>Zero ads, ever</li>
+                <li>Your data stays private — we never sell it</li>
+                <li>No monthly fees creeping up on you</li>
+                <li>Access for both you and your partner</li>
+              </ul>
+              
+              <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.7; color: #6b6157;">
+                Think of it this way: $29 is about the cost of one dinner out. And you'll use Aisle for 12-18 months of planning.
+              </p>
+              
+              <div style="background-color: #faf9f7; padding: 24px; margin: 30px 0; border-left: 3px solid #c9b99a;">
+                <p style="margin: 0; font-size: 16px; line-height: 1.7; color: #6b6157; font-style: italic;">
+                  "We built Aisle because we're planning our own wedding and got tired of the chaos. The $29 keeps us independent — no investors pushing us to sell your info."
+                </p>
+                <p style="margin: 12px 0 0; font-size: 14px; color: #9a8d7f;">
+                  — Sarah & Gabe, founders
+                </p>
+              </div>
+              
+              <p style="margin: 0 0 30px; font-size: 16px; line-height: 1.7; color: #6b6157;">
+                Of course, the free plan works great for many couples. No pressure at all — use whatever works for you.
+              </p>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="https://aisleboard.com/choose-plan" style="display: inline-block; padding: 16px 32px; background-color: #8b7355; color: #ffffff; text-decoration: none; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">
+                  View Plans
+                </a>
+              </div>
+              
+              <p style="margin: 30px 0 0; font-size: 14px; line-height: 1.6; color: #9a8d7f; text-align: center;">
+                Happy planning! 💍
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 30px 40px; background-color: #faf9f7; border-top: 1px solid #e8e4df;">
+              <p style="margin: 0; font-size: 12px; color: #9a8d7f; text-align: center;">
+                Made with love in Utah<br>
+                <a href="https://aisleboard.com" style="color: #8b7355; text-decoration: none;">aisleboard.com</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `,
+  };
+}
+
+function getTipsWeek1Email(name: string) {
+  const firstName = name.split(" ")[0] || name;
+  
+  return {
+    subject: "Your first week with Aisle — 3 quick wins",
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: Georgia, 'Times New Roman', serif; background-color: #faf9f7; color: #5c5147;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf9f7; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border: 1px solid #e8e4df; max-width: 100%;">
+          <!-- Header -->
+          <tr>
+            <td style="padding: 40px 40px 20px; text-align: center;">
+              <div style="width: 60px; height: 1px; background-color: #c9b99a; margin: 0 auto 20px;"></div>
+              <h1 style="margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 4px; text-transform: uppercase; color: #5c5147;">
+                AISLE
+              </h1>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 20px 40px 40px;">
+              <h2 style="margin: 0 0 24px; font-size: 22px; font-weight: 300; color: #5c5147; text-align: center; line-height: 1.4;">
+                3 quick wins for your first week
+              </h2>
+              
+              <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.7; color: #6b6157;">
+                Hey ${firstName}! Here are three things successful couples do in their first week with Aisle:
+              </p>
+              
+              <!-- Tip 1 -->
+              <div style="margin-bottom: 24px;">
+                <h3 style="margin: 0 0 8px; font-size: 16px; color: #5c5147;">
+                  1. Set your wedding date (even if it's approximate)
+                </h3>
+                <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #6b6157;">
+                  This unlocks your personalized timeline and shows you exactly what to focus on each month. Don't have an exact date yet? Pick a target month — you can always adjust later.
+                </p>
+              </div>
+              
+              <!-- Tip 2 -->
+              <div style="margin-bottom: 24px;">
+                <h3 style="margin: 0 0 8px; font-size: 16px; color: #5c5147;">
+                  2. Invite your partner
+                </h3>
+                <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #6b6157;">
+                  Planning is better together. Add them from the settings menu — they'll get their own login and can edit everything in real time.
+                </p>
+              </div>
+              
+              <!-- Tip 3 -->
+              <div style="margin-bottom: 24px;">
+                <h3 style="margin: 0 0 8px; font-size: 16px; color: #5c5147;">
+                  3. Add your first 5 budget items
+                </h3>
+                <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #6b6157;">
+                  Start with the big ones: venue, catering, photography, attire, and flowers. Even rough estimates help you see the full picture early.
+                </p>
+              </div>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="https://aisleboard.com/planner" style="display: inline-block; padding: 16px 32px; background-color: #8b7355; color: #ffffff; text-decoration: none; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">
+                  Open Your Planner
+                </a>
+              </div>
+              
+              <p style="margin: 30px 0 0; font-size: 14px; line-height: 1.6; color: #9a8d7f; text-align: center;">
+                Questions? Just reply — we're here to help.
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 30px 40px; background-color: #faf9f7; border-top: 1px solid #e8e4df;">
+              <p style="margin: 0; font-size: 12px; color: #9a8d7f; text-align: center;">
+                Made with love in Utah<br>
+                <a href="https://aisleboard.com" style="color: #8b7355; text-decoration: none;">aisleboard.com</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `,
+  };
+}
+
+// ============================================================================
+// SEND EMAIL FUNCTION
+// ============================================================================
+
+export async function sendEmail({ to, template, data }: SendEmailOptions) {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn("RESEND_API_KEY not set, skipping email send");
+    return { success: false, error: "Email not configured" };
+  }
+
+  let emailContent: { subject: string; html: string };
+
+  switch (template) {
+    case "welcome":
+      emailContent = getWelcomeEmail(data.name);
+      break;
+    case "why_29":
+      emailContent = getWhy29Email(data.name);
+      break;
+    case "tips_week_1":
+      emailContent = getTipsWeek1Email(data.name);
+      break;
+    default:
+      return { success: false, error: "Unknown template" };
+  }
+
+  try {
+    const result = await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: emailContent.subject,
+      html: emailContent.html,
+    });
+
+    return { success: true, id: result.data?.id };
+  } catch (error) {
+    console.error("Failed to send email:", error);
+    return { success: false, error: String(error) };
+  }
+}
+
+// ============================================================================
+// EMAIL SEQUENCE SCHEDULING
+// ============================================================================
+
+export const EMAIL_SEQUENCE = {
+  welcome: { delayHours: 0 },
+  why_29: { delayHours: 1 },
+  tips_week_1: { delayHours: 24 * 3 }, // 3 days later
+} as const;
+
+export function getScheduledTime(emailType: keyof typeof EMAIL_SEQUENCE): Date {
+  const delay = EMAIL_SEQUENCE[emailType].delayHours;
+  return new Date(Date.now() + delay * 60 * 60 * 1000);
+}

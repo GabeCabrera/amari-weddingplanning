@@ -388,3 +388,36 @@ export type NewGoogleCalendarConnection = typeof googleCalendarConnections.$infe
 
 export type CalendarSyncLog = typeof calendarSyncLog.$inferSelect;
 export type NewCalendarSyncLog = typeof calendarSyncLog.$inferInsert;
+
+// ============================================================================
+// SCHEDULED EMAILS - For delayed email sequences
+// ============================================================================
+export const scheduledEmails = pgTable("scheduled_emails", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  tenantId: uuid("tenant_id")
+    .notNull()
+    .references(() => tenants.id, { onDelete: "cascade" }),
+  emailType: text("email_type").notNull(), // welcome, why_29, tips_1, etc.
+  scheduledFor: timestamp("scheduled_for", { withTimezone: true }).notNull(),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+  status: text("status").notNull().default("pending"), // pending, sent, failed, cancelled
+  error: text("error"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const scheduledEmailsRelations = relations(scheduledEmails, ({ one }) => ({
+  user: one(users, {
+    fields: [scheduledEmails.userId],
+    references: [users.id],
+  }),
+  tenant: one(tenants, {
+    fields: [scheduledEmails.tenantId],
+    references: [tenants.id],
+  }),
+}));
+
+export type ScheduledEmail = typeof scheduledEmails.$inferSelect;
+export type NewScheduledEmail = typeof scheduledEmails.$inferInsert;

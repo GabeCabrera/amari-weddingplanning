@@ -362,3 +362,83 @@ export async function createCalendarSyncLog(
     details,
   });
 }
+
+// ============================================================================
+// SCHEDULED EMAIL QUERIES
+// ============================================================================
+
+import { scheduledEmails, type ScheduledEmail } from "./schema";
+import { and, lte } from "drizzle-orm";
+
+export async function scheduleEmail(
+  userId: string,
+  tenantId: string,
+  emailType: string,
+  scheduledFor: Date
+): Promise<ScheduledEmail> {
+  const [email] = await db
+    .insert(scheduledEmails)
+    .values({
+      userId,
+      tenantId,
+      emailType,
+      scheduledFor,
+      status: "pending",
+    })
+    .returning();
+  return email;
+}
+
+export async function getPendingScheduledEmails(): Promise<
+  Array<ScheduledEmail & { user: { email: string; name: string | null } }>
+> {
+  const now = new Date();
+  const emails = await db
+    .select({
+      id: scheduledEmails.id,
+      userId: scheduledEmails.userId,
+      tenantId: scheduledEmails.tenantId,
+      emailType: scheduledEmails.emailType,
+      scheduledFor: scheduledEmails.scheduledFor,
+      sentAt: scheduledEmails.sentAt,
+      status: scheduledEmails.status,
+      error: scheduledEmails.error,
+      createdAt: scheduledEmails.createdAt,
+      user: {
+        email: users.email,
+        name: users.name,
+      },
+    })
+    .from(scheduledEmails)
+    .innerJoin(users, eq(scheduledEmails.userId, users.id))
+    .where(
+      and(
+        eq(scheduledEmails.status, "pending"),
+        lte(scheduledEmails.scheduledFor, now)
+      )
+    );
+  return emails;
+}
+
+export async function markEmailAsSent(emailId: string): Promise<void> {
+  await db
+    .update(scheduledEmails)
+    .set({
+      status: "sent",
+      sentAt: new Date(),
+    })
+    .where(eq(scheduledEmails.id, emailId));
+}
+
+export async function markEmailAsFailed(
+  emailId: string,
+  error: string
+): Promise<void> {
+  await db
+    .update(scheduledEmails)
+    .set({
+      status: "failed",
+      error,
+    })
+    .where(eq(scheduledEmails.id, emailId));
+}

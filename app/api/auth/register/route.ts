@@ -3,9 +3,10 @@ import bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
 import { db } from "@/lib/db";
 import { tenants, users } from "@/lib/db/schema";
-import { getUserByEmail } from "@/lib/db/queries";
+import { getUserByEmail, scheduleEmail } from "@/lib/db/queries";
 import { nanoid } from "nanoid";
 import { registerSchema, checkRateLimit, sanitizeString } from "@/lib/validation";
+import { sendEmail, getScheduledTime } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -91,6 +92,39 @@ export async function POST(request: NextRequest) {
       role: "owner",
       mustChangePassword: false,
     });
+
+    // =========================================================================
+    // EMAIL SEQUENCE
+    // =========================================================================
+    
+    // Send welcome email immediately (fire and forget - don't block registration)
+    sendEmail({
+      to: email,
+      template: "welcome",
+      data: { name },
+    }).catch((err) => console.error("Failed to send welcome email:", err));
+
+    // Schedule follow-up emails
+    try {
+      // "Why we charge $29" email - 1 hour later
+      await scheduleEmail(
+        userId,
+        tenantId,
+        "why_29",
+        getScheduledTime("why_29")
+      );
+
+      // "Tips for your first week" email - 3 days later
+      await scheduleEmail(
+        userId,
+        tenantId,
+        "tips_week_1",
+        getScheduledTime("tips_week_1")
+      );
+    } catch (err) {
+      // Don't fail registration if email scheduling fails
+      console.error("Failed to schedule emails:", err);
+    }
 
     return NextResponse.json({
       success: true,
