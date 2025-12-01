@@ -25,6 +25,7 @@ import {
   VendorContactsRenderer,
   DayOfScheduleRenderer,
   SeatingChartRenderer,
+  CalendarRenderer,
 } from "./renderers";
 
 interface PageRendererProps {
@@ -208,6 +209,18 @@ export function PageRenderer({ page, onFieldChange, allPages = [] }: PageRendere
   if (page.templateId === "seating-chart") {
     return (
       <SeatingChartRenderer
+        page={page}
+        fields={fields}
+        updateField={updateField}
+        allPages={allPages}
+      />
+    );
+  }
+
+  // Special rendering for wedding calendar
+  if (page.templateId === "calendar") {
+    return (
+      <CalendarRenderer
         page={page}
         fields={fields}
         updateField={updateField}

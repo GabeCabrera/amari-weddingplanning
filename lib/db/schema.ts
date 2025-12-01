@@ -234,6 +234,129 @@ export const rsvpResponsesRelations = relations(rsvpResponses, ({ one }) => ({
 }));
 
 // ============================================================================
+// CALENDAR EVENTS - Wedding planning calendar
+// ============================================================================
+export const calendarEvents = pgTable("calendar_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id")
+    .notNull()
+    .references(() => tenants.id, { onDelete: "cascade" }),
+
+  // Event details
+  title: text("title").notNull(),
+  description: text("description"),
+  startTime: timestamp("start_time", { withTimezone: true }).notNull(),
+  endTime: timestamp("end_time", { withTimezone: true }),
+  allDay: boolean("all_day").default(false).notNull(),
+  location: text("location"),
+
+  // Categorization
+  category: text("category").notNull().default("other"), // vendor, deadline, appointment, milestone, personal, other
+  color: text("color").default("blue"),
+
+  // Related entities (for cross-page integration)
+  vendorId: text("vendor_id"), // Links to vendor from budget
+  taskId: text("task_id"), // Links to task from task board
+
+  // Google Calendar sync
+  googleEventId: text("google_event_id").unique(),
+  googleCalendarId: text("google_calendar_id"),
+  syncStatus: text("sync_status").default("local").notNull(), // local, synced, pending, error
+  lastSyncedAt: timestamp("last_synced_at", { withTimezone: true }),
+  googleEtag: text("google_etag"), // For conflict detection
+
+  // Recurrence (future support)
+  recurrenceRule: text("recurrence_rule"), // iCal RRULE format
+
+  // Metadata
+  createdBy: uuid("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const calendarEventsRelations = relations(calendarEvents, ({ one }) => ({
+  tenant: one(tenants, {
+    fields: [calendarEvents.tenantId],
+    references: [tenants.id],
+  }),
+  createdByUser: one(users, {
+    fields: [calendarEvents.createdBy],
+    references: [users.id],
+  }),
+}));
+
+// ============================================================================
+// GOOGLE CALENDAR CONNECTIONS - OAuth tokens and sync state
+// ============================================================================
+export const googleCalendarConnections = pgTable("google_calendar_connections", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id")
+    .notNull()
+    .unique()
+    .references(() => tenants.id, { onDelete: "cascade" }),
+
+  // OAuth tokens (encrypted in practice)
+  accessToken: text("access_token").notNull(),
+  refreshToken: text("refresh_token").notNull(),
+  tokenExpiresAt: timestamp("token_expires_at", { withTimezone: true }).notNull(),
+
+  // The dedicated wedding calendar we create in Google
+  weddingCalendarId: text("wedding_calendar_id").notNull(),
+  weddingCalendarName: text("wedding_calendar_name").notNull(),
+
+  // Sync settings
+  syncEnabled: boolean("sync_enabled").default(true).notNull(),
+  lastSyncAt: timestamp("last_sync_at", { withTimezone: true }),
+  syncToken: text("sync_token"), // For incremental sync
+
+  // User info
+  googleEmail: text("google_email"),
+  connectedAt: timestamp("connected_at").defaultNow().notNull(),
+  connectedBy: uuid("connected_by").references(() => users.id),
+});
+
+export const googleCalendarConnectionsRelations = relations(
+  googleCalendarConnections,
+  ({ one }) => ({
+    tenant: one(tenants, {
+      fields: [googleCalendarConnections.tenantId],
+      references: [tenants.id],
+    }),
+    connectedByUser: one(users, {
+      fields: [googleCalendarConnections.connectedBy],
+      references: [users.id],
+    }),
+  })
+);
+
+// ============================================================================
+// CALENDAR SYNC LOG - For debugging sync issues
+// ============================================================================
+export const calendarSyncLog = pgTable("calendar_sync_log", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id")
+    .notNull()
+    .references(() => tenants.id, { onDelete: "cascade" }),
+  action: text("action").notNull(), // push, pull, conflict_resolved, error
+  eventId: uuid("event_id").references(() => calendarEvents.id, { onDelete: "set null" }),
+  googleEventId: text("google_event_id"),
+  status: text("status").notNull(), // success, failed, conflict
+  details: jsonb("details"), // Additional context
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const calendarSyncLogRelations = relations(calendarSyncLog, ({ one }) => ({
+  tenant: one(tenants, {
+    fields: [calendarSyncLog.tenantId],
+    references: [tenants.id],
+  }),
+  event: one(calendarEvents, {
+    fields: [calendarSyncLog.eventId],
+    references: [calendarEvents.id],
+  }),
+}));
+
+// ============================================================================
 // TYPE EXPORTS
 // ============================================================================
 export type Tenant = typeof tenants.$inferSelect;
@@ -256,3 +379,12 @@ export type NewRsvpForm = typeof rsvpForms.$inferInsert;
 
 export type RsvpResponse = typeof rsvpResponses.$inferSelect;
 export type NewRsvpResponse = typeof rsvpResponses.$inferInsert;
+
+export type CalendarEvent = typeof calendarEvents.$inferSelect;
+export type NewCalendarEvent = typeof calendarEvents.$inferInsert;
+
+export type GoogleCalendarConnection = typeof googleCalendarConnections.$inferSelect;
+export type NewGoogleCalendarConnection = typeof googleCalendarConnections.$inferInsert;
+
+export type CalendarSyncLog = typeof calendarSyncLog.$inferSelect;
+export type NewCalendarSyncLog = typeof calendarSyncLog.$inferInsert;

@@ -6,10 +6,17 @@ import {
   planners,
   pages,
   passwordResetTokens,
+  calendarEvents,
+  googleCalendarConnections,
+  calendarSyncLog,
   type Tenant,
   type User,
   type Planner,
   type Page,
+  type CalendarEvent,
+  type NewCalendarEvent,
+  type GoogleCalendarConnection,
+  type NewGoogleCalendarConnection,
 } from "./schema";
 
 // ============================================================================
@@ -216,4 +223,142 @@ export async function reorderPages(
         .where(and(eq(pages.id, pageId), eq(pages.plannerId, plannerId)))
     )
   );
+}
+
+// ============================================================================
+// CALENDAR EVENT QUERIES
+// ============================================================================
+
+export async function getCalendarEventsByTenantId(
+  tenantId: string
+): Promise<CalendarEvent[]> {
+  const result = await db.query.calendarEvents.findMany({
+    where: eq(calendarEvents.tenantId, tenantId),
+    orderBy: (calendarEvents, { asc }) => [asc(calendarEvents.startTime)],
+  });
+  return result;
+}
+
+export async function getCalendarEventById(
+  eventId: string,
+  tenantId: string
+): Promise<CalendarEvent | null> {
+  const result = await db.query.calendarEvents.findFirst({
+    where: and(
+      eq(calendarEvents.id, eventId),
+      eq(calendarEvents.tenantId, tenantId)
+    ),
+  });
+  return result ?? null;
+}
+
+export async function createCalendarEvent(
+  data: NewCalendarEvent
+): Promise<CalendarEvent> {
+  const [event] = await db.insert(calendarEvents).values(data).returning();
+  return event;
+}
+
+export async function updateCalendarEvent(
+  eventId: string,
+  tenantId: string,
+  data: Partial<Omit<CalendarEvent, "id" | "tenantId" | "createdAt">>
+): Promise<CalendarEvent | null> {
+  const [event] = await db
+    .update(calendarEvents)
+    .set({ ...data, updatedAt: new Date() })
+    .where(
+      and(eq(calendarEvents.id, eventId), eq(calendarEvents.tenantId, tenantId))
+    )
+    .returning();
+  return event ?? null;
+}
+
+export async function deleteCalendarEvent(
+  eventId: string,
+  tenantId: string
+): Promise<void> {
+  await db
+    .delete(calendarEvents)
+    .where(
+      and(eq(calendarEvents.id, eventId), eq(calendarEvents.tenantId, tenantId))
+    );
+}
+
+export async function getCalendarEventByGoogleId(
+  googleEventId: string,
+  tenantId: string
+): Promise<CalendarEvent | null> {
+  const result = await db.query.calendarEvents.findFirst({
+    where: and(
+      eq(calendarEvents.googleEventId, googleEventId),
+      eq(calendarEvents.tenantId, tenantId)
+    ),
+  });
+  return result ?? null;
+}
+
+// ============================================================================
+// GOOGLE CALENDAR CONNECTION QUERIES
+// ============================================================================
+
+export async function getGoogleCalendarConnection(
+  tenantId: string
+): Promise<GoogleCalendarConnection | null> {
+  const result = await db.query.googleCalendarConnections.findFirst({
+    where: eq(googleCalendarConnections.tenantId, tenantId),
+  });
+  return result ?? null;
+}
+
+export async function createGoogleCalendarConnection(
+  data: NewGoogleCalendarConnection
+): Promise<GoogleCalendarConnection> {
+  const [connection] = await db
+    .insert(googleCalendarConnections)
+    .values(data)
+    .returning();
+  return connection;
+}
+
+export async function updateGoogleCalendarConnection(
+  tenantId: string,
+  data: Partial<Omit<GoogleCalendarConnection, "id" | "tenantId" | "connectedAt">>
+): Promise<GoogleCalendarConnection | null> {
+  const [connection] = await db
+    .update(googleCalendarConnections)
+    .set(data)
+    .where(eq(googleCalendarConnections.tenantId, tenantId))
+    .returning();
+  return connection ?? null;
+}
+
+export async function deleteGoogleCalendarConnection(
+  tenantId: string
+): Promise<void> {
+  await db
+    .delete(googleCalendarConnections)
+    .where(eq(googleCalendarConnections.tenantId, tenantId));
+}
+
+// ============================================================================
+// CALENDAR SYNC LOG QUERIES
+// ============================================================================
+
+export async function createCalendarSyncLog(
+  tenantId: string,
+  action: string,
+  status: string,
+  eventId?: string,
+  googleEventId?: string,
+  details?: Record<string, unknown>
+): Promise<void> {
+  await db.insert(calendarSyncLog).values({
+    tenantId,
+    action,
+    status,
+    eventId,
+    googleEventId,
+    details,
+  });
 }

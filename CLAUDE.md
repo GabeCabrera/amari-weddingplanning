@@ -128,6 +128,45 @@ NEXTAUTH_URL=        # Base URL (https://aisle.wedding for prod)
 - Toast notifications via `sonner`
 - Forms use native form handling (no react-hook-form in current impl)
 
+## Calendar Feature (Google Calendar Integration)
+The wedding calendar is a full-featured planning calendar with bidirectional Google Calendar sync.
+
+### Architecture
+```
+/lib/calendar
+  google-client.ts    # Google OAuth & Calendar API wrapper
+  sync-engine.ts      # Bidirectional sync logic
+  index.ts            # Exports
+
+/app/api/calendar
+  /events             # CRUD for calendar events
+    route.ts          # GET (list), POST (create)
+    /[eventId]        # GET, PUT, DELETE single event
+  /google
+    /connect          # Initiate OAuth flow
+    /callback         # OAuth callback, creates wedding calendar
+    /disconnect       # Revoke connection
+    /sync             # Manual sync trigger
+    /status           # Connection status + share link
+```
+
+### Key Decisions
+1. **Dedicated Wedding Calendar**: Creates a new calendar in Google (e.g., "Sarah & Gabe's Wedding") to keep events separate from personal calendars
+2. **Partner Sharing**: One partner connects Google, shares calendar link with other partner (no dual OAuth needed)
+3. **Google Notifications**: Relies on Google Calendar's notification system
+
+### Database Tables
+- `calendar_events` - Local event storage with Google sync metadata
+- `google_calendar_connections` - OAuth tokens, calendar ID, sync state
+- `calendar_sync_log` - Debugging sync operations
+
+### Environment Variables for Google Calendar
+```
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=http://localhost:3000/api/calendar/google/callback
+```
+
 ## Multi-Tenant Subdomain Handling
 In development, use `tenant-slug.localhost:3000`. Middleware parses subdomain from host header. For local testing of specific tenants, add entries to `/etc/hosts`:
 ```

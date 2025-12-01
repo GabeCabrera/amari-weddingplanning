@@ -19,3 +19,4 @@ export { GiftLogRenderer } from "./GiftLogRenderer";
 export { VendorContactsRenderer } from "./VendorContactsRenderer";
 export { DayOfScheduleRenderer } from "./DayOfScheduleRenderer";
 export { SeatingChartRenderer } from "./SeatingChartRenderer";
+export { CalendarRenderer } from "./CalendarRenderer";

@@ -1,0 +1,152 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
+import {
+  getCalendarEventById,
+  updateCalendarEvent,
+  deleteCalendarEvent,
+} from "@/lib/db/queries";
+import { z } from "zod";
+
+const updateEventSchema = z.object({
+  title: z.string().min(1).optional(),
+  description: z.string().optional().nullable(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional().nullable(),
+  allDay: z.boolean().optional(),
+  location: z.string().optional().nullable(),
+  category: z.enum(["vendor", "deadline", "appointment", "milestone", "personal", "other"]).optional(),
+  color: z.string().optional().nullable(),
+  vendorId: z.string().optional().nullable(),
+  taskId: z.string().optional().nullable(),
+});
+
+interface RouteParams {
+  params: Promise<{ eventId: string }>;
+}
+
+// GET /api/calendar/events/[eventId] - Get a single event
+export async function GET(request: NextRequest, { params }: RouteParams) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.tenantId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { eventId } = await params;
+    const event = await getCalendarEventById(eventId, session.user.tenantId);
+
+    if (!event) {
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ event });
+  } catch (error) {
+    console.error("Get calendar event error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT /api/calendar/events/[eventId] - Update an event
+export async function PUT(request: NextRequest, { params }: RouteParams) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.tenantId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { eventId } = await params;
+
+    // Check event exists and belongs to tenant
+    const existingEvent = await getCalendarEventById(eventId, session.user.tenantId);
+    if (!existingEvent) {
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
+
+    const result = updateEventSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error.errors[0]?.message || "Validation failed" },
+        { status: 400 }
+      );
+    }
+
+    const data = result.data;
+
+    // Build update object
+    const updateData: Record<string, unknown> = {};
+    
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.startTime !== undefined) updateData.startTime = new Date(data.startTime);
+    if (data.endTime !== undefined) updateData.endTime = data.endTime ? new Date(data.endTime) : null;
+    if (data.allDay !== undefined) updateData.allDay = data.allDay;
+    if (data.location !== undefined) updateData.location = data.location;
+    if (data.category !== undefined) updateData.category = data.category;
+    if (data.color !== undefined) updateData.color = data.color;
+    if (data.vendorId !== undefined) updateData.vendorId = data.vendorId;
+    if (data.taskId !== undefined) updateData.taskId = data.taskId;
+
+    // If connected to Google, mark as pending sync
+    if (existingEvent.googleEventId) {
+      updateData.syncStatus = "pending";
+    }
+
+    const event = await updateCalendarEvent(
+      eventId,
+      session.user.tenantId,
+      updateData
+    );
+
+    return NextResponse.json({ event });
+  } catch (error) {
+    console.error("Update calendar event error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/calendar/events/[eventId] - Delete an event
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.tenantId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { eventId } = await params;
+
+    // Check event exists and belongs to tenant
+    const existingEvent = await getCalendarEventById(eventId, session.user.tenantId);
+    if (!existingEvent) {
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    // TODO: If synced with Google, delete from Google Calendar too
+
+    await deleteCalendarEvent(eventId, session.user.tenantId);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Delete calendar event error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

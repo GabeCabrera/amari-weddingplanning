@@ -204,32 +204,19 @@ export const templates: TemplateDefinition[] = [
     ],
   },
   {
-    id: "timeline",
-    name: "Planning Timeline",
-    description: "Checklist organized by time until wedding",
+    id: "calendar",
+    name: "Wedding Calendar",
+    description: "Full calendar with Google Calendar sync for all your wedding events",
     category: "planning",
-    timelineFilters: ["12-months", "9-months"],
-    icon: "CalendarCheck",
+    timelineFilters: ["12-months", "9-months", "6-months", "3-months", "1-month", "week-of"],
+    icon: "Calendar",
     suggestedInStarterPack: true,
     isFree: false,
     fields: [
-      {
-        key: "sections",
-        label: "Timeline Sections",
-        type: "array",
-        arrayItemSchema: [
-          { key: "title", label: "Section Title", type: "text", required: true },
-          {
-            key: "tasks",
-            label: "Tasks",
-            type: "array",
-            arrayItemSchema: [
-              { key: "task", label: "Task", type: "text", required: true },
-              { key: "completed", label: "Completed", type: "checkbox" },
-            ],
-          },
-        ],
-      },
+      // Calendar events are stored in dedicated table, not in page fields
+      // This template uses a custom renderer that connects to calendar_events table
+      { key: "defaultView", label: "Default View", type: "select", options: ["month", "week", "day", "agenda"] },
+      { key: "showWeekends", label: "Show Weekends", type: "checkbox" },
     ],
   },
 
