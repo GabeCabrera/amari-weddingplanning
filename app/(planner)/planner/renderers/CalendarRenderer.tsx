@@ -18,13 +18,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import {
   Calendar as CalendarIcon,
@@ -41,8 +34,6 @@ import {
   Trash2,
   Edit,
   Check,
-  AlertCircle,
-  Sparkles,
   Heart,
 } from "lucide-react";
 import { type RendererWithAllPagesProps } from "./types";
@@ -107,7 +98,6 @@ export function CalendarRenderer({ page, fields, updateField, allPages }: Render
   const [currentView, setCurrentView] = useState<CalendarView>(
     (fields.defaultView as CalendarView) || "dayGridMonth"
   );
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [googleConnection, setGoogleConnection] = useState<GoogleConnectionStatus>({ connected: false });
   const [syncing, setSyncing] = useState(false);
 
@@ -628,7 +618,6 @@ export function CalendarRenderer({ page, fields, updateField, allPages }: Render
               eventDrop={handleEventDrop}
               height="auto"
               contentHeight={600}
-              datesSet={(dateInfo) => setCurrentDate(dateInfo.start)}
               eventContent={(eventInfo) => (
                 <div className="px-1 py-0.5 truncate">
                   <span className="text-xs font-medium">{eventInfo.event.title}</span>

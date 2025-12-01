@@ -4,7 +4,6 @@ import { authOptions } from "@/lib/auth/config";
 import {
   exchangeCodeForTokens,
   createWeddingCalendar,
-  getCalendarShareLink,
 } from "@/lib/calendar/google-client";
 import {
   createGoogleCalendarConnection,
@@ -71,7 +70,7 @@ export async function GET(request: NextRequest) {
       : "Wedding Planning";
 
     // Create dedicated wedding calendar in Google
-    const { calendarId, shareLink } = await createWeddingCalendar(
+    const { calendarId } = await createWeddingCalendar(
       stateData.tenantId,
       calendarName
     );
