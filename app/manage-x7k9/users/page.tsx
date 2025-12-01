@@ -7,7 +7,7 @@ import {
   Users,
   Crown,
   Mail,
-  MailOff,
+  MailX,
   Calendar,
   ChevronLeft,
   ChevronRight,
@@ -314,7 +314,7 @@ export default function UsersPage() {
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-warm-400 text-sm">
-                        <MailOff className="w-4 h-4" />
+                        <MailX className="w-4 h-4" />
                         {user.unsubscribedAt ? "Unsubscribed" : "Not opted in"}
                       </span>
                     )}

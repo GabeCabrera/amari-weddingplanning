@@ -4,15 +4,25 @@ import { authOptions } from "@/lib/auth/config";
 import { db } from "@/lib/db";
 import { users, tenants } from "@/lib/db/schema";
 import { eq, desc, like, or, count, and } from "drizzle-orm";
+import { getUserByEmail } from "@/lib/db/queries";
 
 export const dynamic = "force-dynamic";
+
+const ADMIN_EMAILS = ["gabecabr@gmail.com"];
+
+async function isAdmin(session: { user?: { email?: string | null } } | null): Promise<boolean> {
+  if (!session?.user?.email) return false;
+  if (ADMIN_EMAILS.includes(session.user.email)) return true;
+  const user = await getUserByEmail(session.user.email);
+  return user?.isAdmin ?? false;
+}
 
 // GET /api/manage-x7k9/users - Get all users with pagination and search
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.isAdmin) {
+    if (!(await isAdmin(session))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
