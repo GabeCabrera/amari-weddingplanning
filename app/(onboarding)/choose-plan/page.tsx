@@ -4,66 +4,54 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { Check, Sparkles, Calendar, Users, Heart, Clock, FileText, DollarSign, ArrowLeft, Tag, Gift } from "lucide-react";
+import { Check, Sparkles, Calendar, Users, Heart, ArrowLeft, Tag, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/logo";
 import { toast } from "sonner";
 import * as redditPixel from "@/lib/reddit-pixel";
 
-const FREE_TEMPLATES = [
-  {
-    name: "Day-Of Schedule",
-    description: "Hour-by-hour timeline for your big day",
-    icon: Clock,
-  },
-  {
-    name: "Budget Tracker",
-    description: "Track estimated vs actual costs",
-    icon: DollarSign,
-  },
-  {
-    name: "Guest List",
-    description: "RSVPs, meals, and contact info",
-    icon: Users,
-  },
+const FREE_FEATURES = [
+  "3 essential templates",
+  "10 Hera AI messages",
+  "Day-of schedule",
+  "Budget tracker",
+  "Guest list",
 ];
 
-const COMPLETE_BENEFITS = [
-  "All 10+ templates included",
+const AISLE_FEATURES = [
+  "All 10+ planning templates",
+  "Unlimited Hera AI concierge",
+  "Vibe discovery & matching",
   "Vendor contact tracking",
   "Seating chart builder",
   "Wedding party management",
-  "Planning timeline & checklists",
-  "Wedding overview dashboard",
-  "Notes & free-form pages",
+  "Timeline & checklists",
   "Export to PDF anytime",
-  "Lifetime access — no subscriptions",
+  "Priority support",
 ];
-
-interface PromoCodeResult {
-  originalPrice: number;
-  finalPrice: number;
-  discountApplied: boolean;
-  discountAmount: number;
-  discountDescription?: string;
-  isFree?: boolean;
-  upgraded?: boolean;
-  message?: string;
-  error?: string;
-  promoCodeId?: string;
-}
 
 function ChoosePlanContent() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [selectedPlan, setSelectedPlan] = useState<"free" | "complete" | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<"free" | "aisle" | null>(null);
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
   const [isLoading, setIsLoading] = useState(false);
   
   // Promo code state
   const [promoCode, setPromoCode] = useState("");
-  const [promoResult, setPromoResult] = useState<PromoCodeResult | null>(null);
+  const [promoResult, setPromoResult] = useState<{
+    valid: boolean;
+    type?: "free" | "percentage" | "fixed";
+    value?: number;
+    description?: string;
+  } | null>(null);
   const [isCheckingPromo, setIsCheckingPromo] = useState(false);
+
+  // Pricing
+  const monthlyPrice = 12;
+  const yearlyPrice = 99;
+  const yearlySavings = (monthlyPrice * 12) - yearlyPrice; // $45 savings
 
   // Show loading while session is being fetched
   if (status === "loading") {
@@ -74,14 +62,6 @@ function ChoosePlanContent() {
     );
   }
 
-  const handleSelectFree = () => {
-    setSelectedPlan("free");
-  };
-
-  const handleSelectComplete = () => {
-    setSelectedPlan("complete");
-  };
-
   const handleApplyPromoCode = async () => {
     if (!promoCode.trim()) {
       toast.error("Please enter a promo code");
@@ -90,17 +70,13 @@ function ChoosePlanContent() {
 
     setIsCheckingPromo(true);
     try {
-      const response = await fetch("/api/stripe/check-discount", {
+      const response = await fetch("/api/stripe/check-promo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          promoCode: promoCode.trim(),
-          userEmail: session?.user?.email,
-          applyCode: false, // Just checking, not applying yet
-        }),
+        body: JSON.stringify({ promoCode: promoCode.trim() }),
       });
 
-      const data: PromoCodeResult = await response.json();
+      const data = await response.json();
 
       if (data.error) {
         toast.error(data.error);
@@ -108,12 +84,12 @@ function ChoosePlanContent() {
         return;
       }
 
-      if (data.discountApplied) {
+      if (data.valid) {
         setPromoResult(data);
-        if (data.isFree) {
+        if (data.type === "free") {
           toast.success("🎉 Free membership code applied!");
         } else {
-          toast.success(`${data.discountDescription} applied!`);
+          toast.success(`${data.description} applied!`);
         }
       } else {
         toast.error("Invalid promo code");
@@ -135,24 +111,19 @@ function ChoosePlanContent() {
   const handleContinueWithFree = async () => {
     setIsLoading(true);
     try {
-      // Update plan to free and mark onboarding as complete
       await fetch("/api/plan/select", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan: "free" }),
       });
 
-      // Mark onboarding complete
       await fetch("/api/settings/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ onboardingComplete: true }),
       });
       
-      // Track lead conversion (free plan selection)
       redditPixel.trackLead();
-      
-      // Go to welcome flow
       router.push("/welcome");
     } catch (error) {
       toast.error("Something went wrong");
@@ -161,25 +132,20 @@ function ChoosePlanContent() {
     }
   };
 
-  const handlePurchaseComplete = async () => {
+  const handleSubscribe = async () => {
     setIsLoading(true);
     try {
       // If it's a FREE promo code, apply it directly
-      if (promoResult?.isFree) {
-        const response = await fetch("/api/stripe/check-discount", {
+      if (promoResult?.type === "free") {
+        const response = await fetch("/api/stripe/apply-free-code", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            promoCode: promoCode.trim(),
-            userEmail: session?.user?.email,
-            applyCode: true, // Actually apply the code
-          }),
+          body: JSON.stringify({ promoCode: promoCode.trim() }),
         });
 
         const data = await response.json();
 
-        if (data.upgraded) {
-          // Mark onboarding complete
+        if (data.success) {
           await fetch("/api/settings/profile", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -195,12 +161,12 @@ function ChoosePlanContent() {
         }
       }
 
-      // Otherwise, go to Stripe checkout
-      const response = await fetch("/api/stripe/create-checkout", {
+      // Otherwise, go to Stripe subscription checkout
+      const response = await fetch("/api/stripe/create-subscription-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-          email: session?.user?.email,
+          billingCycle,
           promoCode: promoCode.trim() || undefined,
         }),
       });
@@ -218,11 +184,17 @@ function ChoosePlanContent() {
     }
   };
 
-  // Calculate display price
-  const originalPrice = 29;
-  const finalPrice = promoResult?.discountApplied 
-    ? promoResult.finalPrice / 100 
-    : originalPrice;
+  // Calculate display price with promo
+  const basePrice = billingCycle === "monthly" ? monthlyPrice : yearlyPrice;
+  let displayPrice = basePrice;
+  
+  if (promoResult?.valid && promoResult.type !== "free") {
+    if (promoResult.type === "percentage" && promoResult.value) {
+      displayPrice = basePrice * (1 - promoResult.value / 100);
+    } else if (promoResult.type === "fixed" && promoResult.value) {
+      displayPrice = Math.max(0, basePrice - promoResult.value / 100);
+    }
+  }
 
   return (
     <main className="min-h-screen py-16 px-8 relative">
@@ -239,60 +211,80 @@ function ChoosePlanContent() {
 
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <div className="flex justify-center mb-6">
             <Logo size="lg" href="/" />
           </div>
           <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
           <h1 className="text-3xl font-serif font-light tracking-widest uppercase mb-4">
-            Choose Your Experience
+            Choose Your Plan
           </h1>
           <p className="text-warm-600 max-w-md mx-auto">
-            Start planning the wedding of your dreams. Select the option that works best for you.
+            Start planning with Hera, your AI wedding concierge
           </p>
-          <div className="w-12 h-px bg-warm-400 mx-auto mt-6" />
+        </div>
+
+        {/* Billing Toggle */}
+        <div className="flex justify-center mb-10">
+          <div className="inline-flex items-center gap-2 p-1 bg-warm-100 rounded-full">
+            <button
+              onClick={() => setBillingCycle("monthly")}
+              className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
+                billingCycle === "monthly"
+                  ? "bg-white text-warm-800 shadow-sm"
+                  : "text-warm-500 hover:text-warm-700"
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setBillingCycle("yearly")}
+              className={`px-5 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+                billingCycle === "yearly"
+                  ? "bg-white text-warm-800 shadow-sm"
+                  : "text-warm-500 hover:text-warm-700"
+              }`}
+            >
+              Yearly
+              <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
+                Save ${yearlySavings}
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Plan Cards */}
         <div className="grid md:grid-cols-2 gap-8 mb-8">
           {/* Free Plan */}
           <div
-            onClick={handleSelectFree}
+            onClick={() => setSelectedPlan("free")}
             className={`
-              relative p-8 border rounded-sm cursor-pointer transition-all duration-300
+              relative p-8 border rounded-xl cursor-pointer transition-all duration-300
               ${selectedPlan === "free" 
-                ? "border-warm-500 bg-warm-50/50" 
-                : "border-warm-200 hover:border-warm-300"
+                ? "border-warm-500 bg-warm-50/50 shadow-lg" 
+                : "border-warm-200 hover:border-warm-300 hover:shadow-md"
               }
             `}
           >
             <div className="mb-6">
               <h2 className="text-xl font-serif tracking-wider uppercase mb-2">
-                Essentials
+                Free
               </h2>
-              <p className="text-3xl font-light text-warm-700">Free</p>
+              <p className="text-3xl font-light text-warm-700">$0</p>
+              <p className="text-sm text-warm-500">forever</p>
             </div>
 
             <p className="text-warm-600 mb-6">
-              Get started with the three most essential planning templates 
-              in our full interactive planner.
+              Get started with essential planning tools and try Hera.
             </p>
 
-            <div className="space-y-4 mb-8">
-              {FREE_TEMPLATES.map((template) => (
-                <div key={template.name} className="flex items-start gap-3">
-                  <template.icon className="w-5 h-5 text-warm-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-warm-700">{template.name}</p>
-                    <p className="text-sm text-warm-500">{template.description}</p>
-                  </div>
+            <div className="space-y-3 mb-8">
+              {FREE_FEATURES.map((feature) => (
+                <div key={feature} className="flex items-center gap-3">
+                  <Check className="w-4 h-4 text-warm-400 flex-shrink-0" />
+                  <span className="text-warm-600">{feature}</span>
                 </div>
               ))}
-            </div>
-
-            <div className="flex items-center gap-2 text-sm text-warm-500">
-              <Sparkles className="w-4 h-4" />
-              <span>Full interactive planner</span>
             </div>
 
             {selectedPlan === "free" && (
@@ -304,85 +296,75 @@ function ChoosePlanContent() {
             )}
           </div>
 
-          {/* Complete Plan */}
+          {/* Aisle Plan */}
           <div
-            onClick={handleSelectComplete}
+            onClick={() => setSelectedPlan("aisle")}
             className={`
-              relative p-8 border rounded-sm cursor-pointer transition-all duration-300
-              ${selectedPlan === "complete" 
-                ? "border-warm-600 bg-warm-50/50" 
-                : "border-warm-200 hover:border-warm-300"
+              relative p-8 border rounded-xl cursor-pointer transition-all duration-300
+              ${selectedPlan === "aisle" 
+                ? "border-rose-400 bg-gradient-to-br from-rose-50/50 to-amber-50/50 shadow-lg" 
+                : "border-warm-200 hover:border-rose-200 hover:shadow-md"
               }
             `}
           >
-            {/* Popular badge */}
+            {/* Recommended badge */}
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <span className="px-4 py-1 bg-warm-600 text-white text-xs tracking-widest uppercase">
-                Most Popular
+              <span className="px-4 py-1 bg-gradient-to-r from-rose-500 to-amber-500 text-white text-xs tracking-widest uppercase rounded-full">
+                Recommended
               </span>
             </div>
 
             <div className="mb-6 mt-2">
-              <h2 className="text-xl font-serif tracking-wider uppercase mb-2">
-                Complete
+              <h2 className="text-xl font-serif tracking-wider uppercase mb-2 flex items-center gap-2">
+                Aisle
+                <Crown className="w-5 h-5 text-amber-500" />
               </h2>
               
-              {/* Price display with promo */}
-              {promoResult?.discountApplied ? (
+              {/* Price display */}
+              {promoResult?.type === "free" ? (
                 <div>
-                  {promoResult.isFree ? (
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">
-                        <Gift className="w-3 h-3" />
-                        FREE
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">
-                        <Tag className="w-3 h-3" />
-                        {promoResult.discountDescription}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-light text-green-600">
-                      {promoResult.isFree ? "Free" : `$${finalPrice.toFixed(0)}`}
-                    </p>
-                    <p className="text-lg text-warm-400 line-through">$29</p>
-                    {!promoResult.isFree && <span className="text-warm-500 text-sm">one-time</span>}
-                  </div>
+                  <p className="text-3xl font-light text-green-600">Free</p>
+                  <p className="text-sm text-green-600">with promo code</p>
                 </div>
               ) : (
-                <div className="flex items-baseline gap-2">
-                  <p className="text-3xl font-light text-warm-700">$29</p>
-                  <span className="text-warm-500 text-sm">one-time</span>
+                <div>
+                  {promoResult?.valid ? (
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-3xl font-light text-green-600">
+                        ${displayPrice.toFixed(0)}
+                      </p>
+                      <p className="text-lg text-warm-400 line-through">
+                        ${basePrice}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-3xl font-light text-warm-700">
+                      ${basePrice}
+                    </p>
+                  )}
+                  <p className="text-sm text-warm-500">
+                    {billingCycle === "monthly" ? "per month" : "per year"}
+                  </p>
                 </div>
               )}
             </div>
 
             <p className="text-warm-600 mb-6">
-              The full Aisle experience. Unlimited templates, powerful tools, 
-              and lifetime access to everything.
+              The full Aisle experience with unlimited Hera and all premium features.
             </p>
 
             <div className="space-y-3 mb-8">
-              {COMPLETE_BENEFITS.map((benefit) => (
-                <div key={benefit} className="flex items-center gap-3">
-                  <Check className="w-4 h-4 text-warm-500 flex-shrink-0" />
-                  <span className="text-warm-700">{benefit}</span>
+              {AISLE_FEATURES.map((feature) => (
+                <div key={feature} className="flex items-center gap-3">
+                  <Check className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                  <span className="text-warm-700">{feature}</span>
                 </div>
               ))}
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-warm-600 font-medium">
-              <Sparkles className="w-4 h-4" />
-              <span>Everything you need</span>
-            </div>
-
-            {selectedPlan === "complete" && (
+            {selectedPlan === "aisle" && (
               <div className="absolute top-4 right-4">
-                <div className="w-6 h-6 rounded-full bg-warm-600 flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full bg-rose-500 flex items-center justify-center">
                   <Check className="w-4 h-4 text-white" />
                 </div>
               </div>
@@ -427,9 +409,9 @@ function ChoosePlanContent() {
               </Button>
             )}
           </div>
-          {promoResult?.discountApplied && (
+          {promoResult?.valid && (
             <p className="text-sm text-green-600 mt-2 text-center">
-              ✓ {promoResult.isFree ? "Free membership code applied!" : `${promoResult.discountDescription} applied!`}
+              ✓ {promoResult.type === "free" ? "Free membership code applied!" : `${promoResult.description} applied!`}
             </p>
           )}
         </div>
@@ -445,30 +427,30 @@ function ChoosePlanContent() {
                 disabled={isLoading}
                 className="px-12"
               >
-                {isLoading ? "Loading..." : "Continue with Essentials"}
+                {isLoading ? "Loading..." : "Start with Free"}
               </Button>
             ) : (
               <Button
-                onClick={handlePurchaseComplete}
+                onClick={handleSubscribe}
                 size="lg"
                 disabled={isLoading}
-                className="px-12 bg-warm-600 hover:bg-warm-700 text-white"
+                className="px-12 bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white"
               >
                 {isLoading 
                   ? "Loading..." 
-                  : promoResult?.isFree 
+                  : promoResult?.type === "free"
                     ? "Claim Free Access"
-                    : `Get Complete Access — $${finalPrice.toFixed(0)}`
+                    : `Subscribe — $${displayPrice.toFixed(0)}/${billingCycle === "monthly" ? "mo" : "yr"}`
                 }
               </Button>
             )}
 
             <p className="mt-4 text-sm text-warm-500">
               {selectedPlan === "free" 
-                ? "You can upgrade anytime" 
-                : promoResult?.isFree
+                ? "Upgrade anytime to unlock everything" 
+                : promoResult?.type === "free"
                   ? "No payment required"
-                  : "Secure checkout powered by Stripe"
+                  : "Cancel anytime. Secure checkout powered by Stripe."
               }
             </p>
           </div>
@@ -487,7 +469,7 @@ function ChoosePlanContent() {
             </div>
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
-              <span>No subscriptions, ever</span>
+              <span>Powered by Hera AI</span>
             </div>
           </div>
         </div>

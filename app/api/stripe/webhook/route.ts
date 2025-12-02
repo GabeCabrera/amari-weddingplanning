@@ -32,25 +32,154 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Handle the event
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
+  console.log(`Received Stripe webhook: ${event.type}`);
+
+  // Handle different event types
+  switch (event.type) {
+    // =========================================================================
+    // SUBSCRIPTION EVENTS
+    // =========================================================================
     
-    const tenantId = session.metadata?.tenantId;
-    
-    if (tenantId) {
-      // Update tenant to complete plan
-      await db
-        .update(tenants)
-        .set({
-          plan: "complete",
-          stripeCustomerId: session.customer as string,
-          updatedAt: new Date(),
-        })
-        .where(eq(tenants.id, tenantId));
+    case "customer.subscription.created":
+    case "customer.subscription.updated": {
+      const subscription = event.data.object as Stripe.Subscription;
+      const tenantId = subscription.metadata?.tenantId;
       
-      console.log(`Upgraded tenant ${tenantId} to complete plan`);
+      if (tenantId) {
+        const billingCycle = subscription.metadata?.billingCycle as "monthly" | "yearly" || "monthly";
+        const status = subscription.status;
+        const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+        const priceId = subscription.items.data[0]?.price?.id;
+
+        // Determine plan based on subscription status
+        let plan: "free" | "monthly" | "yearly" = "free";
+        if (status === "active" || status === "trialing") {
+          plan = billingCycle;
+        }
+
+        await db
+          .update(tenants)
+          .set({
+            plan,
+            stripeSubscriptionId: subscription.id,
+            stripePriceId: priceId,
+            subscriptionStatus: status,
+            subscriptionEndsAt: currentPeriodEnd,
+            updatedAt: new Date(),
+          })
+          .where(eq(tenants.id, tenantId));
+
+        console.log(`Updated tenant ${tenantId}: plan=${plan}, status=${status}`);
+      }
+      break;
     }
+
+    case "customer.subscription.deleted": {
+      const subscription = event.data.object as Stripe.Subscription;
+      const tenantId = subscription.metadata?.tenantId;
+      
+      if (tenantId) {
+        // Subscription was canceled - downgrade to free
+        await db
+          .update(tenants)
+          .set({
+            plan: "free",
+            subscriptionStatus: "canceled",
+            // Keep subscriptionEndsAt so they have access until end of period
+            updatedAt: new Date(),
+          })
+          .where(eq(tenants.id, tenantId));
+
+        console.log(`Subscription canceled for tenant ${tenantId}`);
+      }
+      break;
+    }
+
+    case "invoice.payment_succeeded": {
+      const invoice = event.data.object as Stripe.Invoice;
+      const subscriptionId = invoice.subscription as string;
+      
+      if (subscriptionId) {
+        // Get the subscription to find the tenant
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const tenantId = subscription.metadata?.tenantId;
+        
+        if (tenantId) {
+          // Ensure tenant is marked as active
+          const billingCycle = subscription.metadata?.billingCycle as "monthly" | "yearly" || "monthly";
+          
+          await db
+            .update(tenants)
+            .set({
+              plan: billingCycle,
+              subscriptionStatus: "active",
+              subscriptionEndsAt: new Date(subscription.current_period_end * 1000),
+              updatedAt: new Date(),
+            })
+            .where(eq(tenants.id, tenantId));
+
+          console.log(`Payment succeeded for tenant ${tenantId}`);
+        }
+      }
+      break;
+    }
+
+    case "invoice.payment_failed": {
+      const invoice = event.data.object as Stripe.Invoice;
+      const subscriptionId = invoice.subscription as string;
+      
+      if (subscriptionId) {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const tenantId = subscription.metadata?.tenantId;
+        
+        if (tenantId) {
+          // Mark as past due but don't immediately downgrade
+          await db
+            .update(tenants)
+            .set({
+              subscriptionStatus: "past_due",
+              updatedAt: new Date(),
+            })
+            .where(eq(tenants.id, tenantId));
+
+          console.log(`Payment failed for tenant ${tenantId}`);
+          // TODO: Send email notification about failed payment
+        }
+      }
+      break;
+    }
+
+    // =========================================================================
+    // LEGACY: ONE-TIME PAYMENT (for existing checkout flow)
+    // =========================================================================
+    
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      
+      // Only handle one-time payments (legacy Complete plan)
+      if (session.mode === "payment") {
+        const tenantId = session.metadata?.tenantId;
+        
+        if (tenantId) {
+          // Grant legacy access
+          await db
+            .update(tenants)
+            .set({
+              hasLegacyAccess: true,
+              stripeCustomerId: session.customer as string,
+              updatedAt: new Date(),
+            })
+            .where(eq(tenants.id, tenantId));
+          
+          console.log(`Granted legacy access to tenant ${tenantId}`);
+        }
+      }
+      // Subscription checkouts are handled by customer.subscription.created
+      break;
+    }
+
+    default:
+      console.log(`Unhandled event type: ${event.type}`);
   }
 
   return NextResponse.json({ received: true });
