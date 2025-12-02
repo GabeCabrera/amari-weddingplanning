@@ -179,10 +179,14 @@ export async function POST(request: NextRequest) {
       console.log("Onboarding: Created conversation:", conversation.id);
     }
 
-    // Get existing messages
-    const existingMessages = Array.isArray(conversation.messages) 
-      ? conversation.messages as Message[]
-      : [];
+    // Get existing messages and validate them
+    let existingMessages: Message[] = [];
+    if (Array.isArray(conversation.messages)) {
+      // Filter to only valid messages with proper role and content
+      existingMessages = (conversation.messages as Message[]).filter(
+        (m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string"
+      );
+    }
     
     console.log("Onboarding: Existing messages count:", existingMessages.length);
     
@@ -210,14 +214,21 @@ export async function POST(request: NextRequest) {
       : history;
 
     console.log("Onboarding: Calling Anthropic with", messagesToSend.length, "messages");
+    console.log("Onboarding: Messages to send:", JSON.stringify(messagesToSend));
 
-    const anthropic = getAnthropicClient();
-    const response = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
-      max_tokens: 500,
-      system: systemPrompt,
-      messages: messagesToSend,
-    });
+    let response;
+    try {
+      const anthropic = getAnthropicClient();
+      response = await anthropic.messages.create({
+        model: "claude-3-5-sonnet-20241022",
+        max_tokens: 500,
+        system: systemPrompt,
+        messages: messagesToSend,
+      });
+    } catch (apiError) {
+      console.error("Onboarding: Anthropic API error:", apiError);
+      throw apiError;
+    }
 
     console.log("Onboarding: Anthropic responded in", Date.now() - startTime, "ms");
 
