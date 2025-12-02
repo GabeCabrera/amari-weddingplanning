@@ -10,6 +10,7 @@ import {
   googleCalendarConnections,
   calendarSyncLog,
   scheduledEmails,
+  promoCodes,
   type Tenant,
   type User,
   type Planner,
@@ -19,6 +20,8 @@ import {
   type GoogleCalendarConnection,
   type NewGoogleCalendarConnection,
   type ScheduledEmail,
+  type PromoCode,
+  type NewPromoCode,
 } from "./schema";
 
 // ============================================================================
@@ -490,4 +493,92 @@ export async function getSubscribedUsers(): Promise<
     .from(users)
     .where(eq(users.emailOptIn, true));
   return subscribedUsers;
+}
+
+// ============================================================================
+// PROMO CODE QUERIES
+// ============================================================================
+
+export async function getAllPromoCodes(): Promise<PromoCode[]> {
+  const codes = await db.query.promoCodes.findMany({
+    orderBy: (promoCodes, { desc }) => [desc(promoCodes.createdAt)],
+  });
+  return codes;
+}
+
+export async function getPromoCodeByCode(code: string): Promise<PromoCode | null> {
+  const result = await db.query.promoCodes.findFirst({
+    where: eq(promoCodes.code, code.toUpperCase()),
+  });
+  return result ?? null;
+}
+
+export async function createPromoCode(data: NewPromoCode): Promise<PromoCode> {
+  const [code] = await db
+    .insert(promoCodes)
+    .values({
+      ...data,
+      code: data.code.toUpperCase(),
+    })
+    .returning();
+  return code;
+}
+
+export async function updatePromoCode(
+  id: string,
+  data: Partial<Omit<PromoCode, "id" | "createdAt">>
+): Promise<PromoCode | null> {
+  const [code] = await db
+    .update(promoCodes)
+    .set({ ...data, updatedAt: new Date() })
+    .where(eq(promoCodes.id, id))
+    .returning();
+  return code ?? null;
+}
+
+export async function incrementPromoCodeUses(id: string): Promise<void> {
+  const code = await db.query.promoCodes.findFirst({
+    where: eq(promoCodes.id, id),
+  });
+  if (!code) return;
+  
+  await db
+    .update(promoCodes)
+    .set({
+      currentUses: code.currentUses + 1,
+      updatedAt: new Date(),
+    })
+    .where(eq(promoCodes.id, id));
+}
+
+// ============================================================================
+// TENANT PLAN QUERIES
+// ============================================================================
+
+export async function upgradeTenantToComplete(tenantId: string): Promise<Tenant | null> {
+  const [tenant] = await db
+    .update(tenants)
+    .set({ plan: "complete", updatedAt: new Date() })
+    .where(eq(tenants.id, tenantId))
+    .returning();
+  return tenant ?? null;
+}
+
+export async function getTenantByUserId(userId: string): Promise<Tenant | null> {
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+  });
+  if (!user) return null;
+  
+  const tenant = await db.query.tenants.findFirst({
+    where: eq(tenants.id, user.tenantId),
+  });
+  return tenant ?? null;
+}
+
+export async function upgradeTenantByUserEmail(email: string): Promise<Tenant | null> {
+  const user = await getUserByEmail(email);
+  if (!user) return null;
+  
+  return upgradeTenantToComplete(user.tenantId);
 }

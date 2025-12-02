@@ -1,19 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getPromoCodeByCode, incrementPromoCodeUses, upgradeTenantByUserEmail } from "@/lib/db/queries";
 
 // Check discount validity and return pricing info
 export async function POST(request: NextRequest) {
   try {
-    const { promoCode } = await request.json();
-    const baseUrl = process.env.NEXTAUTH_URL || request.headers.get("origin") || "http://localhost:3000";
-    
-    // Fetch current discount config from admin endpoint
-    const discountRes = await fetch(`${baseUrl}/api/manage-x7k9/discount`);
-    const discount = await discountRes.json();
+    const { promoCode, userEmail, applyCode } = await request.json();
 
     const originalPrice = 2900; // $29.00 in cents
     
-    // Check if discount is enabled
-    if (!discount.enabled) {
+    // No promo code provided
+    if (!promoCode) {
       return NextResponse.json({
         originalPrice,
         finalPrice: originalPrice,
@@ -22,52 +18,101 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Check if promo code is required and matches
-    if (discount.code && discount.code.toLowerCase() !== promoCode?.toLowerCase()) {
+    // Look up promo code in database
+    const code = await getPromoCodeByCode(promoCode);
+
+    // Code not found
+    if (!code) {
       return NextResponse.json({
         originalPrice,
         finalPrice: originalPrice,
         discountApplied: false,
         discountAmount: 0,
-        error: promoCode ? "Invalid promo code" : undefined,
+        error: "Invalid promo code",
+      });
+    }
+
+    // Code is not active
+    if (!code.isActive) {
+      return NextResponse.json({
+        originalPrice,
+        finalPrice: originalPrice,
+        discountApplied: false,
+        discountAmount: 0,
+        error: "This promo code is no longer active",
       });
     }
 
     // Check expiration
-    if (discount.expiresAt && new Date(discount.expiresAt) < new Date()) {
+    if (code.expiresAt && new Date(code.expiresAt) < new Date()) {
       return NextResponse.json({
         originalPrice,
         finalPrice: originalPrice,
         discountApplied: false,
         discountAmount: 0,
-        error: "This discount has expired",
+        error: "This promo code has expired",
       });
     }
 
     // Check max uses
-    if (discount.maxUses && discount.currentUses >= discount.maxUses) {
+    if (code.maxUses && code.currentUses >= code.maxUses) {
       return NextResponse.json({
         originalPrice,
         finalPrice: originalPrice,
         discountApplied: false,
         discountAmount: 0,
-        error: "This discount has reached its usage limit",
+        error: "This promo code has reached its usage limit",
       });
     }
 
-    // Calculate discount
+    // Handle FREE type - grants complete membership directly
+    if (code.type === "free") {
+      // If applyCode is true and we have a user email, upgrade them immediately
+      if (applyCode && userEmail) {
+        const tenant = await upgradeTenantByUserEmail(userEmail);
+        if (tenant) {
+          await incrementPromoCodeUses(code.id);
+          return NextResponse.json({
+            originalPrice,
+            finalPrice: 0,
+            discountApplied: true,
+            discountAmount: originalPrice,
+            discountDescription: "Free Complete Plan",
+            isFree: true,
+            upgraded: true,
+            message: "Your account has been upgraded to the Complete plan!",
+          });
+        }
+      }
+
+      return NextResponse.json({
+        originalPrice,
+        finalPrice: 0,
+        discountApplied: true,
+        discountAmount: originalPrice,
+        discountDescription: "Free Complete Plan",
+        isFree: true,
+      });
+    }
+
+    // Calculate discount for percentage or fixed types
     let discountAmount = 0;
     let discountDescription = "";
 
-    if (discount.type === "percentage") {
-      discountAmount = Math.round(originalPrice * (discount.value / 100));
-      discountDescription = `${discount.value}% off`;
-    } else {
-      discountAmount = discount.value;
-      discountDescription = `$${(discount.value / 100).toFixed(2)} off`;
+    if (code.type === "percentage") {
+      discountAmount = Math.round(originalPrice * (code.value / 100));
+      discountDescription = `${code.value}% off`;
+    } else if (code.type === "fixed") {
+      discountAmount = code.value;
+      discountDescription = `$${(code.value / 100).toFixed(2)} off`;
     }
 
     const finalPrice = Math.max(0, originalPrice - discountAmount);
+
+    // If applyCode is true, increment usage counter
+    if (applyCode) {
+      await incrementPromoCodeUses(code.id);
+    }
 
     return NextResponse.json({
       originalPrice,
@@ -75,6 +120,7 @@ export async function POST(request: NextRequest) {
       discountApplied: true,
       discountAmount,
       discountDescription,
+      promoCodeId: code.id, // Return ID so checkout can increment uses after purchase
     });
   } catch (error) {
     console.error("Error checking discount:", error);

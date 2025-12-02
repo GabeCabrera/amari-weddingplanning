@@ -11,100 +11,178 @@ import {
   RefreshCw,
   CheckCircle,
   AlertCircle,
+  Plus,
+  Gift,
+  Copy,
+  UserPlus,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
-interface DiscountConfig {
-  enabled: boolean;
-  type: "percentage" | "fixed";
+interface PromoCode {
+  id: string;
+  code: string;
+  description: string | null;
+  type: "percentage" | "fixed" | "free";
   value: number;
-  code?: string;
-  expiresAt?: string;
-  maxUses?: number;
+  maxUses: number | null;
   currentUses: number;
+  expiresAt: string | null;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export default function SettingsPage() {
-  const [discount, setDiscount] = useState<DiscountConfig>({
-    enabled: false,
-    type: "percentage",
-    value: 0,
-    currentUses: 0,
-  });
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  
+  // New promo code form
+  const [showNewForm, setShowNewForm] = useState(false);
+  const [newCode, setNewCode] = useState({
+    code: "",
+    description: "",
+    type: "percentage" as "percentage" | "fixed" | "free",
+    value: 0,
+    maxUses: "",
+    expiresAt: "",
+  });
 
-  const fetchDiscount = async () => {
+  // Upgrade user form
+  const [upgradeEmail, setUpgradeEmail] = useState("");
+  const [isUpgrading, setIsUpgrading] = useState(false);
+
+  const fetchPromoCodes = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/manage-x7k9/discount");
+      const res = await fetch("/api/manage-x7k9/promo-codes");
       const data = await res.json();
-      setDiscount(data);
+      setPromoCodes(data.codes || []);
     } catch (error) {
-      console.error("Failed to fetch discount:", error);
+      console.error("Failed to fetch promo codes:", error);
+      toast.error("Failed to load promo codes");
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDiscount();
+    fetchPromoCodes();
   }, []);
 
-  const handleSave = async () => {
+  const handleCreateCode = async () => {
+    if (!newCode.code.trim()) {
+      toast.error("Code is required");
+      return;
+    }
+
     setIsSaving(true);
-    setMessage(null);
     try {
-      const res = await fetch("/api/manage-x7k9/discount", {
+      const res = await fetch("/api/manage-x7k9/promo-codes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(discount),
+        body: JSON.stringify(newCode),
       });
       
-      if (!res.ok) throw new Error("Failed to save");
-      
       const data = await res.json();
-      setDiscount(data.discount);
-      setMessage({ type: "success", text: "Discount settings saved!" });
+      
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create code");
+      }
+      
+      toast.success(`Created promo code: ${data.code.code}`);
+      setPromoCodes([data.code, ...promoCodes]);
+      setNewCode({
+        code: "",
+        description: "",
+        type: "percentage",
+        value: 0,
+        maxUses: "",
+        expiresAt: "",
+      });
+      setShowNewForm(false);
     } catch (error) {
-      setMessage({ type: "error", text: "Failed to save settings" });
+      toast.error(error instanceof Error ? error.message : "Failed to create code");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleResetUses = async () => {
-    setIsSaving(true);
+  const handleToggleActive = async (code: PromoCode) => {
     try {
-      const res = await fetch("/api/manage-x7k9/discount", {
-        method: "POST",
+      const res = await fetch("/api/manage-x7k9/promo-codes", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...discount, resetUses: true }),
+        body: JSON.stringify({ id: code.id, isActive: !code.isActive }),
       });
       
-      if (!res.ok) throw new Error("Failed to reset");
+      if (!res.ok) throw new Error("Failed to update");
       
-      const data = await res.json();
-      setDiscount(data.discount);
-      setMessage({ type: "success", text: "Usage counter reset!" });
+      setPromoCodes(promoCodes.map(c => 
+        c.id === code.id ? { ...c, isActive: !c.isActive } : c
+      ));
+      toast.success(`${code.code} ${code.isActive ? "deactivated" : "activated"}`);
     } catch (error) {
-      setMessage({ type: "error", text: "Failed to reset counter" });
-    } finally {
-      setIsSaving(false);
+      toast.error("Failed to update code");
     }
   };
 
-  const originalPrice = 29;
-  let discountedPrice = originalPrice;
-  if (discount.enabled && discount.value > 0) {
-    if (discount.type === "percentage") {
-      discountedPrice = originalPrice - (originalPrice * discount.value / 100);
-    } else {
-      discountedPrice = originalPrice - (discount.value / 100);
+  const handleUpgradeUser = async () => {
+    if (!upgradeEmail.trim()) {
+      toast.error("Email is required");
+      return;
     }
-    discountedPrice = Math.max(0, discountedPrice);
-  }
+
+    if (!confirm(`Upgrade ${upgradeEmail} to the Complete plan for free?`)) {
+      return;
+    }
+
+    setIsUpgrading(true);
+    try {
+      const res = await fetch("/api/manage-x7k9/users/upgrade", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: upgradeEmail }),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to upgrade user");
+      }
+      
+      toast.success(data.message);
+      setUpgradeEmail("");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to upgrade user");
+    } finally {
+      setIsUpgrading(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard");
+  };
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case "free": return "Free Membership";
+      case "percentage": return "Percentage Off";
+      case "fixed": return "Fixed Amount Off";
+      default: return type;
+    }
+  };
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case "free": return "bg-green-100 text-green-700";
+      case "percentage": return "bg-blue-100 text-blue-700";
+      case "fixed": return "bg-purple-100 text-purple-700";
+      default: return "bg-warm-100 text-warm-700";
+    }
+  };
 
   if (isLoading) {
     return (
@@ -120,244 +198,337 @@ export default function SettingsPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-serif tracking-wider uppercase text-warm-800">
-            Discounts
+            Discounts & Upgrades
           </h1>
           <p className="text-warm-500 mt-1">
-            Manage promo codes and pricing discounts
+            Manage promo codes and grant free memberships
           </p>
         </div>
-        <Button onClick={handleSave} disabled={isSaving}>
-          <Save className="w-4 h-4 mr-2" />
-          {isSaving ? "Saving..." : "Save Changes"}
+        <Button onClick={() => setShowNewForm(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          New Promo Code
         </Button>
       </div>
 
-      {/* Message */}
-      {message && (
-        <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
-          message.type === "success" 
-            ? "bg-green-50 border border-green-200 text-green-700" 
-            : "bg-red-50 border border-red-200 text-red-700"
-        }`}>
-          {message.type === "success" ? (
-            <CheckCircle className="w-5 h-5" />
-          ) : (
-            <AlertCircle className="w-5 h-5" />
-          )}
-          {message.text}
-        </div>
-      )}
-
-      {/* Discount Settings Card */}
-      <div className="bg-white border border-warm-200 rounded-lg overflow-hidden">
+      {/* Upgrade User Card */}
+      <div className="bg-white border border-warm-200 rounded-lg mb-8">
         <div className="p-6 border-b border-warm-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <Tag className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <h2 className="font-medium text-warm-800">Discount Settings</h2>
-                <p className="text-sm text-warm-500">Configure pricing discounts for new customers</p>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-green-100 rounded-lg">
+              <UserPlus className="w-5 h-5 text-green-600" />
             </div>
-            
-            <button
-              onClick={() => setDiscount(d => ({ ...d, enabled: !d.enabled }))}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                discount.enabled ? "bg-purple-600" : "bg-warm-300"
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  discount.enabled ? "translate-x-6" : "translate-x-1"
-                }`}
-              />
-            </button>
+            <div>
+              <h2 className="font-medium text-warm-800">Grant Free Membership</h2>
+              <p className="text-sm text-warm-500">Upgrade an existing user to the Complete plan</p>
+            </div>
           </div>
         </div>
-
-        <div className={`p-6 space-y-6 ${!discount.enabled ? "opacity-50 pointer-events-none" : ""}`}>
-          {/* Discount Type */}
-          <div>
-            <label className="block text-sm font-medium text-warm-700 mb-2">
-              Discount Type
-            </label>
-            <div className="flex gap-4">
-              <button
-                onClick={() => setDiscount(d => ({ ...d, type: "percentage" }))}
-                className={`flex-1 p-4 border rounded-lg flex items-center gap-3 transition-colors ${
-                  discount.type === "percentage" 
-                    ? "border-purple-500 bg-purple-50" 
-                    : "border-warm-200 hover:border-warm-300"
-                }`}
-              >
-                <Percent className={`w-5 h-5 ${discount.type === "percentage" ? "text-purple-600" : "text-warm-400"}`} />
-                <div className="text-left">
-                  <p className={`font-medium ${discount.type === "percentage" ? "text-purple-700" : "text-warm-700"}`}>
-                    Percentage
-                  </p>
-                  <p className="text-xs text-warm-500">e.g., 20% off</p>
-                </div>
-              </button>
-              <button
-                onClick={() => setDiscount(d => ({ ...d, type: "fixed" }))}
-                className={`flex-1 p-4 border rounded-lg flex items-center gap-3 transition-colors ${
-                  discount.type === "fixed" 
-                    ? "border-purple-500 bg-purple-50" 
-                    : "border-warm-200 hover:border-warm-300"
-                }`}
-              >
-                <DollarSign className={`w-5 h-5 ${discount.type === "fixed" ? "text-purple-600" : "text-warm-400"}`} />
-                <div className="text-left">
-                  <p className={`font-medium ${discount.type === "fixed" ? "text-purple-700" : "text-warm-700"}`}>
-                    Fixed Amount
-                  </p>
-                  <p className="text-xs text-warm-500">e.g., $5 off</p>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          {/* Discount Value */}
-          <div>
-            <label className="block text-sm font-medium text-warm-700 mb-2">
-              {discount.type === "percentage" ? "Percentage Off" : "Amount Off (in dollars)"}
-            </label>
-            <div className="relative">
-              <input
-                type="number"
-                min="0"
-                max={discount.type === "percentage" ? 100 : 2900}
-                value={discount.type === "percentage" ? discount.value : discount.value / 100}
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value) || 0;
-                  setDiscount(d => ({ 
-                    ...d, 
-                    value: d.type === "percentage" ? val : val * 100 
-                  }));
-                }}
-                className="w-full px-4 py-3 border border-warm-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder={discount.type === "percentage" ? "20" : "5"}
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-warm-400">
-                {discount.type === "percentage" ? "%" : "USD"}
-              </span>
-            </div>
-          </div>
-
-          {/* Promo Code */}
-          <div>
-            <label className="block text-sm font-medium text-warm-700 mb-2">
-              Promo Code (optional)
-            </label>
+        <div className="p-6">
+          <div className="flex gap-4">
             <input
-              type="text"
-              value={discount.code || ""}
-              onChange={(e) => setDiscount(d => ({ ...d, code: e.target.value.toUpperCase() }))}
-              className="w-full px-4 py-3 border border-warm-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent uppercase"
-              placeholder="WEDDING20"
+              type="email"
+              value={upgradeEmail}
+              onChange={(e) => setUpgradeEmail(e.target.value)}
+              placeholder="user@example.com"
+              className="flex-1 px-4 py-2 border border-warm-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
-            <p className="text-xs text-warm-400 mt-1">
-              Leave empty to apply discount automatically to all customers
-            </p>
+            <Button
+              onClick={handleUpgradeUser}
+              disabled={isUpgrading || !upgradeEmail.trim()}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isUpgrading ? (
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4 mr-2" />
+              )}
+              Upgrade to Complete
+            </Button>
           </div>
-
-          {/* Expiration Date */}
-          <div>
-            <label className="block text-sm font-medium text-warm-700 mb-2">
-              Expiration Date (optional)
-            </label>
-            <div className="relative">
-              <input
-                type="datetime-local"
-                value={discount.expiresAt?.slice(0, 16) || ""}
-                onChange={(e) => setDiscount(d => ({ ...d, expiresAt: e.target.value ? new Date(e.target.value).toISOString() : undefined }))}
-                className="w-full px-4 py-3 border border-warm-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-              <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-warm-400 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Max Uses */}
-          <div>
-            <label className="block text-sm font-medium text-warm-700 mb-2">
-              Maximum Uses (optional)
-            </label>
-            <div className="flex gap-4">
-              <div className="flex-1 relative">
-                <input
-                  type="number"
-                  min="0"
-                  value={discount.maxUses || ""}
-                  onChange={(e) => setDiscount(d => ({ ...d, maxUses: e.target.value ? parseInt(e.target.value) : undefined }))}
-                  className="w-full px-4 py-3 border border-warm-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="100"
-                />
-                <Hash className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-warm-400 pointer-events-none" />
-              </div>
-              <div className="flex items-center gap-2 px-4 py-3 bg-warm-50 rounded-lg border border-warm-200">
-                <span className="text-sm text-warm-600">Used:</span>
-                <span className="font-medium text-warm-800">{discount.currentUses}</span>
-                {discount.currentUses > 0 && (
-                  <button
-                    onClick={handleResetUses}
-                    className="text-xs text-purple-600 hover:text-purple-700 underline ml-2"
-                  >
-                    Reset
-                  </button>
-                )}
-              </div>
-            </div>
-            <p className="text-xs text-warm-400 mt-1">
-              Leave empty for unlimited uses
-            </p>
-          </div>
-        </div>
-
-        {/* Preview Section */}
-        <div className="p-6 bg-warm-50 border-t border-warm-200">
-          <h3 className="text-sm font-medium text-warm-700 mb-4">Pricing Preview</h3>
-          <div className="flex items-center gap-6">
-            <div className="text-center">
-              <p className="text-xs text-warm-500 mb-1">Original</p>
-              <p className={`text-2xl font-light ${discount.enabled ? "text-warm-400 line-through" : "text-warm-800"}`}>
-                $29
-              </p>
-            </div>
-            {discount.enabled && discount.value > 0 && (
-              <>
-                <div className="text-warm-300">→</div>
-                <div className="text-center">
-                  <p className="text-xs text-green-600 mb-1">
-                    {discount.type === "percentage" ? `${discount.value}% off` : `$${discount.value / 100} off`}
-                  </p>
-                  <p className="text-2xl font-light text-green-600">
-                    ${discountedPrice.toFixed(2)}
-                  </p>
-                </div>
-              </>
-            )}
-          </div>
-          
-          {discount.enabled && (
-            <div className="mt-4 p-3 bg-purple-50 border border-purple-100 rounded-lg">
-              <p className="text-sm text-purple-700">
-                <strong>Active:</strong>{" "}
-                {discount.code ? `Code "${discount.code}" required` : "Applied automatically"}{" "}
-                {discount.expiresAt && `• Expires ${new Date(discount.expiresAt).toLocaleDateString()}`}{" "}
-                {discount.maxUses && `• ${discount.maxUses - discount.currentUses} uses remaining`}
-              </p>
-            </div>
-          )}
+          <p className="text-xs text-warm-400 mt-2">
+            This permanently upgrades the user's account. Great for influencers, partners, and friends.
+          </p>
         </div>
       </div>
 
-      {/* Note */}
-      <p className="text-xs text-warm-400 mt-6 text-center">
-        Note: Discount settings are stored in memory and will reset on server redeploy.
-        For persistent discounts, consider using Stripe Coupons.
-      </p>
+      {/* New Promo Code Form */}
+      {showNewForm && (
+        <div className="bg-white border border-warm-200 rounded-lg mb-8">
+          <div className="p-6 border-b border-warm-100">
+            <div className="flex items-center justify-between">
+              <h2 className="font-medium text-warm-800">Create New Promo Code</h2>
+              <button
+                onClick={() => setShowNewForm(false)}
+                className="text-warm-400 hover:text-warm-600"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+          <div className="p-6 space-y-4">
+            {/* Code */}
+            <div>
+              <label className="block text-sm font-medium text-warm-700 mb-1">
+                Code
+              </label>
+              <input
+                type="text"
+                value={newCode.code}
+                onChange={(e) => setNewCode({ ...newCode, code: e.target.value.toUpperCase() })}
+                placeholder="WEDDING20"
+                className="w-full px-4 py-2 border border-warm-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 uppercase"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium text-warm-700 mb-1">
+                Internal Description (optional)
+              </label>
+              <input
+                type="text"
+                value={newCode.description}
+                onChange={(e) => setNewCode({ ...newCode, description: e.target.value })}
+                placeholder="e.g., For TikTok influencer @weddingvibes"
+                className="w-full px-4 py-2 border border-warm-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+
+            {/* Type */}
+            <div>
+              <label className="block text-sm font-medium text-warm-700 mb-2">
+                Discount Type
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  onClick={() => setNewCode({ ...newCode, type: "free", value: 100 })}
+                  className={`p-4 border rounded-lg text-left transition-colors ${
+                    newCode.type === "free" 
+                      ? "border-green-500 bg-green-50" 
+                      : "border-warm-200 hover:border-warm-300"
+                  }`}
+                >
+                  <Gift className={`w-5 h-5 mb-2 ${newCode.type === "free" ? "text-green-600" : "text-warm-400"}`} />
+                  <p className={`font-medium text-sm ${newCode.type === "free" ? "text-green-700" : "text-warm-700"}`}>
+                    Free Membership
+                  </p>
+                  <p className="text-xs text-warm-500">Grants Complete plan</p>
+                </button>
+                <button
+                  onClick={() => setNewCode({ ...newCode, type: "percentage" })}
+                  className={`p-4 border rounded-lg text-left transition-colors ${
+                    newCode.type === "percentage" 
+                      ? "border-blue-500 bg-blue-50" 
+                      : "border-warm-200 hover:border-warm-300"
+                  }`}
+                >
+                  <Percent className={`w-5 h-5 mb-2 ${newCode.type === "percentage" ? "text-blue-600" : "text-warm-400"}`} />
+                  <p className={`font-medium text-sm ${newCode.type === "percentage" ? "text-blue-700" : "text-warm-700"}`}>
+                    Percentage
+                  </p>
+                  <p className="text-xs text-warm-500">e.g., 20% off</p>
+                </button>
+                <button
+                  onClick={() => setNewCode({ ...newCode, type: "fixed" })}
+                  className={`p-4 border rounded-lg text-left transition-colors ${
+                    newCode.type === "fixed" 
+                      ? "border-purple-500 bg-purple-50" 
+                      : "border-warm-200 hover:border-warm-300"
+                  }`}
+                >
+                  <DollarSign className={`w-5 h-5 mb-2 ${newCode.type === "fixed" ? "text-purple-600" : "text-warm-400"}`} />
+                  <p className={`font-medium text-sm ${newCode.type === "fixed" ? "text-purple-700" : "text-warm-700"}`}>
+                    Fixed Amount
+                  </p>
+                  <p className="text-xs text-warm-500">e.g., $5 off</p>
+                </button>
+              </div>
+            </div>
+
+            {/* Value (only for percentage/fixed) */}
+            {newCode.type !== "free" && (
+              <div>
+                <label className="block text-sm font-medium text-warm-700 mb-1">
+                  {newCode.type === "percentage" ? "Percentage Off" : "Amount Off ($)"}
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0"
+                    max={newCode.type === "percentage" ? 100 : 29}
+                    value={newCode.type === "fixed" ? newCode.value / 100 : newCode.value}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value) || 0;
+                      setNewCode({ 
+                        ...newCode, 
+                        value: newCode.type === "fixed" ? val * 100 : val 
+                      });
+                    }}
+                    className="w-full px-4 py-2 border border-warm-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder={newCode.type === "percentage" ? "20" : "5"}
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-warm-400">
+                    {newCode.type === "percentage" ? "%" : "USD"}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Max Uses */}
+            <div>
+              <label className="block text-sm font-medium text-warm-700 mb-1">
+                Maximum Uses (optional)
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={newCode.maxUses}
+                onChange={(e) => setNewCode({ ...newCode, maxUses: e.target.value })}
+                placeholder="Leave empty for unlimited"
+                className="w-full px-4 py-2 border border-warm-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+
+            {/* Expiration */}
+            <div>
+              <label className="block text-sm font-medium text-warm-700 mb-1">
+                Expiration Date (optional)
+              </label>
+              <input
+                type="datetime-local"
+                value={newCode.expiresAt}
+                onChange={(e) => setNewCode({ ...newCode, expiresAt: e.target.value })}
+                className="w-full px-4 py-2 border border-warm-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end gap-3 pt-4 border-t border-warm-100">
+              <Button variant="outline" onClick={() => setShowNewForm(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateCode} disabled={isSaving}>
+                {isSaving ? (
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
+                Create Code
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Promo Codes List */}
+      <div className="bg-white border border-warm-200 rounded-lg overflow-hidden">
+        <div className="p-6 border-b border-warm-100">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-purple-100 rounded-lg">
+              <Tag className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <h2 className="font-medium text-warm-800">Promo Codes</h2>
+              <p className="text-sm text-warm-500">
+                {promoCodes.length} code{promoCodes.length !== 1 ? "s" : ""} created
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {promoCodes.length === 0 ? (
+          <div className="p-12 text-center">
+            <Tag className="w-12 h-12 text-warm-300 mx-auto mb-4" />
+            <p className="text-warm-500">No promo codes yet</p>
+            <p className="text-sm text-warm-400 mt-1">
+              Create your first promo code to offer discounts or free memberships
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-warm-100">
+            {promoCodes.map((code) => (
+              <div key={code.id} className={`p-4 ${!code.isActive ? "bg-warm-50 opacity-60" : ""}`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-warm-800">
+                          {code.code}
+                        </span>
+                        <button
+                          onClick={() => copyToClipboard(code.code)}
+                          className="text-warm-400 hover:text-warm-600"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${getTypeColor(code.type)}`}>
+                          {getTypeLabel(code.type)}
+                        </span>
+                        {!code.isActive && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-warm-200 text-warm-600">
+                            Inactive
+                          </span>
+                        )}
+                      </div>
+                      {code.description && (
+                        <p className="text-sm text-warm-500 mt-1">{code.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-6 text-sm">
+                    {code.type !== "free" && (
+                      <div className="text-right">
+                        <p className="text-warm-400 text-xs">Discount</p>
+                        <p className="font-medium text-warm-700">
+                          {code.type === "percentage" ? `${code.value}%` : `$${code.value / 100}`}
+                        </p>
+                      </div>
+                    )}
+                    <div className="text-right">
+                      <p className="text-warm-400 text-xs">Uses</p>
+                      <p className="font-medium text-warm-700">
+                        {code.currentUses}{code.maxUses ? ` / ${code.maxUses}` : ""}
+                      </p>
+                    </div>
+                    {code.expiresAt && (
+                      <div className="text-right">
+                        <p className="text-warm-400 text-xs">Expires</p>
+                        <p className={`font-medium ${new Date(code.expiresAt) < new Date() ? "text-red-500" : "text-warm-700"}`}>
+                          {new Date(code.expiresAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => handleToggleActive(code)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        code.isActive ? "bg-green-500" : "bg-warm-300"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          code.isActive ? "translate-x-6" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Info Box */}
+      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <h3 className="font-medium text-blue-800 mb-2">How Promo Codes Work</h3>
+        <ul className="space-y-1 text-sm text-blue-700">
+          <li>• <strong>Free Membership</strong> codes grant the Complete plan instantly when used</li>
+          <li>• <strong>Percentage/Fixed</strong> codes apply discounts at checkout</li>
+          <li>• Codes are case-insensitive (WEDDING20 = wedding20)</li>
+          <li>• Set max uses to limit how many times a code can be redeemed</li>
+          <li>• Deactivate codes anytime without deleting them</li>
+        </ul>
+      </div>
     </div>
   );
 }

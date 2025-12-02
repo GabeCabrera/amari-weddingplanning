@@ -396,6 +396,34 @@ export type CalendarSyncLog = typeof calendarSyncLog.$inferSelect;
 export type NewCalendarSyncLog = typeof calendarSyncLog.$inferInsert;
 
 // ============================================================================
+// PROMO CODES - Discount codes and free membership grants
+// ============================================================================
+export const promoCodes = pgTable("promo_codes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  code: text("code").notNull().unique(), // e.g., "INFLUENCER2024"
+  description: text("description"), // Internal note, e.g., "For TikTok influencer @weddingvibes"
+  
+  // Discount type: percentage, fixed, or free (100% off + auto-upgrade)
+  type: text("type").notNull().default("percentage"), // "percentage" | "fixed" | "free"
+  value: integer("value").notNull().default(0), // Percentage (0-100) or cents for fixed
+  
+  // Usage limits
+  maxUses: integer("max_uses"), // null = unlimited
+  currentUses: integer("current_uses").notNull().default(0),
+  
+  // Validity
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  isActive: boolean("is_active").default(true).notNull(),
+  
+  // Tracking
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type PromoCode = typeof promoCodes.$inferSelect;
+export type NewPromoCode = typeof promoCodes.$inferInsert;
+
+// ============================================================================
 // SCHEDULED EMAILS - For delayed email sequences
 // ============================================================================
 export const scheduledEmails = pgTable("scheduled_emails", {
