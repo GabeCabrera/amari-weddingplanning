@@ -7,8 +7,7 @@ import {
   Sparkles,
   ArrowRight,
   Check,
-  X,
-  MessageCircle
+  X
 } from "lucide-react";
 import { PricingSection } from "@/components/pricing-section";
 import { Logo } from "@/components/logo";
@@ -17,7 +16,7 @@ export function LandingPage() {
   return (
     <main className="min-h-screen select-none">
       {/* Hero Section */}
-      <section className="min-h-screen flex flex-col px-8 pt-12 pb-8 bg-gradient-to-b from-warm-50 to-white overflow-hidden">
+      <section className="min-h-screen flex flex-col px-8 pt-12 pb-8 bg-gradient-to-b from-rose-50/30 to-white overflow-hidden">
         {/* Top content */}
         <div className="text-center max-w-2xl mx-auto flex-shrink-0">
           {/* Logo */}
@@ -25,145 +24,122 @@ export function LandingPage() {
             <Logo size="lg" href={undefined} />
           </div>
           
-          <div className="w-16 h-px bg-warm-400 mx-auto mb-6" />
+          <div className="w-16 h-px bg-warm-300 mx-auto mb-6" />
 
-          {/* Benefit-first H1 */}
-          <h1 className="text-4xl md:text-5xl font-serif font-light tracking-wide mb-4 text-warm-800">
-            Meet Hera,
+          {/* Simple, warm headline */}
+          <h1 className="text-4xl md:text-5xl font-serif font-light tracking-wide mb-6 text-warm-800">
+            Plan your wedding,
             <br />
-            <span className="text-warm-600">Your AI Wedding Concierge</span>
+            <span className="text-warm-600">without the chaos</span>
           </h1>
-
-          {/* AI Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-50 to-amber-50 border border-rose-200 rounded-full mb-6">
-            <Sparkles className="w-4 h-4 text-rose-500" />
-            <span className="text-sm text-warm-700 font-medium">
-              The only wedding planner that actually knows you
-            </span>
-          </div>
           
-          <p className="text-lg text-warm-600 mb-8 leading-relaxed font-light max-w-lg mx-auto">
-            Hera learns your style, answers your questions at 2am, 
-            and helps you plan the wedding of your dreams. 
-            Like a best friend who&apos;s planned 1,000 weddings.
+          <p className="text-lg text-warm-600 mb-8 leading-relaxed font-light max-w-md mx-auto">
+            A calm, beautiful space for you and your partner. 
+            Everything you need, nothing you don&apos;t.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
             <Link
               href="/register"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-rose-500 to-amber-500 text-white
-                         tracking-widest uppercase text-sm hover:from-rose-600 hover:to-amber-600 
-                         transition-colors duration-300 rounded-lg shadow-lg"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-warm-700 text-white
+                         tracking-widest uppercase text-sm hover:bg-warm-800 
+                         transition-colors duration-300"
             >
-              Start Planning Free
+              Start Planning
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/login"
-              className="inline-block px-8 py-4 border border-warm-400 text-warm-600 
+              className="inline-block px-8 py-4 border border-warm-300 text-warm-600 
                          tracking-widest uppercase text-sm hover:bg-warm-50 
-                         transition-colors duration-300 rounded-lg"
+                         transition-colors duration-300"
             >
               Sign In
             </Link>
           </div>
           
-          <p className="text-sm text-warm-400 mb-8">
-            Free to start · 10 Hera messages included · No credit card required
+          <p className="text-sm text-warm-400">
+            Free to start · No credit card required
           </p>
         </div>
 
-        {/* Product Preview - Chat with Hera */}
-        <div className="flex-1 flex items-end justify-center max-w-5xl mx-auto w-full">
+        {/* Product Preview */}
+        <div className="flex-1 flex items-end justify-center max-w-5xl mx-auto w-full mt-12">
           <div className="w-full transform translate-y-12 md:translate-y-16">
-            <div className="bg-white rounded-t-xl shadow-[0_-10px_60px_-15px_rgba(0,0,0,0.2)] overflow-hidden border border-warm-200 border-b-0">
+            <div className="bg-white rounded-t-2xl shadow-[0_-10px_60px_-15px_rgba(0,0,0,0.15)] overflow-hidden border border-warm-100 border-b-0">
               {/* Browser Chrome */}
-              <div className="bg-warm-200/50 px-4 py-3 flex items-center gap-2">
+              <div className="bg-warm-100/50 px-4 py-3 flex items-center gap-2">
                 <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-warm-300" />
-                  <div className="w-3 h-3 rounded-full bg-warm-300" />
-                  <div className="w-3 h-3 rounded-full bg-warm-300" />
+                  <div className="w-3 h-3 rounded-full bg-warm-200" />
+                  <div className="w-3 h-3 rounded-full bg-warm-200" />
+                  <div className="w-3 h-3 rounded-full bg-warm-200" />
                 </div>
                 <div className="flex-1 mx-4">
-                  <div className="bg-white/70 rounded px-3 py-1 text-xs text-warm-500 text-center max-w-xs mx-auto">
-                    aisleboard.com
+                  <div className="bg-white/70 rounded-full px-3 py-1 text-xs text-warm-400 text-center max-w-xs mx-auto">
+                    yourtwo.aisleboard.com
                   </div>
                 </div>
               </div>
               
-              {/* App Preview - Chat Interface */}
+              {/* App Preview Content */}
               <div className="p-4 md:p-6">
-                <div className="grid md:grid-cols-3 gap-4">
-                  {/* Main Planner Preview */}
-                  <div className="md:col-span-2 bg-white rounded-lg shadow-sm p-4">
-                    <div className="text-center mb-4">
-                      <h3 className="text-lg font-serif text-warm-800">Budget Tracker</h3>
-                      <div className="w-8 h-px bg-warm-300 mx-auto mt-1" />
+                <div className="grid md:grid-cols-4 gap-4">
+                  {/* Sidebar Preview */}
+                  <div className="hidden md:block bg-warm-50/50 rounded-xl p-4 space-y-2">
+                    <div className="text-xs uppercase tracking-wider text-warm-400 mb-3">Your Pages</div>
+                    {["Budget", "Guest List", "Timeline", "Vendors", "Seating"].map((item, i) => (
+                      <div key={item} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${i === 0 ? 'bg-white shadow-sm text-warm-700' : 'text-warm-500'}`}>
+                        <div className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-rose-400' : 'bg-warm-300'}`} />
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Main Content Preview */}
+                  <div className="md:col-span-3 bg-white rounded-xl p-5">
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <h3 className="text-xl font-serif text-warm-800">Budget</h3>
+                        <p className="text-sm text-warm-400">Track your spending</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-light text-warm-700">$16,500</div>
+                        <div className="text-xs text-warm-400">remaining of $25,000</div>
+                      </div>
                     </div>
                     
-                    <div className="grid grid-cols-3 gap-3 mb-4">
-                      <div className="text-center p-2 bg-warm-50 rounded-lg">
-                        <div className="text-base font-medium text-warm-700">$25,000</div>
-                        <div className="text-xs text-warm-500">Budget</div>
-                      </div>
-                      <div className="text-center p-2 bg-green-50 rounded-lg">
-                        <div className="text-base font-medium text-green-600">$8,500</div>
-                        <div className="text-xs text-warm-500">Spent</div>
-                      </div>
-                      <div className="text-center p-2 bg-blue-50 rounded-lg">
-                        <div className="text-base font-medium text-blue-600">$16,500</div>
-                        <div className="text-xs text-warm-500">Remaining</div>
-                      </div>
+                    {/* Progress bar */}
+                    <div className="h-2 bg-warm-100 rounded-full mb-6 overflow-hidden">
+                      <div className="h-full w-1/3 bg-gradient-to-r from-rose-300 to-amber-300 rounded-full" />
                     </div>
                     
-                    <div className="space-y-1">
+                    {/* Sample Items */}
+                    <div className="space-y-3">
                       {[
-                        { category: "Venue", vendor: "The Grand Estate", cost: "$5,000", paid: true },
-                        { category: "Photography", vendor: "Jane Smith Photo", cost: "$2,500", paid: true },
+                        { category: "Venue", vendor: "The Garden Estate", cost: "$5,000", paid: true },
+                        { category: "Photography", vendor: "Emma Collins", cost: "$2,500", paid: true },
+                        { category: "Florals", vendor: "Wildbloom Studio", cost: "$1,000", paid: false },
                       ].map((item, i) => (
-                        <div key={i} className="flex items-center justify-between py-1.5 border-b border-warm-100 text-sm">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-warm-100 flex items-center justify-center">
-                              <DollarSign className="w-3 h-3 text-warm-500" />
+                        <div key={i} className="flex items-center justify-between py-3 border-b border-warm-100 last:border-0">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-warm-50 flex items-center justify-center">
+                              <DollarSign className="w-4 h-4 text-warm-400" />
                             </div>
                             <div>
-                              <div className="font-medium text-warm-700 text-xs">{item.category}</div>
-                              <div className="text-xs text-warm-400">{item.vendor}</div>
+                              <div className="font-medium text-warm-700">{item.category}</div>
+                              <div className="text-sm text-warm-400">{item.vendor}</div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-warm-600 text-xs">{item.cost}</span>
-                            {item.paid && <Check className="w-3 h-3 text-green-500" />}
+                          <div className="flex items-center gap-3">
+                            <span className="text-warm-600">{item.cost}</span>
+                            {item.paid && (
+                              <span className="px-2 py-0.5 bg-green-50 text-green-600 text-xs rounded-full">Paid</span>
+                            )}
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
-                  
-                  {/* Hera Chat Preview */}
-                  <div className="bg-gradient-to-br from-rose-50 to-amber-50 rounded-lg shadow-sm p-4 border border-rose-100">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-400 to-amber-400 flex items-center justify-center">
-                        <Sparkles className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <div className="font-medium text-warm-800 text-sm">Hera</div>
-                        <div className="text-xs text-warm-500">AI Concierge</div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="bg-white rounded-lg p-2 text-xs text-warm-700 shadow-sm">
-                        Based on your vibe, I think you&apos;d love a moody, romantic aesthetic with lots of candlelight ✨
-                      </div>
-                      <div className="bg-warm-700 rounded-lg p-2 text-xs text-white ml-4">
-                        Yes! How did you know?
-                      </div>
-                      <div className="bg-white rounded-lg p-2 text-xs text-warm-700 shadow-sm">
-                        I noticed you saved a lot of dark, intimate venue photos. Want me to help you find photographers who specialize in that style?
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -171,103 +147,59 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* What is Hera Section */}
-      <section className="py-20 px-8 bg-white">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
-            <h2 className="text-3xl font-serif font-light tracking-wide mb-4 text-warm-800">
-              Your Personal Wedding Concierge
-            </h2>
-            <p className="text-warm-600 max-w-xl mx-auto">
-              Hera is an AI that learns your style, remembers your details, 
-              and is always there when you need her.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center p-6">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-100 to-amber-100 flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="w-6 h-6 text-rose-500" />
-              </div>
-              <h3 className="font-medium text-warm-700 mb-2">Always Available</h3>
-              <p className="text-sm text-warm-500">
-                2am panic about seating charts? Hera&apos;s there. 
-                No judgment, just help.
-              </p>
-            </div>
-
-            <div className="text-center p-6">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-100 to-amber-100 flex items-center justify-center mx-auto mb-4">
-                <Heart className="w-6 h-6 text-rose-500" />
-              </div>
-              <h3 className="font-medium text-warm-700 mb-2">Knows Your Vibe</h3>
-              <p className="text-sm text-warm-500">
-                She learns what you love and suggests vendors, 
-                colors, and ideas that match your style.
-              </p>
-            </div>
-
-            <div className="text-center p-6">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-100 to-amber-100 flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-6 h-6 text-rose-500" />
-              </div>
-              <h3 className="font-medium text-warm-700 mb-2">Actually Helpful</h3>
-              <p className="text-sm text-warm-500">
-                Real advice, not generic tips. She knows your budget, 
-                your guest count, your timeline.
-              </p>
-            </div>
-          </div>
+      {/* Social Proof - Simple quote */}
+      <section className="py-16 px-8 bg-white">
+        <div className="max-w-2xl mx-auto text-center">
+          <p className="text-xl text-warm-600 font-serif italic leading-relaxed">
+            &ldquo;Finally, a wedding planner that doesn&apos;t make me want to 
+            throw my laptop out the window.&rdquo;
+          </p>
+          <p className="text-warm-400 text-sm mt-4">— A very relieved bride-to-be</p>
         </div>
       </section>
 
-      {/* Comparison Chart */}
+      {/* Why Aisle - Clean comparison */}
       <section className="py-20 px-8 bg-warm-50/50">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
             <h2 className="text-3xl font-serif font-light tracking-wide mb-4 text-warm-800">
-              Why Couples Choose Aisle
+              Why couples choose Aisle
             </h2>
-            <p className="text-warm-600">
-              We built what we wished existed.
-            </p>
           </div>
 
           {/* Comparison Table */}
-          <div className="overflow-hidden rounded-xl border border-warm-200">
+          <div className="overflow-hidden rounded-2xl border border-warm-200 bg-white">
             <div className="grid grid-cols-3">
               {/* Header */}
               <div className="p-4 bg-warm-50"></div>
               <div className="p-4 bg-warm-100 text-center">
                 <span className="text-xs uppercase tracking-wider text-warm-500">Other Apps</span>
               </div>
-              <div className="p-4 bg-gradient-to-r from-rose-500 to-amber-500 text-center">
+              <div className="p-4 bg-warm-700 text-center">
                 <span className="text-xs uppercase tracking-wider text-white">Aisle</span>
               </div>
 
               {/* Rows */}
               {[
-                { feature: "AI Help", other: "Generic chatbots", aisle: "Hera knows YOU" },
-                { feature: "Ads", other: "Vendor ads everywhere", aisle: "Zero ads" },
-                { feature: "Interface", other: "Cluttered & overwhelming", aisle: "Calm & minimal" },
-                { feature: "Your data", other: "Sold to vendors", aisle: "Private, always" },
-                { feature: "Getting started", other: "Endless questions", aisle: "Ready in 60 seconds" },
+                { feature: "Ads", other: "Everywhere", aisle: "None" },
+                { feature: "Interface", other: "Overwhelming", aisle: "Calm" },
+                { feature: "Your data", other: "Sold to vendors", aisle: "Private" },
+                { feature: "Setup", other: "20+ questions", aisle: "60 seconds" },
+                { feature: "Vibe", other: "Stressful", aisle: "Peaceful" },
               ].map((row, i) => (
                 <div key={row.feature} className="contents">
                   <div className={`p-4 font-medium text-warm-700 text-sm ${i % 2 === 0 ? 'bg-white' : 'bg-warm-50/50'}`}>
                     {row.feature}
                   </div>
                   <div className={`p-4 text-center ${i % 2 === 0 ? 'bg-white' : 'bg-warm-50/50'}`}>
-                    <div className="flex items-center justify-center gap-2 text-warm-500 text-sm">
-                      <X className="w-4 h-4 text-red-400" />
+                    <div className="flex items-center justify-center gap-2 text-warm-400 text-sm">
+                      <X className="w-4 h-4 text-warm-300" />
                       <span>{row.other}</span>
                     </div>
                   </div>
-                  <div className={`p-4 text-center ${i % 2 === 0 ? 'bg-rose-50/50' : 'bg-amber-50/50'}`}>
+                  <div className={`p-4 text-center ${i % 2 === 0 ? 'bg-warm-50' : 'bg-warm-100/50'}`}>
                     <div className="flex items-center justify-center gap-2 text-warm-700 text-sm">
-                      <Check className="w-4 h-4 text-green-600" />
+                      <Check className="w-4 h-4 text-rose-400" />
                       <span className="font-medium">{row.aisle}</span>
                     </div>
                   </div>
@@ -275,166 +207,132 @@ export function LandingPage() {
               ))}
             </div>
           </div>
-
-          <div className="mt-10 text-center">
-            <Link
-              href="/register"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-amber-500 text-white
-                         tracking-widest uppercase text-sm hover:from-rose-600 hover:to-amber-600 
-                         transition-colors duration-300 rounded-lg"
-            >
-              Try It Free
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
         </div>
       </section>
 
-      {/* How It Works */}
+      {/* Features - Visual, Pinterest-style cards */}
       <section className="py-20 px-8 bg-white">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
-            <h2 className="text-3xl font-serif font-light tracking-wide mb-4 text-warm-800">
-              Ready in 60 Seconds
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-serif font-light tracking-wide mb-4">
+              Everything in one place
             </h2>
-            <p className="text-warm-600">
-              No endless questionnaires. Just start planning.
+            <p className="text-warm-500">
+              No more scattered spreadsheets and forgotten notes
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-12 h-12 rounded-full bg-warm-100 flex items-center justify-center mx-auto mb-4 text-warm-600 font-serif text-xl">
-                1
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                icon: DollarSign,
+                title: "Budget",
+                description: "See where every dollar goes",
+                color: "from-rose-50 to-rose-100",
+                iconColor: "text-rose-400",
+              },
+              {
+                icon: Users,
+                title: "Guest List",
+                description: "RSVPs, meals, and seating",
+                color: "from-amber-50 to-amber-100",
+                iconColor: "text-amber-500",
+              },
+              {
+                icon: Calendar,
+                title: "Timeline",
+                description: "Never miss a deadline",
+                color: "from-blue-50 to-blue-100",
+                iconColor: "text-blue-400",
+              },
+            ].map((feature) => (
+              <div 
+                key={feature.title}
+                className={`bg-gradient-to-br ${feature.color} rounded-2xl p-8 text-center`}
+              >
+                <div className={`w-14 h-14 rounded-full bg-white/80 flex items-center justify-center mx-auto mb-4 shadow-sm`}>
+                  <feature.icon className={`w-6 h-6 ${feature.iconColor}`} />
+                </div>
+                <h3 className="font-serif text-lg text-warm-800 mb-2">{feature.title}</h3>
+                <p className="text-sm text-warm-600">{feature.description}</p>
               </div>
-              <h3 className="font-medium text-warm-700 mb-2">Create your account</h3>
-              <p className="text-sm text-warm-500">
-                Just your email and a password. That&apos;s it.
-              </p>
-            </div>
+            ))}
+          </div>
 
-            <div className="text-center">
-              <div className="w-12 h-12 rounded-full bg-warm-100 flex items-center justify-center mx-auto mb-4 text-warm-600 font-serif text-xl">
-                2
+          <div className="grid md:grid-cols-2 gap-6 mt-6">
+            {[
+              {
+                icon: Heart,
+                title: "Wedding Party",
+                description: "Keep your crew organized",
+                color: "from-pink-50 to-pink-100",
+                iconColor: "text-pink-400",
+              },
+              {
+                icon: Sparkles,
+                title: "Hera",
+                description: "Your planning bestie, available 24/7",
+                color: "from-purple-50 to-purple-100",
+                iconColor: "text-purple-400",
+              },
+            ].map((feature) => (
+              <div 
+                key={feature.title}
+                className={`bg-gradient-to-br ${feature.color} rounded-2xl p-8 text-center`}
+              >
+                <div className={`w-14 h-14 rounded-full bg-white/80 flex items-center justify-center mx-auto mb-4 shadow-sm`}>
+                  <feature.icon className={`w-6 h-6 ${feature.iconColor}`} />
+                </div>
+                <h3 className="font-serif text-lg text-warm-800 mb-2">{feature.title}</h3>
+                <p className="text-sm text-warm-600">{feature.description}</p>
               </div>
-              <h3 className="font-medium text-warm-700 mb-2">Chat with Hera</h3>
-              <p className="text-sm text-warm-500">
-                Tell her about your wedding vision. She&apos;ll help you discover your style.
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-12 h-12 rounded-full bg-warm-100 flex items-center justify-center mx-auto mb-4 text-warm-600 font-serif text-xl">
-                3
-              </div>
-              <h3 className="font-medium text-warm-700 mb-2">Start planning together</h3>
-              <p className="text-sm text-warm-500">
-                Invite your partner and dive in. Everything auto-saves.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Congratulations Section */}
-      <section className="py-20 px-8 bg-warm-50/50">
+      {/* Emotional moment */}
+      <section className="py-20 px-8 bg-rose-50/30">
         <div className="max-w-2xl mx-auto text-center">
-          <Heart className="w-8 h-8 text-warm-400 mx-auto mb-6" />
-          <h2 className="text-3xl font-serif font-light tracking-wide mb-6">
+          <Heart className="w-8 h-8 text-rose-300 mx-auto mb-6" />
+          <h2 className="text-3xl font-serif font-light tracking-wide mb-6 text-warm-800">
             Congratulations
           </h2>
           <p className="text-warm-600 leading-relaxed text-lg">
             You said yes. You found your person. And now you get to plan one of the most 
-            beautiful days of your life together.
+            beautiful days of your life — together.
           </p>
           <p className="text-warm-600 leading-relaxed text-lg mt-4">
-            Take a breath. This should be joyful. Hera&apos;s here to help keep it that way.
+            Take a breath. This should be joyful.
           </p>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 px-8 bg-white">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
-            <h2 className="text-3xl font-serif font-light tracking-wide mb-4">
-              Everything You Need, Nothing You Don&apos;t
-            </h2>
-            <p className="text-warm-600 max-w-xl mx-auto">
-              A simple, elegant wedding planner with an AI that actually helps.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center p-6">
-              <div className="w-12 h-12 rounded-full bg-warm-100 flex items-center justify-center mx-auto mb-4">
-                <Calendar className="w-6 h-6 text-warm-500" />
-              </div>
-              <h3 className="font-medium text-warm-700 mb-2">Wedding Timeline Creator</h3>
-              <p className="text-sm text-warm-500">
-                From &ldquo;just engaged&rdquo; to &ldquo;I do&rdquo; — a clear path through every milestone.
-              </p>
-            </div>
-
-            <div className="text-center p-6">
-              <div className="w-12 h-12 rounded-full bg-warm-100 flex items-center justify-center mx-auto mb-4">
-                <Users className="w-6 h-6 text-warm-500" />
-              </div>
-              <h3 className="font-medium text-warm-700 mb-2">Guest List & RSVP Tracker</h3>
-              <p className="text-sm text-warm-500">
-                Guest lists, RSVPs, seating charts, wedding party — all in one place.
-              </p>
-            </div>
-
-            <div className="text-center p-6">
-              <div className="w-12 h-12 rounded-full bg-warm-100 flex items-center justify-center mx-auto mb-4">
-                <DollarSign className="w-6 h-6 text-warm-500" />
-              </div>
-              <h3 className="font-medium text-warm-700 mb-2">Wedding Budget Tracker</h3>
-              <p className="text-sm text-warm-500">
-                See where your money goes with visual breakdowns. No surprises.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
+      {/* Pricing */}
       <PricingSection />
 
-      {/* About Section */}
+      {/* About - Personal touch */}
       <section className="py-20 px-8 bg-white">
         <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
-            <h2 className="text-3xl font-serif font-light tracking-wide">
-              A Note From Us
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-serif font-light tracking-wide text-warm-800">
+              A note from us
             </h2>
           </div>
 
-          <div className="prose prose-warm mx-auto text-center">
-            <p className="text-warm-600 leading-relaxed mb-6">
-              Hi, we&apos;re Sarah & Gabe.
+          <div className="text-center text-warm-600 leading-relaxed">
+            <p className="mb-4">
+              Hi, we&apos;re Sarah & Gabe. We&apos;re getting married in 2026.
             </p>
-            <p className="text-warm-600 leading-relaxed mb-6">
-              We&apos;re getting married in early 2026, and like you, we wanted a place to plan our day 
-              that felt as special as the wedding itself. Something calm. Something beautiful. 
-              Something with an AI that actually understood what we wanted.
+            <p className="mb-4">
+              We built Aisle because every other wedding app felt like it was designed 
+              to stress us out and sell us things. We wanted something that felt 
+              as special as the wedding itself.
             </p>
-            <p className="text-warm-600 leading-relaxed mb-6">
-              So we built Aisle and Hera.
+            <p className="italic">
+              We hope it helps you two plan something beautiful.
             </p>
-            <p className="text-warm-600 leading-relaxed mb-6 italic">
-              We hope they help you and your person plan something beautiful together.
-            </p>
-          </div>
-
-          <div className="text-center mt-8">
-            <p className="text-warm-400 text-sm tracking-wider">
-              — Sarah & Gabe
-            </p>
+            <p className="text-warm-400 text-sm mt-6">— Sarah & Gabe ♥</p>
           </div>
         </div>
       </section>
@@ -442,18 +340,17 @@ export function LandingPage() {
       {/* Final CTA */}
       <section className="py-20 px-8 bg-warm-50/50">
         <div className="max-w-xl mx-auto text-center">
-          <Sparkles className="w-8 h-8 text-rose-400 mx-auto mb-6" />
-          <h2 className="text-3xl font-serif font-light tracking-wide mb-4">
-            Ready to Meet Hera?
+          <h2 className="text-3xl font-serif font-light tracking-wide mb-4 text-warm-800">
+            Ready to start?
           </h2>
           <p className="text-warm-600 mb-8">
-            Your wedding deserves a planner — and an AI — as thoughtful as you are.
+            Your wedding deserves a planner as thoughtful as you are.
           </p>
           <Link
             href="/register"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-rose-500 to-amber-500 text-white
-                       tracking-widest uppercase text-sm hover:from-rose-600 hover:to-amber-600 
-                       transition-colors duration-300 rounded-lg shadow-lg"
+            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-warm-700 text-white
+                       tracking-widest uppercase text-sm hover:bg-warm-800 
+                       transition-colors duration-300"
           >
             Start Planning Free
             <ArrowRight className="w-4 h-4" />
@@ -462,12 +359,12 @@ export function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-8 bg-warm-50 border-t border-warm-200">
+      <footer className="py-12 px-8 bg-white border-t border-warm-100">
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center gap-8">
             <div className="text-center md:text-left">
               <Logo size="sm" href={undefined} />
-              <p className="text-xs text-warm-500 mt-1">
+              <p className="text-xs text-warm-400 mt-1">
                 Made with love in Utah
               </p>
             </div>
@@ -502,11 +399,11 @@ export function LandingPage() {
       </footer>
 
       {/* Sticky Mobile CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-sm border-t border-warm-200 md:hidden z-50">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-sm border-t border-warm-100 md:hidden z-50">
         <Link
           href="/register"
-          className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-rose-500 to-amber-500 text-white
-                     tracking-widest uppercase text-sm hover:from-rose-600 hover:to-amber-600 
+          className="flex items-center justify-center gap-2 w-full py-3 bg-warm-700 text-white
+                     tracking-widest uppercase text-sm hover:bg-warm-800 
                      transition-colors duration-300 rounded-lg"
         >
           Start Planning Free
@@ -514,7 +411,6 @@ export function LandingPage() {
         </Link>
       </div>
 
-      {/* Bottom padding on mobile for sticky CTA */}
       <div className="h-20 md:hidden" />
     </main>
   );
