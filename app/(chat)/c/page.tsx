@@ -39,7 +39,6 @@ function SketchyLogo({ size = 32, className = "" }: { size?: number; className?:
   return (
     <div className={className} style={{ width: size, height: size }}>
       <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-        {/* Left ring - sketchy */}
         <path
           d={leftRingPaths[0]}
           stroke="#78716c"
@@ -48,7 +47,6 @@ function SketchyLogo({ size = 32, className = "" }: { size?: number; className?:
           strokeLinejoin="round"
           fill="none"
         />
-        {/* Right ring - sketchy */}
         <path
           d={rightRingPaths[0]}
           stroke="#78716c"
@@ -62,11 +60,10 @@ function SketchyLogo({ size = 32, className = "" }: { size?: number; className?:
   );
 }
 
-// Claude-style low FPS thinking logo - jittery/hand-drawn feel
+// Claude-style low FPS thinking logo
 function ThinkingLogo({ size = 32 }: { size?: number }) {
   const [frame, setFrame] = useState(0);
   
-  // Low FPS animation - updates every 150ms for that choppy feel
   useEffect(() => {
     const interval = setInterval(() => {
       setFrame(f => (f + 1) % 4);
@@ -74,7 +71,6 @@ function ThinkingLogo({ size = 32 }: { size?: number }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Subtle transforms for each frame - mimics hand-drawn wiggle
   const transforms = [
     { rotate: -2, scale: 1, x: 0, y: 0 },
     { rotate: 1, scale: 1.02, x: 0.5, y: -0.5 },
@@ -93,7 +89,6 @@ function ThinkingLogo({ size = 32 }: { size?: number }) {
       }}
     >
       <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-        {/* Left ring - different sketchy path each frame */}
         <path
           d={leftRingPaths[frame]}
           stroke="#78716c"
@@ -102,7 +97,6 @@ function ThinkingLogo({ size = 32 }: { size?: number }) {
           strokeLinejoin="round"
           fill="none"
         />
-        {/* Right ring - different sketchy path each frame */}
         <path
           d={rightRingPaths[frame]}
           stroke="#78716c"
@@ -128,16 +122,13 @@ function ThinkingIndicator() {
   }, []);
 
   return (
-    <div className="flex items-start gap-3 p-4 rounded-2xl bg-white border border-stone-200 max-w-[85%]">
-      <div className="flex-shrink-0 mt-0.5">
-        <ThinkingLogo size={28} />
+    <div className="flex items-start gap-3 max-w-3xl">
+      <div className="flex-shrink-0 mt-1">
+        <ThinkingLogo size={24} />
       </div>
-      <div className="flex flex-col gap-1">
-        <p className="text-sm font-medium text-stone-600">Aisle</p>
-        <p className="text-stone-500 text-sm">
-          {thinkingMessages[messageIndex]}
-        </p>
-      </div>
+      <p className="text-stone-500 text-sm pt-1">
+        {thinkingMessages[messageIndex]}
+      </p>
     </div>
   );
 }
@@ -154,19 +145,16 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Focus input when not loading
   useEffect(() => {
     if (!isLoading) {
       inputRef.current?.focus();
     }
   }, [isLoading]);
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
@@ -180,7 +168,6 @@ export default function ChatPage() {
     setInput("");
     setError(null);
     
-    // Add user message immediately
     const userMsg: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -202,7 +189,6 @@ export default function ChatPage() {
         throw new Error(data.details || data.error || "Request failed");
       }
 
-      // Add assistant message
       const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
@@ -235,53 +221,66 @@ export default function ChatPage() {
     <div className="min-h-screen flex flex-col bg-canvas">
       {/* Header */}
       <header className="border-b border-stone-200 bg-white/80 backdrop-blur-sm p-4">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 max-w-3xl mx-auto">
           <SketchyLogo size={36} />
-          <span className="font-serif tracking-[0.15em] uppercase text-warm-700 text-lg">
+          <span className="font-serif tracking-[0.15em] uppercase text-stone-600 text-lg">
             Aisle
           </span>
         </div>
       </header>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 && (
-          <div className="text-center mt-16">
-            <SketchyLogo size={48} className="mx-auto mb-4" />
-            <p className="text-stone-500">
-              Send a message to start planning your wedding
-            </p>
-          </div>
-        )}
-        
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`p-4 rounded-2xl max-w-[85%] ${
-              msg.role === "user"
-                ? "bg-stone-800 text-white ml-auto"
-                : "bg-white border border-stone-200"
-            }`}
-          >
-            <p className={`text-sm font-medium mb-1 ${
-              msg.role === "user" ? "text-stone-400" : "text-stone-600"
-            }`}>
-              {msg.role === "user" ? "You" : "Aisle"}
-            </p>
-            <p className="whitespace-pre-wrap">{msg.content}</p>
-          </div>
-        ))}
-        
-        {isLoading && <ThinkingIndicator />}
-        
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl">
-            <p className="font-medium">Oops!</p>
-            <p className="text-sm">{error}</p>
-          </div>
-        )}
-        
-        <div ref={messagesEndRef} />
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="max-w-3xl mx-auto space-y-6">
+          {messages.length === 0 && (
+            <div className="text-center mt-16">
+              <SketchyLogo size={48} className="mx-auto mb-4" />
+              <p className="text-stone-500">
+                Send a message to start planning your wedding
+              </p>
+            </div>
+          )}
+          
+          {messages.map((msg) => (
+            <div key={msg.id}>
+              {msg.role === "user" ? (
+                /* User message - bubble style, right aligned */
+                <div className="flex justify-end">
+                  <div className="bg-stone-800 text-white px-4 py-3 rounded-2xl rounded-br-md max-w-[80%]">
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                  </div>
+                </div>
+              ) : (
+                /* Assistant message - flush with background, logo outside */
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-1">
+                    <SketchyLogo size={24} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-stone-800 whitespace-pre-wrap leading-relaxed">
+                      {msg.content}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+          
+          {isLoading && <ThinkingIndicator />}
+          
+          {error && (
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 mt-1">
+                <SketchyLogo size={24} />
+              </div>
+              <p className="text-red-600 text-sm">
+                Oops! {error}
+              </p>
+            </div>
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       {/* Input */}
@@ -293,14 +292,14 @@ export default function ChatPage() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Tell me about your wedding..."
-            className="flex-1 border border-stone-200 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-stone-300 focus:border-transparent bg-white"
+            className="flex-1 border border-stone-300 rounded-2xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent bg-white"
             rows={1}
             disabled={isLoading}
           />
           <button
             onClick={sendMessage}
             disabled={isLoading || !input.trim()}
-            className="px-5 py-2 bg-stone-800 text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-stone-700 transition-colors font-medium"
+            className="px-5 py-3 bg-stone-800 text-white rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-stone-700 transition-colors font-medium"
           >
             Send
           </button>
