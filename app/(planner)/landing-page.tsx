@@ -7,8 +7,8 @@ import {
   Sparkles,
   ArrowRight,
   Check,
-  BadgeCheck,
-  X
+  X,
+  MessageCircle
 } from "lucide-react";
 import { PricingSection } from "@/components/pricing-section";
 import { Logo } from "@/components/logo";
@@ -16,7 +16,7 @@ import { Logo } from "@/components/logo";
 export function LandingPage() {
   return (
     <main className="min-h-screen select-none">
-      {/* Hero Section - Redesigned with benefit-first headline + product peek */}
+      {/* Hero Section */}
       <section className="min-h-screen flex flex-col px-8 pt-12 pb-8 bg-gradient-to-b from-warm-50 to-white overflow-hidden">
         {/* Top content */}
         <div className="text-center max-w-2xl mx-auto flex-shrink-0">
@@ -27,32 +27,33 @@ export function LandingPage() {
           
           <div className="w-16 h-px bg-warm-400 mx-auto mb-6" />
 
-          {/* Benefit-first H1 with SEO keywords */}
+          {/* Benefit-first H1 */}
           <h1 className="text-4xl md:text-5xl font-serif font-light tracking-wide mb-4 text-warm-800">
-            The Stress-Free
+            Meet Hera,
             <br />
-            <span className="text-warm-600">Wedding Planner App</span>
+            <span className="text-warm-600">Your AI Wedding Concierge</span>
           </h1>
 
-          {/* No Subscription Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-full mb-6">
-            <BadgeCheck className="w-4 h-4 text-green-600" />
-            <span className="text-sm text-green-700 font-medium">
-              One-time $29 — No monthly fees, ever
+          {/* AI Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-50 to-amber-50 border border-rose-200 rounded-full mb-6">
+            <Sparkles className="w-4 h-4 text-rose-500" />
+            <span className="text-sm text-warm-700 font-medium">
+              The only wedding planner that actually knows you
             </span>
           </div>
           
           <p className="text-lg text-warm-600 mb-8 leading-relaxed font-light max-w-lg mx-auto">
-            A calm, beautiful space for you and your partner.
-            No chaos. No overwhelm. Just the two of you, planning your day.
+            Hera learns your style, answers your questions at 2am, 
+            and helps you plan the wedding of your dreams. 
+            Like a best friend who&apos;s planned 1,000 weddings.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Link
               href="/register"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-warm-600 text-white
-                         tracking-widest uppercase text-sm hover:bg-warm-700 
-                         transition-colors duration-300"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-rose-500 to-amber-500 text-white
+                         tracking-widest uppercase text-sm hover:from-rose-600 hover:to-amber-600 
+                         transition-colors duration-300 rounded-lg shadow-lg"
             >
               Start Planning Free
               <ArrowRight className="w-4 h-4" />
@@ -61,18 +62,18 @@ export function LandingPage() {
               href="/login"
               className="inline-block px-8 py-4 border border-warm-400 text-warm-600 
                          tracking-widest uppercase text-sm hover:bg-warm-50 
-                         transition-colors duration-300"
+                         transition-colors duration-300 rounded-lg"
             >
               Sign In
             </Link>
           </div>
           
           <p className="text-sm text-warm-400 mb-8">
-            Free to start · No credit card required
+            Free to start · 10 Hera messages included · No credit card required
           </p>
         </div>
 
-        {/* Product Preview - "Peeking" from bottom, above the fold */}
+        {/* Product Preview - Chat with Hera */}
         <div className="flex-1 flex items-end justify-center max-w-5xl mx-auto w-full">
           <div className="w-full transform translate-y-12 md:translate-y-16">
             <div className="bg-white rounded-t-xl shadow-[0_-10px_60px_-15px_rgba(0,0,0,0.2)] overflow-hidden border border-warm-200 border-b-0">
@@ -85,33 +86,21 @@ export function LandingPage() {
                 </div>
                 <div className="flex-1 mx-4">
                   <div className="bg-white/70 rounded px-3 py-1 text-xs text-warm-500 text-center max-w-xs mx-auto">
-                    yourtwo.aisleboard.com
+                    aisleboard.com
                   </div>
                 </div>
               </div>
               
-              {/* App Preview Content - Just show the top portion */}
+              {/* App Preview - Chat Interface */}
               <div className="p-4 md:p-6">
-                <div className="grid md:grid-cols-4 gap-4">
-                  {/* Sidebar Preview */}
-                  <div className="hidden md:block bg-white rounded-lg shadow-sm p-3 space-y-2">
-                    <div className="text-xs uppercase tracking-wider text-warm-400 mb-2">Your Pages</div>
-                    {["Cover Page", "Budget Tracker", "Guest List", "Seating Chart", "Timeline"].map((item, i) => (
-                      <div key={item} className={`flex items-center gap-2 px-2 py-1.5 rounded text-xs ${i === 1 ? 'bg-warm-100 text-warm-700' : 'text-warm-500'}`}>
-                        <div className={`w-1.5 h-1.5 rounded-full ${i === 1 ? 'bg-warm-500' : 'bg-warm-300'}`} />
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Main Content Preview */}
-                  <div className="md:col-span-3 bg-white rounded-lg shadow-sm p-4">
+                <div className="grid md:grid-cols-3 gap-4">
+                  {/* Main Planner Preview */}
+                  <div className="md:col-span-2 bg-white rounded-lg shadow-sm p-4">
                     <div className="text-center mb-4">
                       <h3 className="text-lg font-serif text-warm-800">Budget Tracker</h3>
                       <div className="w-8 h-px bg-warm-300 mx-auto mt-1" />
                     </div>
                     
-                    {/* Budget Stats */}
                     <div className="grid grid-cols-3 gap-3 mb-4">
                       <div className="text-center p-2 bg-warm-50 rounded-lg">
                         <div className="text-base font-medium text-warm-700">$25,000</div>
@@ -127,7 +116,6 @@ export function LandingPage() {
                       </div>
                     </div>
                     
-                    {/* Sample Budget Items */}
                     <div className="space-y-1">
                       {[
                         { category: "Venue", vendor: "The Grand Estate", cost: "$5,000", paid: true },
@@ -151,6 +139,31 @@ export function LandingPage() {
                       ))}
                     </div>
                   </div>
+                  
+                  {/* Hera Chat Preview */}
+                  <div className="bg-gradient-to-br from-rose-50 to-amber-50 rounded-lg shadow-sm p-4 border border-rose-100">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-400 to-amber-400 flex items-center justify-center">
+                        <Sparkles className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-warm-800 text-sm">Hera</div>
+                        <div className="text-xs text-warm-500">AI Concierge</div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="bg-white rounded-lg p-2 text-xs text-warm-700 shadow-sm">
+                        Based on your vibe, I think you&apos;d love a moody, romantic aesthetic with lots of candlelight ✨
+                      </div>
+                      <div className="bg-warm-700 rounded-lg p-2 text-xs text-white ml-4">
+                        Yes! How did you know?
+                      </div>
+                      <div className="bg-white rounded-lg p-2 text-xs text-warm-700 shadow-sm">
+                        I noticed you saved a lot of dark, intimate venue photos. Want me to help you find photographers who specialize in that style?
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -158,8 +171,59 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Comparison Chart - "Why Aisle?" Social Proof via Logic */}
+      {/* What is Hera Section */}
       <section className="py-20 px-8 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
+            <h2 className="text-3xl font-serif font-light tracking-wide mb-4 text-warm-800">
+              Your Personal Wedding Concierge
+            </h2>
+            <p className="text-warm-600 max-w-xl mx-auto">
+              Hera is an AI that learns your style, remembers your details, 
+              and is always there when you need her.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center p-6">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-100 to-amber-100 flex items-center justify-center mx-auto mb-4">
+                <MessageCircle className="w-6 h-6 text-rose-500" />
+              </div>
+              <h3 className="font-medium text-warm-700 mb-2">Always Available</h3>
+              <p className="text-sm text-warm-500">
+                2am panic about seating charts? Hera&apos;s there. 
+                No judgment, just help.
+              </p>
+            </div>
+
+            <div className="text-center p-6">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-100 to-amber-100 flex items-center justify-center mx-auto mb-4">
+                <Heart className="w-6 h-6 text-rose-500" />
+              </div>
+              <h3 className="font-medium text-warm-700 mb-2">Knows Your Vibe</h3>
+              <p className="text-sm text-warm-500">
+                She learns what you love and suggests vendors, 
+                colors, and ideas that match your style.
+              </p>
+            </div>
+
+            <div className="text-center p-6">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-100 to-amber-100 flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-6 h-6 text-rose-500" />
+              </div>
+              <h3 className="font-medium text-warm-700 mb-2">Actually Helpful</h3>
+              <p className="text-sm text-warm-500">
+                Real advice, not generic tips. She knows your budget, 
+                your guest count, your timeline.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Comparison Chart */}
+      <section className="py-20 px-8 bg-warm-50/50">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
@@ -179,13 +243,13 @@ export function LandingPage() {
               <div className="p-4 bg-warm-100 text-center">
                 <span className="text-xs uppercase tracking-wider text-warm-500">Other Apps</span>
               </div>
-              <div className="p-4 bg-warm-600 text-center">
+              <div className="p-4 bg-gradient-to-r from-rose-500 to-amber-500 text-center">
                 <span className="text-xs uppercase tracking-wider text-white">Aisle</span>
               </div>
 
               {/* Rows */}
               {[
-                { feature: "Pricing", other: "Monthly fees", aisle: "One-time $29" },
+                { feature: "AI Help", other: "Generic chatbots", aisle: "Hera knows YOU" },
                 { feature: "Ads", other: "Vendor ads everywhere", aisle: "Zero ads" },
                 { feature: "Interface", other: "Cluttered & overwhelming", aisle: "Calm & minimal" },
                 { feature: "Your data", other: "Sold to vendors", aisle: "Private, always" },
@@ -201,7 +265,7 @@ export function LandingPage() {
                       <span>{row.other}</span>
                     </div>
                   </div>
-                  <div className={`p-4 text-center ${i % 2 === 0 ? 'bg-warm-50' : 'bg-warm-100/50'}`}>
+                  <div className={`p-4 text-center ${i % 2 === 0 ? 'bg-rose-50/50' : 'bg-amber-50/50'}`}>
                     <div className="flex items-center justify-center gap-2 text-warm-700 text-sm">
                       <Check className="w-4 h-4 text-green-600" />
                       <span className="font-medium">{row.aisle}</span>
@@ -212,13 +276,12 @@ export function LandingPage() {
             </div>
           </div>
 
-          {/* CTA after comparison */}
           <div className="mt-10 text-center">
             <Link
               href="/register"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-warm-600 text-white
-                         tracking-widest uppercase text-sm hover:bg-warm-700 
-                         transition-colors duration-300"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-amber-500 text-white
+                         tracking-widest uppercase text-sm hover:from-rose-600 hover:to-amber-600 
+                         transition-colors duration-300 rounded-lg"
             >
               Try It Free
               <ArrowRight className="w-4 h-4" />
@@ -227,8 +290,8 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* How It Works - Address "60 seconds" claim */}
-      <section className="py-20 px-8 bg-warm-50/50">
+      {/* How It Works */}
+      <section className="py-20 px-8 bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
@@ -255,9 +318,9 @@ export function LandingPage() {
               <div className="w-12 h-12 rounded-full bg-warm-100 flex items-center justify-center mx-auto mb-4 text-warm-600 font-serif text-xl">
                 2
               </div>
-              <h3 className="font-medium text-warm-700 mb-2">Set your wedding date</h3>
+              <h3 className="font-medium text-warm-700 mb-2">Chat with Hera</h3>
               <p className="text-sm text-warm-500">
-                We&apos;ll create a timeline tailored to your day.
+                Tell her about your wedding vision. She&apos;ll help you discover your style.
               </p>
             </div>
 
@@ -275,7 +338,7 @@ export function LandingPage() {
       </section>
 
       {/* Congratulations Section */}
-      <section className="py-20 px-8 bg-white">
+      <section className="py-20 px-8 bg-warm-50/50">
         <div className="max-w-2xl mx-auto text-center">
           <Heart className="w-8 h-8 text-warm-400 mx-auto mb-6" />
           <h2 className="text-3xl font-serif font-light tracking-wide mb-6">
@@ -286,13 +349,13 @@ export function LandingPage() {
             beautiful days of your life together.
           </p>
           <p className="text-warm-600 leading-relaxed text-lg mt-4">
-            Take a breath. This should be joyful. We're here to help keep it that way.
+            Take a breath. This should be joyful. Hera&apos;s here to help keep it that way.
           </p>
         </div>
       </section>
 
-      {/* Features Section - Updated H2s for SEO */}
-      <section className="py-20 px-8 bg-warm-50/50">
+      {/* Features Section */}
+      <section className="py-20 px-8 bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
@@ -300,8 +363,7 @@ export function LandingPage() {
               Everything You Need, Nothing You Don&apos;t
             </h2>
             <p className="text-warm-600 max-w-xl mx-auto">
-              A simple, elegant wedding planner that lives in your browser. 
-              No apps to download, no spreadsheets to wrestle with.
+              A simple, elegant wedding planner with an AI that actually helps.
             </p>
           </div>
 
@@ -359,13 +421,13 @@ export function LandingPage() {
             <p className="text-warm-600 leading-relaxed mb-6">
               We&apos;re getting married in early 2026, and like you, we wanted a place to plan our day 
               that felt as special as the wedding itself. Something calm. Something beautiful. 
-              Something that didn&apos;t make us want to throw our laptops out the window.
+              Something with an AI that actually understood what we wanted.
             </p>
             <p className="text-warm-600 leading-relaxed mb-6">
-              So we built Aisle.
+              So we built Aisle and Hera.
             </p>
             <p className="text-warm-600 leading-relaxed mb-6 italic">
-              We hope it helps you and your person plan something beautiful together.
+              We hope they help you and your person plan something beautiful together.
             </p>
           </div>
 
@@ -380,20 +442,20 @@ export function LandingPage() {
       {/* Final CTA */}
       <section className="py-20 px-8 bg-warm-50/50">
         <div className="max-w-xl mx-auto text-center">
-          <Sparkles className="w-8 h-8 text-warm-400 mx-auto mb-6" />
+          <Sparkles className="w-8 h-8 text-rose-400 mx-auto mb-6" />
           <h2 className="text-3xl font-serif font-light tracking-wide mb-4">
-            Ready to Start?
+            Ready to Meet Hera?
           </h2>
           <p className="text-warm-600 mb-8">
-            Your wedding deserves a planner as thoughtful as you are.
+            Your wedding deserves a planner — and an AI — as thoughtful as you are.
           </p>
           <Link
             href="/register"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-warm-600 text-white
-                       tracking-widest uppercase text-sm hover:bg-warm-700 
-                       transition-colors duration-300"
+            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-rose-500 to-amber-500 text-white
+                       tracking-widest uppercase text-sm hover:from-rose-600 hover:to-amber-600 
+                       transition-colors duration-300 rounded-lg shadow-lg"
           >
-            Create Your Planner
+            Start Planning Free
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -443,8 +505,8 @@ export function LandingPage() {
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-sm border-t border-warm-200 md:hidden z-50">
         <Link
           href="/register"
-          className="flex items-center justify-center gap-2 w-full py-3 bg-warm-600 text-white
-                     tracking-widest uppercase text-sm hover:bg-warm-700 
+          className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-rose-500 to-amber-500 text-white
+                     tracking-widest uppercase text-sm hover:from-rose-600 hover:to-amber-600 
                      transition-colors duration-300 rounded-lg"
         >
           Start Planning Free
