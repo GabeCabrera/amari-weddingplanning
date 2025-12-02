@@ -21,9 +21,9 @@ export default async function HomePage() {
     redirect("/login");
   }
 
-  // If onboarding not complete, redirect to choose plan
+  // If onboarding not complete, redirect to welcome (Hera conversation)
   if (!tenant.onboardingComplete) {
-    redirect("/choose-plan");
+    redirect("/welcome");
   }
 
   // Check if they have a planner with pages

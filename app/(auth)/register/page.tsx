@@ -57,7 +57,7 @@ export default function RegisterPage() {
     setIsGoogleLoading(true);
     try {
       redditPixel.trackSignUp();
-      await signIn("google", { callbackUrl: "/choose-plan" });
+      await signIn("google", { callbackUrl: "/welcome" });
     } catch {
       toast.error("Something went wrong with Google sign up");
       setIsGoogleLoading(false);
@@ -109,7 +109,7 @@ export default function RegisterPage() {
 
       toast.success("Account created!");
       redditPixel.trackSignUp();
-      window.location.href = "/choose-plan";
+      window.location.href = "/welcome";
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Something went wrong");
       setIsLoading(false);
