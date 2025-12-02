@@ -197,6 +197,21 @@ const config: Config = {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-4px)" },
         },
+        "wiggle": {
+          "0%, 100%": { transform: "rotate(-3deg) scale(1)" },
+          "25%": { transform: "rotate(3deg) scale(1.05)" },
+          "50%": { transform: "rotate(-2deg) scale(1)" },
+          "75%": { transform: "rotate(2deg) scale(1.02)" },
+        },
+        "bounce-dot": {
+          "0%, 100%": { transform: "translateY(0)", opacity: "0.7" },
+          "50%": { transform: "translateY(-4px)", opacity: "1" },
+        },
+        "fade-in-out": {
+          "0%": { opacity: "0", transform: "translateY(4px)" },
+          "20%, 80%": { opacity: "1", transform: "translateY(0)" },
+          "100%": { opacity: "0", transform: "translateY(-4px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -204,6 +219,9 @@ const config: Config = {
         "cursor-blink": "typewriter-cursor 1s ease-in-out infinite",
         "breathe": "breathe 4s ease-in-out infinite",
         "float": "float 3s ease-in-out infinite",
+        "wiggle": "wiggle 1s ease-in-out infinite",
+        "bounce-dot": "bounce-dot 0.6s ease-in-out infinite",
+        "fade-in-out": "fade-in-out 2s ease-in-out",
       },
     },
   },
