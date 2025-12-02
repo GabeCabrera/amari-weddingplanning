@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Logo, LogoIcon } from "@/components/logo";
 
 interface Message {
   id: string;
@@ -20,6 +19,49 @@ const thinkingMessages = [
   "Almost ready...",
 ];
 
+// Sketchy hand-drawn ring paths (imperfect circles)
+const leftRingPaths = [
+  "M 4 22 C 4 14, 8 12, 14 12 C 21 12, 24 15, 24 22 C 24 29, 20 32, 14 32 C 7 32, 4 28, 4 22",
+  "M 4.5 22 C 4 13, 9 11.5, 14 12 C 20 12.5, 24.5 16, 24 22 C 23.5 29, 19 32.5, 14 32 C 8 31.5, 4.5 27, 4.5 22",
+  "M 4 21.5 C 4.5 14, 8.5 12.5, 14 12.5 C 20.5 12, 24 15.5, 24 22.5 C 24 28.5, 20 31.5, 14 31.5 C 7.5 32, 3.5 28, 4 21.5",
+  "M 4.2 22.2 C 3.8 14.5, 8 12, 14.2 12.2 C 20.5 11.8, 24.2 15.8, 23.8 22 C 24 29.2, 19.5 32, 13.8 31.8 C 7.8 32.2, 4 28.5, 4.2 22.2",
+];
+
+const rightRingPaths = [
+  "M 16 22 C 16 14, 20 12, 26 12 C 33 12, 36 15, 36 22 C 36 29, 32 32, 26 32 C 19 32, 16 28, 16 22",
+  "M 16.5 22 C 16 13, 21 11.5, 26 12 C 32 12.5, 36.5 16, 36 22 C 35.5 29, 31 32.5, 26 32 C 20 31.5, 16.5 27, 16.5 22",
+  "M 16 21.5 C 16.5 14, 20.5 12.5, 26 12.5 C 32.5 12, 36 15.5, 36 22.5 C 36 28.5, 32 31.5, 26 31.5 C 19.5 32, 15.5 28, 16 21.5",
+  "M 16.2 22.2 C 15.8 14.5, 20 12, 26.2 12.2 C 32.5 11.8, 36.2 15.8, 35.8 22 C 36 29.2, 31.5 32, 25.8 31.8 C 19.8 32.2, 16 28.5, 16.2 22.2",
+];
+
+// Sketchy Logo Component - static version
+function SketchyLogo({ size = 32, className = "" }: { size?: number; className?: string }) {
+  return (
+    <div className={className} style={{ width: size, height: size }}>
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+        {/* Left ring - sketchy */}
+        <path
+          d={leftRingPaths[0]}
+          stroke="#78716c"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+        {/* Right ring - sketchy */}
+        <path
+          d={rightRingPaths[0]}
+          stroke="#78716c"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+      </svg>
+    </div>
+  );
+}
+
 // Claude-style low FPS thinking logo - jittery/hand-drawn feel
 function ThinkingLogo({ size = 32 }: { size?: number }) {
   const [frame, setFrame] = useState(0);
@@ -35,16 +77,15 @@ function ThinkingLogo({ size = 32 }: { size?: number }) {
   // Subtle transforms for each frame - mimics hand-drawn wiggle
   const transforms = [
     { rotate: -2, scale: 1, x: 0, y: 0 },
-    { rotate: 1, scale: 1.02, x: 1, y: -1 },
-    { rotate: -1, scale: 0.98, x: -1, y: 0 },
-    { rotate: 2, scale: 1.01, x: 0, y: 1 },
+    { rotate: 1, scale: 1.02, x: 0.5, y: -0.5 },
+    { rotate: -1, scale: 0.98, x: -0.5, y: 0 },
+    { rotate: 2, scale: 1.01, x: 0, y: 0.5 },
   ];
 
   const t = transforms[frame];
 
   return (
     <div 
-      className="inline-block"
       style={{
         transform: `rotate(${t.rotate}deg) scale(${t.scale}) translate(${t.x}px, ${t.y}px)`,
         width: size,
@@ -52,25 +93,23 @@ function ThinkingLogo({ size = 32 }: { size?: number }) {
       }}
     >
       <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-        <circle 
-          cx="14" 
-          cy="22" 
-          r="10" 
+        {/* Left ring - different sketchy path each frame */}
+        <path
+          d={leftRingPaths[frame]}
           stroke="#78716c"
-          strokeWidth="2.5"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           fill="none"
         />
-        <circle 
-          cx="26" 
-          cy="22" 
-          r="10" 
+        {/* Right ring - different sketchy path each frame */}
+        <path
+          d={rightRingPaths[frame]}
           stroke="#78716c"
-          strokeWidth="2.5"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           fill="none"
-        />
-        <path 
-          d="M20 8 C18.5 6, 16 7, 16 9.5 C16 12, 20 15, 20 15 C20 15, 24 12, 24 9.5 C24 7, 21.5 6, 20 8Z" 
-          fill="#a8a29e"
         />
       </svg>
     </div>
@@ -196,14 +235,19 @@ export default function ChatPage() {
     <div className="min-h-screen flex flex-col bg-canvas">
       {/* Header */}
       <header className="border-b border-stone-200 bg-white/80 backdrop-blur-sm p-4">
-        <Logo size="md" href="/" />
+        <div className="flex items-center gap-2.5">
+          <SketchyLogo size={36} />
+          <span className="font-serif tracking-[0.15em] uppercase text-warm-700 text-lg">
+            Aisle
+          </span>
+        </div>
       </header>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
           <div className="text-center mt-16">
-            <LogoIcon size="lg" className="mx-auto mb-4" />
+            <SketchyLogo size={48} className="mx-auto mb-4" />
             <p className="text-stone-500">
               Send a message to start planning your wedding
             </p>
