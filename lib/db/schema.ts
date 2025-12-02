@@ -35,6 +35,9 @@ export const tenants = pgTable(
     aiMessagesUsed: integer("ai_messages_used").notNull().default(0),
     aiMessagesResetAt: timestamp("ai_messages_reset_at", { withTimezone: true }), // For monthly resets if needed
     
+    // User's custom name for their AI planner
+    plannerName: text("planner_name").default("Planner"),
+    
     // Legacy: for existing "complete" one-time purchases
     hasLegacyAccess: boolean("has_legacy_access").default(false).notNull(),
     

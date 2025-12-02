@@ -23,9 +23,10 @@ interface ConciergeChatProps {
   isOpen: boolean;
   onClose: () => void;
   coupleNames?: string;
+  plannerName?: string;
 }
 
-export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatProps) {
+export function ConciergeChat({ isOpen, onClose, coupleNames, plannerName = "Planner" }: ConciergeChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -93,7 +94,7 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
       const res = await fetch("/api/concierge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMessage }),
+        body: JSON.stringify({ message: userMessage, plannerName }),
       });
 
       const data = await res.json();
@@ -184,8 +185,8 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="font-serif text-lg text-warm-800">Hera</h2>
-              <p className="text-xs text-warm-500">Your wedding concierge</p>
+              <h2 className="font-serif text-lg text-warm-800">{plannerName}</h2>
+              <p className="text-xs text-warm-500">Your wedding planner</p>
             </div>
           </div>
           <div className="flex items-center gap-1">
@@ -231,7 +232,7 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
                 You've used your free messages
               </h3>
               <p className="text-warm-500 text-sm leading-relaxed mb-6">
-                Upgrade to Aisle to get unlimited access to Hera, 
+                Upgrade to Aisle to get unlimited access to {plannerName}, 
                 plus all premium planning templates.
               </p>
               <Link href="/choose-plan" onClick={onClose}>
@@ -241,7 +242,7 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
                 </Button>
               </Link>
               <p className="text-xs text-warm-400 mt-4">
-                Starting at $12/month
+                Starting at $20/month
               </p>
             </div>
           ) : messages.length === 0 ? (
@@ -253,7 +254,7 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
                 Hey{coupleNames ? `, ${coupleNames.split("&")[0]?.trim()}` : ""}! 👋
               </h3>
               <p className="text-warm-500 text-sm leading-relaxed">
-                I'm your wedding concierge. I can help you discover your wedding vibe, 
+                I'm {plannerName}, your wedding planner. I can help you discover your wedding vibe, 
                 answer planning questions, and find vendors that match your style.
               </p>
               {aiAccess && !aiAccess.hasFullAccess && (
@@ -325,7 +326,7 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask me anything about your wedding..."
+                placeholder={`Message ${plannerName}...`}
                 className="flex-1 resize-none px-4 py-3 bg-warm-50 border border-warm-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-transparent text-sm max-h-32"
                 rows={1}
                 disabled={isLoading}
@@ -346,7 +347,7 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
 }
 
 // Floating trigger button
-export function ConciergeTrigger({ onClick }: { onClick: () => void }) {
+export function ConciergeTrigger({ onClick, plannerName = "Planner" }: { onClick: () => void; plannerName?: string }) {
   return (
     <button
       onClick={onClick}
@@ -356,7 +357,7 @@ export function ConciergeTrigger({ onClick }: { onClick: () => void }) {
         <Sparkles className="w-5 h-5" />
         <span className="absolute -top-1 -right-1 w-2 h-2 bg-rose-400 rounded-full animate-pulse" />
       </div>
-      <span className="font-medium">Ask Hera</span>
+      <span className="font-medium">Ask {plannerName}</span>
     </button>
   );
 }

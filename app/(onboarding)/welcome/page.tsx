@@ -10,39 +10,54 @@ interface Message {
   content: string;
 }
 
+const SUGGESTED_NAMES = ["Opal", "Fern", "Willa", "June", "Pearl", "Hazel"];
+
 export default function WelcomePage() {
   const router = useRouter();
+  const [step, setStep] = useState<"naming" | "chat">("naming");
+  const [plannerName, setPlannerName] = useState("");
+  const [nameInput, setNameInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showContinue, setShowContinue] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
-  // Initial greeting from Hera
+  // Focus name input on mount
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setMessages([
-        {
-          role: "assistant",
-          content: "Hey! I'm Hera. I'm here to help you plan your wedding.\n\nTell me a little about what you're envisioning — or just say hi 👋",
-        },
-      ]);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
+    if (step === "naming") {
+      nameInputRef.current?.focus();
+    }
+  }, [step]);
+
+  // Initial greeting after naming
+  useEffect(() => {
+    if (step === "chat" && messages.length === 0) {
+      const timer = setTimeout(() => {
+        setMessages([
+          {
+            role: "assistant",
+            content: `Hey! I'm ${plannerName}. I'm here to help you plan your wedding.\n\nTell me a little about what you're envisioning — or just say hi 👋`,
+          },
+        ]);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [step, plannerName, messages.length]);
 
   // Scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Focus input
+  // Focus chat input
   useEffect(() => {
-    if (messages.length > 0) {
+    if (step === "chat" && messages.length > 0) {
       inputRef.current?.focus();
     }
-  }, [messages.length]);
+  }, [step, messages.length]);
 
   // Show continue button after a few exchanges
   useEffect(() => {
@@ -51,6 +66,20 @@ export default function WelcomePage() {
       setShowContinue(true);
     }
   }, [messages]);
+
+  const handleNameSubmit = async (name: string) => {
+    const finalName = name.trim() || "Planner";
+    setPlannerName(finalName);
+    
+    // Save the planner name
+    await fetch("/api/settings/profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plannerName: finalName }),
+    });
+    
+    setStep("chat");
+  };
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -68,6 +97,7 @@ export default function WelcomePage() {
         body: JSON.stringify({ 
           message: userMessage,
           isOnboarding: true,
+          plannerName,
         }),
       });
 
@@ -93,8 +123,14 @@ export default function WelcomePage() {
     }
   };
 
+  const handleNameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleNameSubmit(nameInput);
+    }
+  };
+
   const handleContinue = async () => {
-    // Mark onboarding as complete
     await fetch("/api/settings/profile", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -103,6 +139,58 @@ export default function WelcomePage() {
     router.push("/");
   };
 
+  // Naming step
+  if (step === "naming") {
+    return (
+      <main className="min-h-screen bg-warm-50 flex flex-col items-center justify-center px-6">
+        <div className="max-w-md w-full text-center">
+          <Logo size="lg" href={undefined} />
+          
+          <div className="mt-12 mb-8">
+            <h1 className="text-2xl font-serif text-warm-800 mb-3">
+              Name your planner
+            </h1>
+            <p className="text-warm-500 text-sm">
+              Give your wedding planner a name — or pick one of ours
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <input
+              ref={nameInputRef}
+              type="text"
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              onKeyDown={handleNameKeyDown}
+              placeholder="Type a name..."
+              className="w-full px-4 py-3 bg-white border border-warm-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-warm-300 focus:border-transparent text-center text-lg"
+            />
+            
+            <div className="flex flex-wrap justify-center gap-2">
+              {SUGGESTED_NAMES.map((name) => (
+                <button
+                  key={name}
+                  onClick={() => handleNameSubmit(name)}
+                  className="px-4 py-2 bg-white border border-warm-200 rounded-full text-sm text-warm-600 hover:bg-warm-100 hover:border-warm-300 transition-colors"
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => handleNameSubmit(nameInput)}
+              className="w-full mt-6 py-3 bg-warm-800 hover:bg-warm-900 text-white rounded-xl transition-colors"
+            >
+              {nameInput.trim() ? `Name them ${nameInput.trim()}` : "Skip for now"}
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Chat step
   return (
     <main className="min-h-screen bg-warm-50 flex flex-col">
       {/* Header */}
@@ -164,7 +252,7 @@ export default function WelcomePage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Message Hera..."
+              placeholder={`Message ${plannerName}...`}
               className="flex-1 resize-none px-4 py-3 bg-warm-50 border border-warm-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-warm-300 focus:border-transparent text-[15px] max-h-32"
               rows={1}
               disabled={isLoading}
@@ -178,7 +266,7 @@ export default function WelcomePage() {
             </button>
           </div>
           <p className="text-xs text-warm-400 text-center mt-3">
-            Hera learns about your wedding to give you better suggestions
+            {plannerName} learns about your wedding to give you better suggestions
           </p>
         </div>
       </div>

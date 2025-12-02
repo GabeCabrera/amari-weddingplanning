@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { displayName, weddingDate, onboardingComplete } = body;
+    const { displayName, weddingDate, onboardingComplete, plannerName } = body;
 
     const updateData: Record<string, unknown> = {
       updatedAt: new Date(),
@@ -30,6 +30,10 @@ export async function POST(request: NextRequest) {
 
     if (onboardingComplete !== undefined) {
       updateData.onboardingComplete = onboardingComplete;
+    }
+
+    if (plannerName !== undefined) {
+      updateData.plannerName = plannerName;
     }
 
     await db
