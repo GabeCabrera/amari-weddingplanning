@@ -11,9 +11,13 @@ import { eq, and } from "drizzle-orm";
  * π-ID: 3.14159.7
  */
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-});
+function getAnthropicClient() {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new Error("ANTHROPIC_API_KEY environment variable is not set");
+  }
+  return new Anthropic({ apiKey });
+}
 
 interface Message {
   role: "user" | "assistant";
@@ -207,6 +211,7 @@ export async function POST(request: NextRequest) {
 
     console.log("Onboarding: Calling Anthropic with", messagesToSend.length, "messages");
 
+    const anthropic = getAnthropicClient();
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 500,
