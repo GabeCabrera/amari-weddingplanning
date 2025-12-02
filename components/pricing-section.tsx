@@ -74,7 +74,7 @@ export function PricingSection() {
                 "Budget tracker",
                 "Guest list management",
                 "Day-of schedule",
-                "10 Hera assistant messages",
+                "10 messages with Hera",
                 "Access from any device",
               ].map((feature) => (
                 <div key={feature} className="flex items-center gap-3">
@@ -127,7 +127,7 @@ export function PricingSection() {
               {[
                 "Everything in Free",
                 "All 10+ planning templates",
-                "Unlimited Hera assistant",
+                "Unlimited Hera access",
                 "Seating chart builder",
                 "Vendor tracking & contracts",
                 "Export to PDF",
