@@ -110,8 +110,8 @@ function SubscriptionSuccessContent() {
           Welcome to Aisle
         </h1>
         <p className="text-warm-600 mb-8 leading-relaxed">
-          Your subscription is active! You now have unlimited access to Hera, 
-          your AI wedding concierge, and all premium planning templates.
+          Your subscription is active! You now have unlimited access to your AI wedding planner 
+          and all premium planning templates.
         </p>
 
         {/* Features unlocked */}
@@ -123,7 +123,7 @@ function SubscriptionSuccessContent() {
           <div className="space-y-3 text-sm">
             <div className="flex items-center gap-3">
               <Check className="w-4 h-4 text-green-500" />
-              <span className="text-warm-700">Unlimited conversations with Hera</span>
+              <span className="text-warm-700">Unlimited AI planner conversations</span>
             </div>
             <div className="flex items-center gap-3">
               <Check className="w-4 h-4 text-green-500" />

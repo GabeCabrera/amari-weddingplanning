@@ -42,7 +42,7 @@ export function PricingSection() {
                 "Budget tracker",
                 "Guest list",
                 "Day-of schedule",
-                "10 messages with Hera",
+                "10 AI planner messages",
               ].map((feature) => (
                 <div key={feature} className="flex items-start gap-3">
                   <Check className="w-4 h-4 text-warm-400 mt-0.5 flex-shrink-0" />
@@ -81,7 +81,7 @@ export function PricingSection() {
               <p className="text-sm text-warm-500 mb-2">Everything in Free, plus:</p>
               {[
                 "All 10+ planning templates",
-                "Unlimited Hera",
+                "Unlimited AI planner",
                 "Seating chart builder",
                 "Vendor tracking",
                 "Wedding party management",
@@ -120,7 +120,7 @@ export function PricingSection() {
                 "Manage multiple couples",
                 "Client portal for each wedding",
                 "Custom intake questionnaires",
-                "Hera learns your style",
+                "AI learns your style",
                 "Vendor relationship tools",
                 "Analytics across weddings",
                 "Priority support",

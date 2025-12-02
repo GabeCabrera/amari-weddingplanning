@@ -13,7 +13,7 @@ import * as redditPixel from "@/lib/reddit-pixel";
 
 const FREE_FEATURES = [
   "3 essential templates",
-  "10 Hera AI messages",
+  "10 AI planner messages",
   "Day-of schedule",
   "Budget tracker",
   "Guest list",
@@ -21,7 +21,7 @@ const FREE_FEATURES = [
 
 const AISLE_FEATURES = [
   "All 10+ planning templates",
-  "Unlimited Hera AI concierge",
+  "Unlimited AI planner",
   "Vibe discovery & matching",
   "Vendor contact tracking",
   "Seating chart builder",
@@ -220,7 +220,7 @@ function ChoosePlanContent() {
             Choose Your Plan
           </h1>
           <p className="text-warm-600 max-w-md mx-auto">
-            Start planning with Hera, your AI wedding concierge
+            Start planning with your AI wedding concierge
           </p>
         </div>
 
@@ -275,7 +275,7 @@ function ChoosePlanContent() {
             </div>
 
             <p className="text-warm-600 mb-6">
-              Get started with essential planning tools and try Hera.
+              Get started with essential planning tools and try your AI planner.
             </p>
 
             <div className="space-y-3 mb-8">
@@ -350,7 +350,7 @@ function ChoosePlanContent() {
             </div>
 
             <p className="text-warm-600 mb-6">
-              The full Aisle experience with unlimited Hera and all premium features.
+              The full Aisle experience with unlimited AI planning help and all premium features.
             </p>
 
             <div className="space-y-3 mb-8">
@@ -469,7 +469,7 @@ function ChoosePlanContent() {
             </div>
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
-              <span>Powered by Hera AI</span>
+              <span>Powered by AI</span>
             </div>
           </div>
         </div>
