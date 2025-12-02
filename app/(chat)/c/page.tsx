@@ -230,7 +230,7 @@ export default function ChatPage() {
                 Aisle
               </h1>
               <p className="text-stone-500 text-center max-w-md">
-                Your calm wedding planner. Tell me about your big day.
+                Your wedding planner. Tell me about your big day.
               </p>
             </div>
           )}
