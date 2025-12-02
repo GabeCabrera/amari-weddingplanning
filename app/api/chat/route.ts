@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import Anthropic from "@anthropic-ai/sdk";
-import { authOptions } from "@/lib/auth";
+import { authOptions } from "@/lib/auth/config";
 
 /**
  * Authenticated Chat API
