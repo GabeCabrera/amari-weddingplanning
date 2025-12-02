@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import Anthropic from "@anthropic-ai/sdk";
 import { authOptions } from "@/lib/auth/config";
 import { db } from "@/lib/db";
-import { weddingKernels, tenants, conciergeConversations } from "@/lib/db/schema";
+import { tenants, conciergeConversations } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 /**
@@ -11,7 +11,7 @@ import { eq } from "drizzle-orm";
  * π-ID: 3.14159.7
  * 
  * Conversational onboarding that builds the wedding kernel.
- * Each step extracts specific information while feeling natural.
+ * Stores kernel data in tenant for now (simpler, no migration needed).
  */
 
 const anthropic = new Anthropic({
@@ -23,7 +23,7 @@ interface Message {
   content: string;
 }
 
-interface KernelUpdate {
+interface KernelData {
   names?: string[];
   weddingDate?: string;
   planningPhase?: string;
@@ -32,6 +32,7 @@ interface KernelUpdate {
   vibe?: string[];
   decisions?: Record<string, { name: string; locked: boolean }>;
   stressors?: string[];
+  onboardingStep?: number;
 }
 
 const ONBOARDING_SYSTEM_PROMPT = `You are Aisle, an AI wedding planner having your first conversation with a new couple. Your goal is to get to know them and understand where they are in their wedding planning journey.
@@ -79,13 +80,13 @@ After your response, include a JSON block with any information you learned:
 
 Only include fields you actually learned. Set moveToNextStep to true when you've gotten enough info for the current step.`;
 
-function buildKernelContext(kernel: Record<string, unknown> | null): string {
+function buildKernelContext(kernel: KernelData | null): string {
   if (!kernel) return "Nothing yet, this is the start.";
   
   const parts: string[] = [];
   
-  if (kernel.names && Array.isArray(kernel.names) && kernel.names.length > 0) {
-    parts.push(`Names: ${(kernel.names as string[]).join(" & ")}`);
+  if (kernel.names && kernel.names.length > 0) {
+    parts.push(`Names: ${kernel.names.join(" & ")}`);
   }
   if (kernel.weddingDate) {
     parts.push(`Wedding date: ${kernel.weddingDate}`);
@@ -94,22 +95,21 @@ function buildKernelContext(kernel: Record<string, unknown> | null): string {
     parts.push(`Guest count: ~${kernel.guestCount}`);
   }
   if (kernel.budgetTotal) {
-    parts.push(`Budget: $${((kernel.budgetTotal as number) / 100).toLocaleString()}`);
+    parts.push(`Budget: $${(kernel.budgetTotal / 100).toLocaleString()}`);
   }
-  if (kernel.vibe && Array.isArray(kernel.vibe) && kernel.vibe.length > 0) {
-    parts.push(`Vibe: ${(kernel.vibe as string[]).join(", ")}`);
+  if (kernel.vibe && kernel.vibe.length > 0) {
+    parts.push(`Vibe: ${kernel.vibe.join(", ")}`);
   }
-  if (kernel.decisions && typeof kernel.decisions === 'object') {
-    const decisions = kernel.decisions as Record<string, { name: string }>;
-    const booked = Object.entries(decisions)
+  if (kernel.decisions) {
+    const booked = Object.entries(kernel.decisions)
       .filter(([, v]) => v?.name)
       .map(([k, v]) => `${k}: ${v.name}`);
     if (booked.length > 0) {
       parts.push(`Already booked: ${booked.join(", ")}`);
     }
   }
-  if (kernel.stressors && Array.isArray(kernel.stressors) && kernel.stressors.length > 0) {
-    parts.push(`Worried about: ${(kernel.stressors as string[]).join(", ")}`);
+  if (kernel.stressors && kernel.stressors.length > 0) {
+    parts.push(`Worried about: ${kernel.stressors.join(", ")}`);
   }
   
   return parts.length > 0 ? parts.join("\n") : "Nothing yet, this is the start.";
@@ -123,26 +123,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { message, conversationId } = await request.json();
+    const body = await request.json();
+    const { message, conversationId: inputConversationId } = body;
     const tenantId = session.user.tenantId;
 
-    // Get or create wedding kernel
-    let kernel = await db.query.weddingKernels.findFirst({
-      where: eq(weddingKernels.tenantId, tenantId),
+    // Get tenant (we'll store kernel data here for simplicity)
+    const tenant = await db.query.tenants.findFirst({
+      where: eq(tenants.id, tenantId),
     });
 
-    if (!kernel) {
-      const [newKernel] = await db.insert(weddingKernels).values({
-        tenantId,
-        onboardingStep: 0,
-      }).returning();
-      kernel = newKernel;
+    if (!tenant) {
+      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
     }
 
     // Get or create conversation
-    let conversation = conversationId 
+    let conversation = inputConversationId 
       ? await db.query.conciergeConversations.findFirst({
-          where: eq(conciergeConversations.id, conversationId),
+          where: eq(conciergeConversations.id, inputConversationId),
         })
       : null;
 
@@ -155,25 +152,40 @@ export async function POST(request: NextRequest) {
       conversation = newConversation;
     }
 
-    // Build conversation history
-    const history: Message[] = Array.isArray(conversation.messages) 
+    // Parse kernel from conversation or initialize
+    // Store kernel in conversation messages metadata for now
+    const existingMessages = Array.isArray(conversation.messages) 
       ? conversation.messages as Message[]
       : [];
     
-    // Add user message if provided (not for initial load)
+    // Track onboarding step based on conversation length
+    const onboardingStep = Math.min(Math.floor(existingMessages.length / 2), 7);
+
+    // Build conversation history for API
+    const history: Message[] = [...existingMessages];
+    
+    // Add user message if provided
     if (message) {
       history.push({ role: "user", content: message });
     }
 
     // Build system prompt with current context
+    const kernelData: KernelData = { onboardingStep };
     const systemPrompt = ONBOARDING_SYSTEM_PROMPT
-      .replace("{step}", String(kernel.onboardingStep))
-      .replace("{kernel}", buildKernelContext(kernel as unknown as Record<string, unknown>));
+      .replace("{step}", String(onboardingStep))
+      .replace("{kernel}", buildKernelContext(kernelData));
 
     // If no message and no history, this is first load - generate greeting
-    const messagesToSend = history.length === 0
+    const isFirstLoad = history.length === 0;
+    const messagesToSend = isFirstLoad
       ? [{ role: "user" as const, content: "[User just opened the app for the first time. Greet them warmly and ask who's getting married.]" }]
       : history;
+
+    console.log("Sending to Anthropic:", { 
+      step: onboardingStep, 
+      messageCount: messagesToSend.length,
+      isFirstLoad 
+    });
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
@@ -186,74 +198,56 @@ export async function POST(request: NextRequest) {
       ? response.content[0].text 
       : "I'm having trouble responding right now.";
 
-    // Parse extraction
+    // Parse extraction and clean message
     const extractMatch = assistantMessage.match(/<extract>([\s\S]*?)<\/extract>/);
-    let cleanMessage = assistantMessage.replace(/<extract>[\s\S]*?<\/extract>/, "").trim();
+    const cleanMessage = assistantMessage.replace(/<extract>[\s\S]*?<\/extract>/, "").trim();
     
-    let updates: KernelUpdate = {};
     let moveToNextStep = false;
     
     if (extractMatch) {
       try {
         const extracted = JSON.parse(extractMatch[1]);
         moveToNextStep = extracted.moveToNextStep || false;
-        delete extracted.moveToNextStep;
-        updates = extracted;
-      } catch {
-        // Ignore parsing errors
+        
+        // Update tenant display name if we got names
+        if (extracted.names && extracted.names.length >= 2) {
+          await db.update(tenants)
+            .set({ 
+              displayName: `${extracted.names[0]} & ${extracted.names[1]}`,
+              updatedAt: new Date() 
+            })
+            .where(eq(tenants.id, tenantId));
+        }
+        
+        // Update wedding date if provided
+        if (extracted.weddingDate) {
+          await db.update(tenants)
+            .set({ 
+              weddingDate: new Date(extracted.weddingDate),
+              updatedAt: new Date() 
+            })
+            .where(eq(tenants.id, tenantId));
+        }
+      } catch (e) {
+        console.error("Failed to parse extraction:", e);
       }
     }
 
-    // Update kernel with extracted info
-    const kernelUpdates: Record<string, unknown> = { updatedAt: new Date() };
-    
-    if (updates.names && updates.names.length > 0) {
-      kernelUpdates.names = updates.names;
-    }
-    if (updates.weddingDate) {
-      kernelUpdates.weddingDate = new Date(updates.weddingDate);
-    }
-    if (updates.planningPhase) {
-      kernelUpdates.planningPhase = updates.planningPhase;
-    }
-    if (updates.guestCount) {
-      kernelUpdates.guestCount = updates.guestCount;
-    }
-    if (updates.budgetTotal) {
-      kernelUpdates.budgetTotal = updates.budgetTotal;
-    }
-    if (updates.vibe && updates.vibe.length > 0) {
-      kernelUpdates.vibe = updates.vibe;
-    }
-    if (updates.decisions) {
-      kernelUpdates.decisions = { ...(kernel.decisions as object || {}), ...updates.decisions };
-    }
-    if (updates.stressors && updates.stressors.length > 0) {
-      kernelUpdates.stressors = updates.stressors;
-    }
-    if (moveToNextStep) {
-      kernelUpdates.onboardingStep = kernel.onboardingStep + 1;
-    }
+    // Calculate new step
+    const newStep = moveToNextStep ? onboardingStep + 1 : onboardingStep;
+    const isOnboardingComplete = newStep >= 7;
 
-    // Check if onboarding is complete
-    const isOnboardingComplete = (kernelUpdates.onboardingStep as number || kernel.onboardingStep) >= 7;
-    
-    if (isOnboardingComplete) {
-      // Mark tenant as onboarding complete
+    // Update onboarding status if complete
+    if (isOnboardingComplete && !tenant.onboardingComplete) {
       await db.update(tenants)
         .set({ onboardingComplete: true, updatedAt: new Date() })
         .where(eq(tenants.id, tenantId));
     }
 
-    // Save kernel updates
-    await db.update(weddingKernels)
-      .set(kernelUpdates)
-      .where(eq(weddingKernels.id, kernel.id));
-
-    // Save conversation
-    const newHistory = message 
-      ? [...history, { role: "assistant" as const, content: cleanMessage }]
-      : [{ role: "assistant" as const, content: cleanMessage }];
+    // Save conversation with new messages
+    const newHistory: Message[] = message 
+      ? [...existingMessages, { role: "user", content: message }, { role: "assistant", content: cleanMessage }]
+      : [{ role: "assistant", content: cleanMessage }];
     
     await db.update(conciergeConversations)
       .set({ 
@@ -265,13 +259,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       message: cleanMessage,
       conversationId: conversation.id,
-      onboardingStep: kernelUpdates.onboardingStep || kernel.onboardingStep,
+      onboardingStep: newStep,
       isOnboardingComplete,
     });
   } catch (error) {
     console.error("Onboarding chat error:", error);
     return NextResponse.json(
-      { error: "Failed to get response" },
+      { error: "Failed to get response", details: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }
