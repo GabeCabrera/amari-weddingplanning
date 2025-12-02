@@ -4,28 +4,36 @@
 @tailwind components;
 @tailwind utilities;
 
+/**
+ * Aisle Global Styles
+ * π-ID: 3.14159.4
+ * 
+ * Muted, warm, easy on the eyes.
+ */
+
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 10%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
-    --primary: 30 15% 65%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 30 10% 96%;
-    --secondary-foreground: 0 0% 10%;
-    --muted: 30 10% 96%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 30 15% 65%;
-    --accent-foreground: 0 0% 10%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 30 10% 90%;
-    --input: 30 10% 90%;
-    --ring: 30 15% 65%;
-    --radius: 0.5rem;
+    /* Updated to use warm canvas colors */
+    --background: 35 25% 97%;      /* canvas #F8F6F3 */
+    --foreground: 30 10% 22%;      /* ink #3D3833 */
+    --card: 40 33% 99%;            /* canvas-soft #FDFCFA */
+    --card-foreground: 30 10% 22%;
+    --popover: 40 33% 99%;
+    --popover-foreground: 30 10% 22%;
+    --primary: 12 25% 60%;         /* rose-500 */
+    --primary-foreground: 40 33% 99%;
+    --secondary: 35 20% 94%;       /* stone-100 */
+    --secondary-foreground: 30 10% 22%;
+    --muted: 35 20% 94%;
+    --muted-foreground: 25 5% 40%; /* ink-soft */
+    --accent: 100 15% 55%;         /* sage-500 */
+    --accent-foreground: 30 10% 22%;
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 40 33% 99%;
+    --border: 35 15% 88%;          /* stone-200 */
+    --input: 35 15% 88%;
+    --ring: 35 15% 75%;            /* stone-400 */
+    --radius: 16px;
   }
 }
 
@@ -33,13 +41,56 @@
   * {
     @apply border-border;
   }
+  
+  html {
+    /* Prevent harsh white flash on load */
+    background-color: #F8F6F3;
+  }
+  
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-canvas text-ink font-sans antialiased;
     font-weight: 300;
+    letter-spacing: 0.01em;
   }
+  
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif;
+    @apply font-serif font-light;
+    letter-spacing: 0.02em;
   }
+  
+  /* Smooth text rendering */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Custom scrollbar - softer */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-stone-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-stone-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-stone-400;
+}
+
+/* Focus styles - softer ring */
+*:focus-visible {
+  @apply outline-none ring-2 ring-stone-400/50 ring-offset-2 ring-offset-canvas;
+}
+
+/* Selection color */
+::selection {
+  @apply bg-rose-200/60 text-ink;
 }
 
 /* Typewriter cursor animation */
@@ -48,45 +99,22 @@
   @apply animate-cursor-blink ml-0.5;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-warm-100;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-warm-300 rounded-full;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-warm-400;
-}
-
-/* Focus styles */
-*:focus-visible {
-  @apply outline-none ring-2 ring-warm-400 ring-offset-2;
-}
-
-/* FullCalendar Custom Styles */
+/* FullCalendar Custom Styles - updated for new palette */
 .fc {
-  --fc-border-color: theme('colors.warm.200');
-  --fc-button-bg-color: theme('colors.warm.100');
-  --fc-button-border-color: theme('colors.warm.300');
-  --fc-button-text-color: theme('colors.warm.700');
-  --fc-button-hover-bg-color: theme('colors.warm.200');
-  --fc-button-hover-border-color: theme('colors.warm.400');
-  --fc-button-active-bg-color: theme('colors.warm.800');
-  --fc-button-active-border-color: theme('colors.warm.800');
-  --fc-today-bg-color: theme('colors.blue.50');
-  --fc-event-bg-color: theme('colors.blue.500');
-  --fc-event-border-color: theme('colors.blue.500');
-  --fc-page-bg-color: white;
-  --fc-neutral-bg-color: theme('colors.warm.50');
-  --fc-list-event-hover-bg-color: theme('colors.warm.100');
+  --fc-border-color: theme('colors.stone.200');
+  --fc-button-bg-color: theme('colors.stone.100');
+  --fc-button-border-color: theme('colors.stone.300');
+  --fc-button-text-color: theme('colors.ink.DEFAULT');
+  --fc-button-hover-bg-color: theme('colors.stone.200');
+  --fc-button-hover-border-color: theme('colors.stone.400');
+  --fc-button-active-bg-color: theme('colors.ink.DEFAULT');
+  --fc-button-active-border-color: theme('colors.ink.DEFAULT');
+  --fc-today-bg-color: theme('colors.rose.100');
+  --fc-event-bg-color: theme('colors.rose.400');
+  --fc-event-border-color: theme('colors.rose.400');
+  --fc-page-bg-color: theme('colors.canvas.soft');
+  --fc-neutral-bg-color: theme('colors.canvas.DEFAULT');
+  --fc-list-event-hover-bg-color: theme('colors.stone.100');
   font-family: inherit;
 }
 
@@ -94,14 +122,14 @@
   font-family: theme('fontFamily.serif');
   font-weight: 300;
   font-size: 1.5rem;
-  color: theme('colors.warm.800');
+  color: theme('colors.ink.DEFAULT');
 }
 
 .fc .fc-button {
   font-weight: 400;
   font-size: 0.875rem;
   padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
+  border-radius: 12px;
   text-transform: capitalize;
 }
 
@@ -111,19 +139,19 @@
 
 .fc .fc-button-primary:not(:disabled).fc-button-active,
 .fc .fc-button-primary:not(:disabled):active {
-  background-color: theme('colors.warm.800');
-  border-color: theme('colors.warm.800');
-  color: white;
+  background-color: theme('colors.ink.DEFAULT');
+  border-color: theme('colors.ink.DEFAULT');
+  color: theme('colors.ink.inverse');
 }
 
 .fc .fc-daygrid-day-number {
   font-size: 0.875rem;
-  color: theme('colors.warm.600');
+  color: theme('colors.ink.soft');
   padding: 0.5rem;
 }
 
 .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
-  background-color: theme('colors.blue.500');
+  background-color: theme('colors.rose.400');
   color: white;
   border-radius: 50%;
   width: 1.75rem;
@@ -138,12 +166,12 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: theme('colors.warm.500');
+  color: theme('colors.ink.faint');
   padding: 0.75rem 0;
 }
 
 .fc .fc-event {
-  border-radius: 0.25rem;
+  border-radius: 8px;
   font-size: 0.75rem;
   padding: 0.125rem 0.375rem;
   cursor: pointer;
@@ -160,29 +188,29 @@
 
 .fc .fc-timegrid-slot-label-cushion {
   font-size: 0.75rem;
-  color: theme('colors.warm.500');
+  color: theme('colors.ink.faint');
 }
 
 .fc .fc-list-event:hover td {
-  background-color: theme('colors.warm.100');
+  background-color: theme('colors.stone.100');
 }
 
 .fc .fc-list-day-cushion {
-  background-color: theme('colors.warm.100');
+  background-color: theme('colors.stone.100');
   font-weight: 500;
 }
 
 .fc .fc-list-event-time {
-  color: theme('colors.warm.500');
+  color: theme('colors.ink.faint');
 }
 
 .fc .fc-list-empty {
-  background-color: theme('colors.warm.50');
+  background-color: theme('colors.canvas.DEFAULT');
 }
 
 /* Wedding day event special styling */
 .fc .wedding-day-event {
-  background: linear-gradient(135deg, theme('colors.pink.500'), theme('colors.rose.500')) !important;
+  background: linear-gradient(135deg, theme('colors.rose.400'), theme('colors.rose.500')) !important;
   border: none !important;
   font-weight: 500;
 }
@@ -201,5 +229,20 @@
   .fc .fc-button {
     padding: 0.375rem 0.75rem;
     font-size: 0.75rem;
+  }
+}
+
+/* Utility classes for the design system */
+@layer utilities {
+  .rounded-organic {
+    border-radius: 24px 20px 28px 16px;
+  }
+  
+  .rounded-soft {
+    border-radius: 16px 20px 16px 12px;
+  }
+  
+  .rounded-pebble {
+    border-radius: 40px 32px 36px 28px;
   }
 }

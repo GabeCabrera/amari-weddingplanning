@@ -4,26 +4,45 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Send } from "lucide-react";
 
-function ScribblyLogo({ className = "w-12 h-12" }: { className?: string }) {
+/**
+ * Aisle Landing Page
+ * π-ID: 3.14159.4.5
+ * 
+ * A muted, warm chat interface with soft corners and subtle asymmetry.
+ */
+
+function AisleLogo({ className = "w-12 h-12" }: { className?: string }) {
   return (
     <svg viewBox="0 0 48 48" fill="none" className={className}>
-      {/* Left circle - slightly wobbly */}
-      <path
-        d="M17 34c-6.5-0.5-11-5.5-10.5-12s5.5-11.5 12-11c6.5 0.5 11 5.8 10.5 12.2s-5.5 11.3-12 10.8"
+      {/* Two intersecting circles, slightly off-center, hand-drawn feel */}
+      {/* Left circle */}
+      <circle
+        cx="18"
+        cy="24"
+        r="12"
         stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
+        strokeWidth="1.5"
         fill="none"
-        className="text-warm-600"
+        className="text-clay-500"
+        strokeLinecap="round"
       />
-      {/* Right circle - slightly wobbly */}
-      <path
-        d="M31 34c6.5-0.3 11.2-5.3 10.8-11.8s-5.3-11.7-11.8-11.2c-6.5 0.5-11.2 5.6-10.8 12.1s5.3 11.2 11.8 10.9"
+      {/* Right circle - offset slightly */}
+      <circle
+        cx="30"
+        cy="24"
+        r="12"
         stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
+        strokeWidth="1.5"
         fill="none"
-        className="text-warm-600"
+        className="text-rose-400"
+        strokeLinecap="round"
+      />
+      {/* Intersection highlight */}
+      <path
+        d="M24 14.5c2.5 2.5 4 5.8 4 9.5s-1.5 7-4 9.5c-2.5-2.5-4-5.8-4-9.5s1.5-7 4-9.5z"
+        fill="currentColor"
+        className="text-stone-200"
+        opacity="0.6"
       />
     </svg>
   );
@@ -94,7 +113,7 @@ export function LandingPage() {
       } else {
         setMessages((prev) => [...prev, { role: "assistant", content: data.message }]);
       }
-    } catch (error) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: "Something went wrong. Try again?" },
@@ -107,23 +126,23 @@ export function LandingPage() {
   const hasStarted = messages.length > 0;
 
   return (
-    <main className="min-h-screen flex flex-col bg-warm-50">
+    <main className="min-h-screen flex flex-col bg-canvas">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-2">
-          <ScribblyLogo className="w-8 h-8" />
-          <span className="text-warm-700 font-medium">Aisle</span>
+      <header className="flex items-center justify-between px-6 py-5">
+        <div className="flex items-center gap-3">
+          <AisleLogo className="w-9 h-9" />
+          <span className="text-ink font-medium tracking-wide">Aisle</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-5">
           <Link
             href="/login"
-            className="text-sm text-warm-600 hover:text-warm-800 transition-colors"
+            className="text-sm text-ink-soft hover:text-ink transition-colors"
           >
             Sign in
           </Link>
           <Link
             href="/register"
-            className="text-sm px-4 py-2 bg-warm-800 text-white rounded-full hover:bg-warm-900 transition-colors"
+            className="text-sm px-5 py-2.5 bg-ink text-ink-inverse rounded-full hover:bg-ink/90 transition-colors"
           >
             Get started
           </Link>
@@ -133,34 +152,36 @@ export function LandingPage() {
       {/* Chat Area */}
       <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto px-6">
         {!hasStarted ? (
-          /* Empty State */
+          /* Empty State - centered, breathing */
           <div className="flex-1 flex flex-col items-center justify-center pb-32">
-            <ScribblyLogo className="w-16 h-16 mb-8 text-warm-400" />
-            <h1 className="text-2xl text-warm-800 text-center mb-2">
+            <div className="animate-breathe">
+              <AisleLogo className="w-20 h-20 mb-10" />
+            </div>
+            <h1 className="text-2xl text-ink text-center mb-3 font-light tracking-wide">
               Hi there. What are your names?
             </h1>
-            <p className="text-warm-500 text-center text-sm mb-8">
+            <p className="text-ink-soft text-center text-sm">
               I'm Aisle. I'm here to help you plan your wedding.
             </p>
           </div>
         ) : (
           /* Messages */
-          <div className="flex-1 overflow-y-auto py-8 space-y-6">
+          <div className="flex-1 overflow-y-auto py-10 space-y-8">
             {messages.map((message, i) => (
               <div
                 key={i}
                 className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 {message.role === "assistant" && (
-                  <div className="w-8 h-8 mr-3 flex-shrink-0">
-                    <ScribblyLogo className="w-8 h-8 text-warm-400" />
+                  <div className="w-9 h-9 mr-4 flex-shrink-0 mt-1">
+                    <AisleLogo className="w-9 h-9" />
                   </div>
                 )}
                 <div
                   className={`max-w-[80%] ${
                     message.role === "user"
-                      ? "bg-warm-800 text-white px-4 py-3 rounded-2xl rounded-br-sm"
-                      : "text-warm-800"
+                      ? "bg-ink text-ink-inverse px-5 py-3.5 rounded-[20px_20px_6px_20px]"
+                      : "text-ink"
                   }`}
                 >
                   <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
@@ -170,27 +191,27 @@ export function LandingPage() {
 
             {isTyping && (
               <div className="flex items-start">
-                <div className="w-8 h-8 mr-3 flex-shrink-0">
-                  <ScribblyLogo className="w-8 h-8 text-warm-400" />
+                <div className="w-9 h-9 mr-4 flex-shrink-0">
+                  <AisleLogo className="w-9 h-9" />
                 </div>
-                <div className="flex gap-1 py-2">
-                  <span className="w-2 h-2 bg-warm-300 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="w-2 h-2 bg-warm-300 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="w-2 h-2 bg-warm-300 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                <div className="flex gap-1.5 py-3">
+                  <span className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                 </div>
               </div>
             )}
             <div ref={messagesEndRef} />
 
-            {/* Sign up prompt after chatting for a bit */}
+            {/* Sign up prompt */}
             {hasIntroduced && messages.length >= 6 && (
-              <div className="text-center py-4">
-                <p className="text-sm text-warm-500 mb-3">
+              <div className="text-center py-6">
+                <p className="text-sm text-ink-soft mb-4">
                   Save this conversation and access your planning tools
                 </p>
                 <Link
                   href="/register"
-                  className="inline-flex items-center gap-2 px-6 py-2 bg-warm-800 text-white text-sm rounded-full hover:bg-warm-900 transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-ink text-ink-inverse text-sm rounded-full hover:bg-ink/90 transition-colors"
                 >
                   Create free account
                 </Link>
@@ -200,32 +221,30 @@ export function LandingPage() {
         )}
 
         {/* Input */}
-        <div className="py-4">
-          <div className="flex items-end gap-3">
-            <div className="flex-1 relative">
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                placeholder={!hasStarted ? "e.g. Sarah & Mike" : "Message..."}
-                className="w-full resize-none px-4 py-3 bg-white border border-warm-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-warm-300 focus:border-transparent text-sm max-h-32 pr-12"
-                rows={1}
-                disabled={isTyping}
-              />
-              <button
-                onClick={handleSend}
-                disabled={!input.trim() || isTyping}
-                className="absolute right-2 bottom-2 h-8 w-8 flex items-center justify-center bg-warm-800 hover:bg-warm-900 disabled:bg-warm-200 text-white rounded-lg transition-colors"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </div>
+        <div className="py-5">
+          <div className="relative">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder={!hasStarted ? "e.g. Sarah & Mike" : "Message..."}
+              className="w-full resize-none pl-5 pr-14 py-4 bg-canvas-soft border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-stone-300 focus:border-transparent text-sm text-ink placeholder:text-ink-faint max-h-32 shadow-soft"
+              rows={1}
+              disabled={isTyping}
+            />
+            <button
+              onClick={handleSend}
+              disabled={!input.trim() || isTyping}
+              className="absolute right-3 bottom-3 h-9 w-9 flex items-center justify-center bg-ink hover:bg-ink/90 disabled:bg-stone-300 text-ink-inverse rounded-xl transition-colors"
+            >
+              <Send className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
