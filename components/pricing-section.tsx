@@ -1,17 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { Check } from "lucide-react";
 
 export function PricingSection() {
-  const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
-  
-  const prices = {
-    aisle: { monthly: 12, yearly: 99 },
-    planner: { monthly: 120, yearly: 999 },
-  };
-
   return (
     <section className="py-24 px-6 bg-white" id="pricing">
       <div className="max-w-5xl mx-auto">
@@ -22,32 +14,6 @@ export function PricingSection() {
           <p className="text-lg text-warm-500">
             Free to start. Upgrade when you're ready.
           </p>
-        </div>
-
-        {/* Billing Toggle */}
-        <div className="flex justify-center mb-12">
-          <div className="inline-flex items-center p-1 bg-warm-100 rounded-full">
-            <button
-              onClick={() => setBilling("monthly")}
-              className={`px-5 py-2 rounded-full text-sm transition-all ${
-                billing === "monthly"
-                  ? "bg-white text-warm-800 shadow-sm"
-                  : "text-warm-500"
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setBilling("yearly")}
-              className={`px-5 py-2 rounded-full text-sm transition-all ${
-                billing === "yearly"
-                  ? "bg-white text-warm-800 shadow-sm"
-                  : "text-warm-500"
-              }`}
-            >
-              Yearly
-            </button>
-          </div>
         </div>
 
         {/* Plans */}
@@ -100,17 +66,8 @@ export function PricingSection() {
             </div>
             
             <div className="mb-6">
-              <span className="text-4xl font-light text-warm-800">
-                ${billing === "monthly" ? prices.aisle.monthly : prices.aisle.yearly}
-              </span>
-              <span className="text-warm-500 ml-1">
-                /{billing === "monthly" ? "mo" : "yr"}
-              </span>
-              {billing === "yearly" && (
-                <p className="text-sm text-warm-400 mt-1">
-                  ${Math.round(prices.aisle.yearly / 12)}/mo billed yearly
-                </p>
-              )}
+              <span className="text-4xl font-light text-warm-800">$20</span>
+              <span className="text-warm-500 ml-1">/mo</span>
             </div>
 
             <Link
@@ -146,17 +103,8 @@ export function PricingSection() {
             </div>
             
             <div className="mb-6">
-              <span className="text-4xl font-light text-warm-800">
-                ${billing === "monthly" ? prices.planner.monthly : prices.planner.yearly}
-              </span>
-              <span className="text-warm-500 ml-1">
-                /{billing === "monthly" ? "mo" : "yr"}
-              </span>
-              {billing === "yearly" && (
-                <p className="text-sm text-warm-400 mt-1">
-                  ${Math.round(prices.planner.yearly / 12)}/mo billed yearly
-                </p>
-              )}
+              <span className="text-4xl font-light text-warm-800">$100</span>
+              <span className="text-warm-500 ml-1">/mo</span>
             </div>
 
             <Link
