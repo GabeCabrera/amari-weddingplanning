@@ -142,7 +142,7 @@ export default function AdminSidebar({ userEmail }: AdminSidebarProps) {
               </Link>
               
               {/* Sub-items */}
-              {hasSubItems && isActive && (
+              {item.subItems && item.subItems.length > 0 && isActive && (
                 <div className="ml-8 mt-1 space-y-1">
                   {item.subItems.map((subItem) => {
                     const isSubActive = pathname === subItem.href;
