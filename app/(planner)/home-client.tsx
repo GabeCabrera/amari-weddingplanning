@@ -6,7 +6,7 @@ import { signOut } from "next-auth/react";
 import { Logo } from "@/components/logo";
 import { ConciergeChat, ConciergeTrigger } from "@/components/concierge-chat";
 import { 
-  Settings, BookOpen, LogOut, Menu, Calendar, Users, DollarSign, ArrowRight
+  BookOpen, Menu, Users, DollarSign, ArrowRight
 } from "lucide-react";
 
 interface WeddingStats {
@@ -14,6 +14,7 @@ interface WeddingStats {
   isToday: boolean;
   coupleNames: string | null;
   weddingDate: string | null;
+  plannerName: string | null;
   guestStats: {
     total: number;
     confirmed: number;
@@ -28,6 +29,7 @@ interface WeddingStats {
 
 interface HomeClientProps {
   displayName: string;
+  plannerName: string;
   hasStartedPlanning: boolean;
 }
 
@@ -40,7 +42,7 @@ function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-export function HomeClient({ displayName, hasStartedPlanning }: HomeClientProps) {
+export function HomeClient({ displayName, plannerName, hasStartedPlanning }: HomeClientProps) {
   const [stats, setStats] = useState<WeddingStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -171,7 +173,7 @@ export function HomeClient({ displayName, hasStartedPlanning }: HomeClientProps)
                     <span className="text-2xl">💬</span>
                   </div>
                   <div>
-                    <h3 className="font-medium text-warm-800">Chat with Hera</h3>
+                    <h3 className="font-medium text-warm-800">Chat with {plannerName}</h3>
                     <p className="text-sm text-warm-500">Ask anything about your wedding</p>
                   </div>
                 </div>
@@ -225,7 +227,7 @@ export function HomeClient({ displayName, hasStartedPlanning }: HomeClientProps)
                   onClick={() => setConciergeOpen(true)}
                   className="text-warm-700 hover:text-warm-900 underline underline-offset-4"
                 >
-                  Just ask Hera
+                  Just ask {plannerName}
                 </button>
               </div>
             )}
@@ -233,14 +235,15 @@ export function HomeClient({ displayName, hasStartedPlanning }: HomeClientProps)
         )}
       </div>
 
-      {/* Hera Chat */}
+      {/* Chat */}
       <ConciergeChat
         isOpen={conciergeOpen}
         onClose={() => setConciergeOpen(false)}
         coupleNames={displayName}
+        plannerName={plannerName}
       />
       {!conciergeOpen && (
-        <ConciergeTrigger onClick={() => setConciergeOpen(true)} />
+        <ConciergeTrigger onClick={() => setConciergeOpen(true)} plannerName={plannerName} />
       )}
     </main>
   );

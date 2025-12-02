@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { authOptions } from "@/lib/auth/config";
 import { getTenantById, getPlannerByTenantId, getPagesByPlannerId } from "@/lib/db/queries";
 import { HomeClient } from "./home-client";
@@ -21,7 +20,7 @@ export default async function HomePage() {
     redirect("/login");
   }
 
-  // If onboarding not complete, redirect to welcome (Hera conversation)
+  // If onboarding not complete, redirect to welcome
   if (!tenant.onboardingComplete) {
     redirect("/welcome");
   }
@@ -34,6 +33,7 @@ export default async function HomePage() {
   return (
     <HomeClient
       displayName={tenant.displayName}
+      plannerName={tenant.plannerName || "Planner"}
       hasStartedPlanning={hasStartedPlanning}
     />
   );
