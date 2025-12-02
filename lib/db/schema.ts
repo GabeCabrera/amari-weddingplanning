@@ -561,8 +561,15 @@ export const weddingKernels = pgTable("wedding_kernels", {
     .unique()
     .references(() => tenants.id, { onDelete: "cascade" }),
   
-  // Identity
+  // Identity - who they are
   names: jsonb("names").notNull().default([]), // ["Sarah", "Mike"]
+  location: text("location"), // "Draper, Utah"
+  occupations: jsonb("occupations").notNull().default([]), // ["Aerial PM", "L&D Nurse"]
+  
+  // Their story
+  howTheyMet: text("how_they_met"), // "On Tinder"
+  howLongTogether: text("how_long_together"), // "A little over a year"
+  engagementStory: text("engagement_story"), // "Proposed on July 4th before fireworks"
   
   // Timeline
   weddingDate: timestamp("wedding_date", { withTimezone: true }),
@@ -582,8 +589,8 @@ export const weddingKernels = pgTable("wedding_kernels", {
   // Stress points
   stressors: jsonb("stressors").notNull().default([]), // ["seating", "family_drama", "budget"]
   
-  // Decisions made
-  decisions: jsonb("decisions").notNull().default({}), // { venue: { name, locked }, photographer: { name, locked } }
+  // Decisions made - venue, vendors, etc.
+  decisions: jsonb("decisions").notNull().default({}), // { venue: { name, status, locked }, photographer: { name, locked } }
   
   // Conversation patterns
   tone: text("tone").default("excited"), // excited, anxious, overwhelmed, calm, frustrated

@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import Anthropic from "@anthropic-ai/sdk";
 import { authOptions } from "@/lib/auth/config";
 import { db } from "@/lib/db";
-import { tenants, conciergeConversations } from "@/lib/db/schema";
+import { tenants, conciergeConversations, weddingKernels } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 
 /**
@@ -24,15 +24,33 @@ interface Message {
   content: string;
 }
 
-interface KernelData {
+interface WeddingKernelData {
+  // People
   names?: string[];
+  location?: string;
+  occupations?: string[];
+  
+  // Their story
+  howTheyMet?: string;
+  howLongTogether?: string;
+  engagementStory?: string;
+  
+  // Wedding basics
   weddingDate?: string;
-  planningPhase?: string;
   guestCount?: number;
   budgetTotal?: number;
   vibe?: string[];
-  decisions?: Record<string, { name: string; locked: boolean }>;
-  stressors?: string[];
+  
+  // Planning state
+  venueStatus?: string;
+  venueInfo?: string;
+  vendorsBooked?: string[];
+  
+  // Concerns & priorities
+  biggestConcern?: string;
+  priorities?: string[];
+  
+  // Meta
   onboardingStep?: number;
 }
 
@@ -84,32 +102,59 @@ STYLE RULES (these are strict):
 - Be warm but not saccharine. No "I'm SO excited for you!!!"
 
 EXTRACTION:
-After your response, include a JSON block with any information you learned:
+After your response, include a JSON block with any NEW information you learned in THIS message.
+Only include fields that the user just told you. Don't repeat things you already knew.
+
 <extract>
 {
   "names": ["Name1", "Name2"] or null,
   "location": "City, State" or null,
+  "occupations": ["Job1", "Job2"] or null,
   "howTheyMet": "brief summary" or null,
+  "howLongTogether": "duration" or null,
   "engagementStory": "brief summary" or null,
   "weddingDate": "YYYY-MM-DD" or null,
   "guestCount": number or null,
+  "budgetTotal": number_in_cents or null,
   "vibe": ["keyword", "keyword"] or null,
   "venueStatus": "none|looking|booked" or null,
+  "venueInfo": "venue name or details" or null,
+  "vendorsBooked": ["photographer", "caterer"] or null,
   "biggestConcern": "what's stressing them" or null,
-  "moveToNextStep": true or false
+  "priorities": ["photography", "food"] or null
 }
 </extract>
 
-Only include fields you actually learned in this message. Don't make things up.`;
+Only include fields you JUST learned. If they didn't mention something, don't include it.`;
 
-function buildKernelContext(kernel: KernelData | null): string {
-  if (!kernel) return "Nothing yet, this is the start.";
+function buildKernelContext(kernel: WeddingKernelData | null): string {
+  if (!kernel) return "Nothing yet, this is the start of the conversation.";
   
   const parts: string[] = [];
   
+  // People
   if (kernel.names && kernel.names.length > 0) {
     parts.push(`Names: ${kernel.names.join(" & ")}`);
   }
+  if (kernel.location) {
+    parts.push(`Location: ${kernel.location}`);
+  }
+  if (kernel.occupations && kernel.occupations.length > 0) {
+    parts.push(`Jobs: ${kernel.occupations.join(", ")}`);
+  }
+  
+  // Story
+  if (kernel.howTheyMet) {
+    parts.push(`How they met: ${kernel.howTheyMet}`);
+  }
+  if (kernel.howLongTogether) {
+    parts.push(`Together: ${kernel.howLongTogether}`);
+  }
+  if (kernel.engagementStory) {
+    parts.push(`Engagement: ${kernel.engagementStory}`);
+  }
+  
+  // Wedding basics
   if (kernel.weddingDate) {
     parts.push(`Wedding date: ${kernel.weddingDate}`);
   }
@@ -122,19 +167,27 @@ function buildKernelContext(kernel: KernelData | null): string {
   if (kernel.vibe && kernel.vibe.length > 0) {
     parts.push(`Vibe: ${kernel.vibe.join(", ")}`);
   }
-  if (kernel.decisions) {
-    const booked = Object.entries(kernel.decisions)
-      .filter(([, v]) => v?.name)
-      .map(([k, v]) => `${k}: ${v.name}`);
-    if (booked.length > 0) {
-      parts.push(`Already booked: ${booked.join(", ")}`);
-    }
+  
+  // Planning state
+  if (kernel.venueStatus) {
+    const venueText = kernel.venueInfo 
+      ? `Venue: ${kernel.venueStatus} (${kernel.venueInfo})`
+      : `Venue: ${kernel.venueStatus}`;
+    parts.push(venueText);
   }
-  if (kernel.stressors && kernel.stressors.length > 0) {
-    parts.push(`Worried about: ${kernel.stressors.join(", ")}`);
+  if (kernel.vendorsBooked && kernel.vendorsBooked.length > 0) {
+    parts.push(`Vendors booked: ${kernel.vendorsBooked.join(", ")}`);
   }
   
-  return parts.length > 0 ? parts.join("\n") : "Nothing yet, this is the start.";
+  // Concerns
+  if (kernel.biggestConcern) {
+    parts.push(`Main concern: ${kernel.biggestConcern}`);
+  }
+  if (kernel.priorities && kernel.priorities.length > 0) {
+    parts.push(`Priorities: ${kernel.priorities.join(", ")}`);
+  }
+  
+  return parts.length > 0 ? parts.join("\n") : "Nothing yet, this is the start of the conversation.";
 }
 
 export async function POST(request: NextRequest) {
@@ -172,11 +225,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
     }
 
+    // Get or create wedding kernel
+    let kernel = await db.query.weddingKernels.findFirst({
+      where: eq(weddingKernels.tenantId, tenantId),
+    });
+    
+    if (!kernel) {
+      console.log("Onboarding: Creating new wedding kernel");
+      const [newKernel] = await db.insert(weddingKernels).values({
+        tenantId,
+        names: [],
+        vibe: [],
+        priorities: [],
+        dealbreakers: [],
+        stressors: [],
+        decisions: {},
+        recentTopics: [],
+        onboardingStep: 0,
+      }).returning();
+      kernel = newKernel;
+    }
+
     // Get or create conversation
     let conversation;
     
     if (inputConversationId) {
-      // Try to find existing conversation that belongs to this tenant
       conversation = await db.query.conciergeConversations.findFirst({
         where: and(
           eq(conciergeConversations.id, inputConversationId),
@@ -187,7 +260,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (!conversation) {
-      // Create new conversation
       console.log("Onboarding: Creating new conversation");
       const [newConversation] = await db.insert(conciergeConversations).values({
         tenantId,
@@ -201,27 +273,38 @@ export async function POST(request: NextRequest) {
     // Get existing messages and validate them
     let existingMessages: Message[] = [];
     if (Array.isArray(conversation.messages)) {
-      // Filter to only valid messages with proper role and content
       existingMessages = (conversation.messages as Message[]).filter(
         (m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string"
       );
     }
     
     console.log("Onboarding: Existing messages count:", existingMessages.length);
-    
-    // Track onboarding step based on conversation length
-    const onboardingStep = Math.min(Math.floor(existingMessages.length / 2), 7);
 
     // Build conversation history for API
     const history: Message[] = [...existingMessages];
     
-    // Add user message if provided
     if (message) {
       history.push({ role: "user", content: message });
     }
 
+    // Build kernel data for context
+    const kernelData: WeddingKernelData = {
+      names: kernel.names as string[] || [],
+      location: kernel.location || undefined,
+      occupations: kernel.occupations as string[] || [],
+      howTheyMet: kernel.howTheyMet || undefined,
+      howLongTogether: kernel.howLongTogether || undefined,
+      engagementStory: kernel.engagementStory || undefined,
+      weddingDate: kernel.weddingDate?.toISOString().split('T')[0],
+      guestCount: kernel.guestCount || undefined,
+      budgetTotal: kernel.budgetTotal || undefined,
+      vibe: kernel.vibe as string[] || [],
+      biggestConcern: (kernel.stressors as string[])?.[0],
+      priorities: kernel.priorities as string[] || [],
+      onboardingStep: kernel.onboardingStep,
+    };
+
     // Build system prompt with current date
-    const kernelData: KernelData = { onboardingStep };
     const today = new Date().toLocaleDateString('en-US', { 
       weekday: 'long', 
       year: 'numeric', 
@@ -230,7 +313,6 @@ export async function POST(request: NextRequest) {
     });
     const systemPrompt = ONBOARDING_SYSTEM_PROMPT
       .replace("{today}", today)
-      .replace("{step}", String(onboardingStep))
       .replace("{kernel}", buildKernelContext(kernelData));
 
     // If no message and no history, generate greeting
@@ -240,7 +322,6 @@ export async function POST(request: NextRequest) {
       : history;
 
     console.log("Onboarding: Calling Anthropic with", messagesToSend.length, "messages");
-    console.log("Onboarding: Messages to send:", JSON.stringify(messagesToSend));
 
     let response;
     try {
@@ -266,46 +347,129 @@ export async function POST(request: NextRequest) {
     const extractMatch = assistantMessage.match(/<extract>([\s\S]*?)<\/extract>/);
     const cleanMessage = assistantMessage.replace(/<extract>[\s\S]*?<\/extract>/, "").trim();
     
-    let moveToNextStep = false;
-    
     if (extractMatch) {
       try {
         const extracted = JSON.parse(extractMatch[1]);
-        moveToNextStep = extracted.moveToNextStep || false;
+        console.log("Onboarding: Extracted data:", extracted);
         
-        // Update tenant display name if we got names
-        if (extracted.names && extracted.names.length >= 2) {
-          await db.update(tenants)
-            .set({ 
-              displayName: `${extracted.names[0]} & ${extracted.names[1]}`,
-              updatedAt: new Date() 
-            })
-            .where(eq(tenants.id, tenantId));
+        // Build kernel update object
+        const kernelUpdate: Record<string, unknown> = {
+          updatedAt: new Date(),
+        };
+        
+        // Update names
+        if (extracted.names && Array.isArray(extracted.names)) {
+          const currentNames = (kernel.names as string[]) || [];
+          const newNames = [...new Set([...currentNames, ...extracted.names])];
+          kernelUpdate.names = newNames;
+          
+          // Also update tenant display name
+          if (newNames.length >= 2) {
+            await db.update(tenants)
+              .set({ 
+                displayName: `${newNames[0]} & ${newNames[1]}`,
+                updatedAt: new Date() 
+              })
+              .where(eq(tenants.id, tenantId));
+          }
         }
         
-        // Update wedding date if provided
+        // Update location
+        if (extracted.location) {
+          kernelUpdate.location = extracted.location;
+        }
+        
+        // Update occupations
+        if (extracted.occupations && Array.isArray(extracted.occupations)) {
+          const currentOccupations = (kernel.occupations as string[]) || [];
+          kernelUpdate.occupations = [...new Set([...currentOccupations, ...extracted.occupations])];
+        }
+        
+        // Update how they met
+        if (extracted.howTheyMet) {
+          kernelUpdate.howTheyMet = extracted.howTheyMet;
+        }
+        
+        // Update how long together
+        if (extracted.howLongTogether) {
+          kernelUpdate.howLongTogether = extracted.howLongTogether;
+        }
+        
+        // Update engagement story
+        if (extracted.engagementStory) {
+          kernelUpdate.engagementStory = extracted.engagementStory;
+        }
+        
+        // Update wedding date
         if (extracted.weddingDate) {
-          await db.update(tenants)
-            .set({ 
-              weddingDate: new Date(extracted.weddingDate),
-              updatedAt: new Date() 
-            })
-            .where(eq(tenants.id, tenantId));
+          const date = new Date(extracted.weddingDate);
+          if (!isNaN(date.getTime())) {
+            kernelUpdate.weddingDate = date;
+            // Also update on tenant for easy access
+            await db.update(tenants)
+              .set({ weddingDate: date, updatedAt: new Date() })
+              .where(eq(tenants.id, tenantId));
+          }
         }
+        
+        // Update guest count
+        if (extracted.guestCount && typeof extracted.guestCount === 'number') {
+          kernelUpdate.guestCount = extracted.guestCount;
+        }
+        
+        // Update budget
+        if (extracted.budgetTotal && typeof extracted.budgetTotal === 'number') {
+          kernelUpdate.budgetTotal = extracted.budgetTotal;
+        }
+        
+        // Update vibe (merge with existing)
+        if (extracted.vibe && Array.isArray(extracted.vibe)) {
+          const currentVibe = (kernel.vibe as string[]) || [];
+          kernelUpdate.vibe = [...new Set([...currentVibe, ...extracted.vibe])];
+        }
+        
+        // Update priorities (merge with existing)
+        if (extracted.priorities && Array.isArray(extracted.priorities)) {
+          const currentPriorities = (kernel.priorities as string[]) || [];
+          kernelUpdate.priorities = [...new Set([...currentPriorities, ...extracted.priorities])];
+        }
+        
+        // Update stressors/concerns
+        if (extracted.biggestConcern) {
+          const currentStressors = (kernel.stressors as string[]) || [];
+          if (!currentStressors.includes(extracted.biggestConcern)) {
+            kernelUpdate.stressors = [...currentStressors, extracted.biggestConcern];
+          }
+        }
+        
+        // Update decisions (venue, vendors)
+        const currentDecisions = (kernel.decisions as Record<string, unknown>) || {};
+        if (extracted.venueStatus || extracted.venueInfo) {
+          currentDecisions.venue = {
+            status: extracted.venueStatus || 'none',
+            name: extracted.venueInfo || null,
+            locked: extracted.venueStatus === 'booked',
+          };
+          kernelUpdate.decisions = currentDecisions;
+        }
+        if (extracted.vendorsBooked && Array.isArray(extracted.vendorsBooked)) {
+          for (const vendor of extracted.vendorsBooked) {
+            currentDecisions[vendor] = { name: vendor, locked: true };
+          }
+          kernelUpdate.decisions = currentDecisions;
+        }
+        
+        // Save kernel updates
+        if (Object.keys(kernelUpdate).length > 1) { // More than just updatedAt
+          await db.update(weddingKernels)
+            .set(kernelUpdate)
+            .where(eq(weddingKernels.id, kernel.id));
+          console.log("Onboarding: Updated kernel with:", Object.keys(kernelUpdate));
+        }
+        
       } catch (e) {
         console.error("Onboarding: Failed to parse extraction:", e);
       }
-    }
-
-    // Calculate new step
-    const newStep = moveToNextStep ? onboardingStep + 1 : onboardingStep;
-    const isOnboardingComplete = newStep >= 7;
-
-    // Update onboarding status if complete
-    if (isOnboardingComplete && !tenant.onboardingComplete) {
-      await db.update(tenants)
-        .set({ onboardingComplete: true, updatedAt: new Date() })
-        .where(eq(tenants.id, tenantId));
     }
 
     // Save conversation with new messages
@@ -325,8 +489,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       message: cleanMessage,
       conversationId: conversation.id,
-      onboardingStep: newStep,
-      isOnboardingComplete,
     });
   } catch (error) {
     console.error("Onboarding chat error:", error);
