@@ -184,7 +184,7 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="font-serif text-lg text-warm-800">AIsle</h2>
+              <h2 className="font-serif text-lg text-warm-800">Hera</h2>
               <p className="text-xs text-warm-500">Your wedding concierge</p>
             </div>
           </div>
@@ -231,13 +231,13 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
                 You've used your free messages
               </h3>
               <p className="text-warm-500 text-sm leading-relaxed mb-6">
-                Upgrade to AIsle to get unlimited access to your wedding concierge, 
+                Upgrade to Aisle to get unlimited access to Hera, 
                 plus all premium planning templates.
               </p>
               <Link href="/choose-plan" onClick={onClose}>
                 <Button className="bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white px-8">
                   <Crown className="w-4 h-4 mr-2" />
-                  Upgrade to AIsle
+                  Upgrade to Aisle
                 </Button>
               </Link>
               <p className="text-xs text-warm-400 mt-4">
@@ -356,7 +356,7 @@ export function ConciergeTrigger({ onClick }: { onClick: () => void }) {
         <Sparkles className="w-5 h-5" />
         <span className="absolute -top-1 -right-1 w-2 h-2 bg-rose-400 rounded-full animate-pulse" />
       </div>
-      <span className="font-medium">Ask AIsle</span>
+      <span className="font-medium">Ask Hera</span>
     </button>
   );
 }
