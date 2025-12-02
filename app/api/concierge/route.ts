@@ -11,6 +11,7 @@ import {
 } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import Anthropic from "@anthropic-ai/sdk";
+import { getTenantAccess, incrementAIUsage, FREE_AI_MESSAGE_LIMIT } from "@/lib/subscription";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -229,7 +230,7 @@ async function getOrCreateConversation(tenantId: string) {
 // API HANDLERS
 // ============================================================================
 
-// GET - Fetch conversation history
+// GET - Fetch conversation history and AI access status
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -239,6 +240,7 @@ export async function GET() {
 
     const conversation = await getOrCreateConversation(session.user.tenantId);
     const context = await getWeddingContext(session.user.tenantId);
+    const access = await getTenantAccess(session.user.tenantId);
 
     return NextResponse.json({
       conversationId: conversation.id,
@@ -246,6 +248,14 @@ export async function GET() {
       context: {
         coupleNames: context?.coupleNames,
         hasVibeProfile: !!context?.vibeProfile?.aestheticStyle,
+      },
+      // AI access info
+      aiAccess: {
+        hasAccess: access?.hasAIAccess ?? false,
+        hasFullAccess: access?.hasFullAccess ?? false,
+        messagesUsed: access?.aiMessagesUsed ?? 0,
+        messagesRemaining: access?.aiMessagesRemaining ?? 0,
+        limit: FREE_AI_MESSAGE_LIMIT,
       },
     });
   } catch (error) {
@@ -271,6 +281,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Message is required" },
         { status: 400 }
+      );
+    }
+
+    // Check AI access before proceeding
+    const usageResult = await incrementAIUsage(session.user.tenantId);
+    
+    if (!usageResult.allowed) {
+      return NextResponse.json(
+        { 
+          error: "AI message limit reached",
+          limitReached: true,
+          messagesUsed: usageResult.newCount,
+          limit: FREE_AI_MESSAGE_LIMIT,
+        },
+        { status: 403 }
       );
     }
 
@@ -325,6 +350,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: assistantMessage,
       conversationId: conversation.id,
+      // Include updated usage info
+      aiAccess: {
+        messagesUsed: usageResult.newCount,
+        messagesRemaining: usageResult.remaining,
+        hasFullAccess: usageResult.remaining === "unlimited",
+      },
     });
   } catch (error) {
     console.error("Concierge error:", error);

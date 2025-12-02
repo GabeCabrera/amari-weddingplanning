@@ -20,8 +20,24 @@ export const tenants = pgTable(
     slug: text("slug").notNull().unique(), // subdomain: "sarahandgabe"
     displayName: text("display_name").notNull().default(""), // "Emma & James"
     weddingDate: timestamp("wedding_date"),
-    plan: text("plan").notNull().default("free"), // "free" | "complete"
-    stripeCustomerId: text("stripe_customer_id"), // Stripe customer ID after payment
+    
+    // Subscription plan: "free" | "monthly" | "yearly"
+    plan: text("plan").notNull().default("free"),
+    
+    // Stripe integration
+    stripeCustomerId: text("stripe_customer_id"),
+    stripeSubscriptionId: text("stripe_subscription_id"), // For active subscriptions
+    stripePriceId: text("stripe_price_id"), // Which price they're on
+    subscriptionStatus: text("subscription_status"), // "active" | "canceled" | "past_due" | "trialing" | null
+    subscriptionEndsAt: timestamp("subscription_ends_at", { withTimezone: true }), // When current period ends
+    
+    // AI usage tracking
+    aiMessagesUsed: integer("ai_messages_used").notNull().default(0),
+    aiMessagesResetAt: timestamp("ai_messages_reset_at", { withTimezone: true }), // For monthly resets if needed
+    
+    // Legacy: for existing "complete" one-time purchases
+    hasLegacyAccess: boolean("has_legacy_access").default(false).notNull(),
+    
     onboardingComplete: boolean("onboarding_complete").default(false).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),

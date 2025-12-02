@@ -1,13 +1,22 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, RotateCcw, X, Minimize2, Maximize2 } from "lucide-react";
+import { Send, Sparkles, RotateCcw, X, Minimize2, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: string;
+}
+
+interface AIAccess {
+  hasAccess: boolean;
+  hasFullAccess: boolean;
+  messagesUsed: number;
+  messagesRemaining: number | "unlimited";
+  limit: number;
 }
 
 interface ConciergeChatProps {
@@ -22,6 +31,8 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
   const [isLoading, setIsLoading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [aiAccess, setAiAccess] = useState<AIAccess | null>(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -39,10 +50,10 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
 
   // Focus input when opened
   useEffect(() => {
-    if (isOpen && !isMinimized) {
+    if (isOpen && !isMinimized && !showUpgradePrompt) {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [isOpen, isMinimized]);
+  }, [isOpen, isMinimized, showUpgradePrompt]);
 
   const loadConversation = async () => {
     try {
@@ -50,7 +61,13 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
       if (res.ok) {
         const data = await res.json();
         setMessages(data.messages || []);
+        setAiAccess(data.aiAccess || null);
         setHasLoaded(true);
+        
+        // Check if they've hit the limit
+        if (data.aiAccess && !data.aiAccess.hasAccess) {
+          setShowUpgradePrompt(true);
+        }
       }
     } catch (error) {
       console.error("Failed to load conversation:", error);
@@ -79,9 +96,17 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
         body: JSON.stringify({ message: userMessage }),
       });
 
-      if (!res.ok) throw new Error("Failed to send message");
-
       const data = await res.json();
+
+      // Check if limit was reached
+      if (res.status === 403 && data.limitReached) {
+        setShowUpgradePrompt(true);
+        // Remove the optimistic message
+        setMessages((prev) => prev.slice(0, -1));
+        return;
+      }
+
+      if (!res.ok) throw new Error("Failed to send message");
 
       // Add assistant message
       const assistantMessage: Message = {
@@ -90,6 +115,11 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, assistantMessage]);
+
+      // Update AI access info
+      if (data.aiAccess) {
+        setAiAccess((prev) => prev ? { ...prev, ...data.aiAccess } : null);
+      }
     } catch (error) {
       console.error("Failed to send message:", error);
       // Remove the optimistic message on error
@@ -159,6 +189,12 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
             </div>
           </div>
           <div className="flex items-center gap-1">
+            {/* Message counter for free users */}
+            {aiAccess && !aiAccess.hasFullAccess && aiAccess.messagesRemaining !== "unlimited" && (
+              <span className="text-xs text-warm-400 mr-2">
+                {aiAccess.messagesRemaining} left
+              </span>
+            )}
             <button
               onClick={clearConversation}
               className="p-2 hover:bg-warm-100 rounded-lg transition-colors"
@@ -185,7 +221,30 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.length === 0 ? (
+          {showUpgradePrompt ? (
+            // Upgrade prompt when limit is reached
+            <div className="h-full flex flex-col items-center justify-center text-center px-6">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-100 to-rose-100 flex items-center justify-center mb-4">
+                <Crown className="w-8 h-8 text-amber-500" />
+              </div>
+              <h3 className="text-lg font-serif text-warm-800 mb-2">
+                You've used your free messages
+              </h3>
+              <p className="text-warm-500 text-sm leading-relaxed mb-6">
+                Upgrade to AIsle to get unlimited access to your wedding concierge, 
+                plus all premium planning templates.
+              </p>
+              <Link href="/choose-plan" onClick={onClose}>
+                <Button className="bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white px-8">
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade to AIsle
+                </Button>
+              </Link>
+              <p className="text-xs text-warm-400 mt-4">
+                Starting at $12/month
+              </p>
+            </div>
+          ) : messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center px-6">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-100 to-amber-100 flex items-center justify-center mb-4">
                 <Sparkles className="w-8 h-8 text-rose-400" />
@@ -197,6 +256,11 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
                 I'm your wedding concierge. I can help you discover your wedding vibe, 
                 answer planning questions, and find vendors that match your style.
               </p>
+              {aiAccess && !aiAccess.hasFullAccess && (
+                <p className="text-xs text-warm-400 mt-2">
+                  {aiAccess.messagesRemaining} free messages remaining
+                </p>
+              )}
               <div className="mt-6 space-y-2 w-full">
                 <button
                   onClick={() => setInput("Help me figure out my wedding vibe")}
@@ -253,27 +317,29 @@ export function ConciergeChat({ isOpen, onClose, coupleNames }: ConciergeChatPro
         </div>
 
         {/* Input */}
-        <div className="p-4 border-t border-warm-100 bg-white">
-          <div className="flex items-end gap-2">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask me anything about your wedding..."
-              className="flex-1 resize-none px-4 py-3 bg-warm-50 border border-warm-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-transparent text-sm max-h-32"
-              rows={1}
-              disabled={isLoading}
-            />
-            <Button
-              onClick={sendMessage}
-              disabled={!input.trim() || isLoading}
-              className="h-11 w-11 p-0 bg-warm-700 hover:bg-warm-800 rounded-xl"
-            >
-              <Send className="w-4 h-4" />
-            </Button>
+        {!showUpgradePrompt && (
+          <div className="p-4 border-t border-warm-100 bg-white">
+            <div className="flex items-end gap-2">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask me anything about your wedding..."
+                className="flex-1 resize-none px-4 py-3 bg-warm-50 border border-warm-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-transparent text-sm max-h-32"
+                rows={1}
+                disabled={isLoading}
+              />
+              <Button
+                onClick={sendMessage}
+                disabled={!input.trim() || isLoading}
+                className="h-11 w-11 p-0 bg-warm-700 hover:bg-warm-800 rounded-xl"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
