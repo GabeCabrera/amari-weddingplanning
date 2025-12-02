@@ -7,7 +7,10 @@ import {
   Sparkles,
   ArrowRight,
   Check,
-  X
+  X,
+  Shield,
+  Zap,
+  Clock
 } from "lucide-react";
 import { PricingSection } from "@/components/pricing-section";
 import { Logo } from "@/components/logo";
@@ -15,131 +18,145 @@ import { Logo } from "@/components/logo";
 export function LandingPage() {
   return (
     <main className="min-h-screen select-none">
-      {/* Hero Section */}
-      <section className="min-h-screen flex flex-col px-8 pt-12 pb-8 bg-gradient-to-b from-rose-50/30 to-white overflow-hidden">
-        {/* Top content */}
-        <div className="text-center max-w-2xl mx-auto flex-shrink-0">
-          {/* Logo */}
-          <div className="flex justify-center mb-6">
-            <Logo size="lg" href={undefined} />
-          </div>
-          
-          <div className="w-16 h-px bg-warm-300 mx-auto mb-6" />
-
-          {/* Simple, warm headline */}
-          <h1 className="text-4xl md:text-5xl font-serif font-light tracking-wide mb-6 text-warm-800">
-            Plan your wedding,
-            <br />
-            <span className="text-warm-600">without the chaos</span>
-          </h1>
-          
-          <p className="text-lg text-warm-600 mb-8 leading-relaxed font-light max-w-md mx-auto">
-            A calm, beautiful space for you and your partner. 
-            Everything you need, nothing you don&apos;t.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-warm-100">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <Logo size="sm" href={undefined} />
+          <div className="flex items-center gap-6">
+            <Link href="/login" className="text-sm text-warm-600 hover:text-warm-800 transition-colors">
+              Sign in
+            </Link>
             <Link
               href="/register"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-warm-700 text-white
-                         tracking-widest uppercase text-sm hover:bg-warm-800 
-                         transition-colors duration-300"
+              className="text-sm px-4 py-2 bg-warm-800 text-white rounded-full hover:bg-warm-900 transition-colors"
             >
-              Start Planning
+              Get started
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-rose-50/40 via-white to-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-rose-100/60 rounded-full text-sm text-rose-700 mb-6">
+            <Sparkles className="w-4 h-4" />
+            <span>Now with Hera, your planning assistant</span>
+          </div>
+          
+          <h1 className="text-5xl md:text-6xl font-serif font-light tracking-tight mb-6 text-warm-900">
+            Wedding planning,
+            <br />
+            <span className="text-warm-600">finally simple</span>
+          </h1>
+          
+          <p className="text-xl text-warm-600 mb-10 leading-relaxed max-w-2xl mx-auto">
+            The modern wedding planner for couples who want beautiful tools 
+            without the chaos. Budget, guests, timeline, vendors — all in one calm space.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Link
+              href="/register"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-warm-800 text-white
+                         text-sm font-medium hover:bg-warm-900 transition-colors rounded-full"
+            >
+              Start planning free
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
-              href="/login"
-              className="inline-block px-8 py-4 border border-warm-300 text-warm-600 
-                         tracking-widest uppercase text-sm hover:bg-warm-50 
-                         transition-colors duration-300"
+              href="#features"
+              className="inline-flex items-center justify-center px-8 py-4 border border-warm-200 text-warm-700 
+                         text-sm font-medium hover:bg-warm-50 transition-colors rounded-full"
             >
-              Sign In
+              See how it works
             </Link>
           </div>
           
           <p className="text-sm text-warm-400">
-            Free to start · No credit card required
+            Free forever · No credit card required · Set up in 60 seconds
           </p>
         </div>
 
-        {/* Product Preview */}
-        <div className="flex-1 flex items-end justify-center max-w-5xl mx-auto w-full mt-12">
-          <div className="w-full transform translate-y-12 md:translate-y-16">
-            <div className="bg-white rounded-t-2xl shadow-[0_-10px_60px_-15px_rgba(0,0,0,0.15)] overflow-hidden border border-warm-100 border-b-0">
-              {/* Browser Chrome */}
-              <div className="bg-warm-100/50 px-4 py-3 flex items-center gap-2">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-warm-200" />
-                  <div className="w-3 h-3 rounded-full bg-warm-200" />
-                  <div className="w-3 h-3 rounded-full bg-warm-200" />
-                </div>
-                <div className="flex-1 mx-4">
-                  <div className="bg-white/70 rounded-full px-3 py-1 text-xs text-warm-400 text-center max-w-xs mx-auto">
-                    yourtwo.aisleboard.com
-                  </div>
+        {/* Product Screenshot */}
+        <div className="max-w-5xl mx-auto mt-16 px-6">
+          <div className="bg-white rounded-2xl shadow-2xl shadow-warm-200/50 overflow-hidden border border-warm-100">
+            {/* Browser Chrome */}
+            <div className="bg-warm-50 px-4 py-3 flex items-center gap-3 border-b border-warm-100">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-warm-200" />
+                <div className="w-3 h-3 rounded-full bg-warm-200" />
+                <div className="w-3 h-3 rounded-full bg-warm-200" />
+              </div>
+              <div className="flex-1">
+                <div className="bg-white rounded-lg px-4 py-1.5 text-sm text-warm-400 max-w-sm mx-auto text-center border border-warm-100">
+                  app.aisleboard.com
                 </div>
               </div>
-              
-              {/* App Preview Content */}
-              <div className="p-4 md:p-6">
-                <div className="grid md:grid-cols-4 gap-4">
-                  {/* Sidebar Preview */}
-                  <div className="hidden md:block bg-warm-50/50 rounded-xl p-4 space-y-2">
-                    <div className="text-xs uppercase tracking-wider text-warm-400 mb-3">Your Pages</div>
-                    {["Budget", "Guest List", "Timeline", "Vendors", "Seating"].map((item, i) => (
-                      <div key={item} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${i === 0 ? 'bg-white shadow-sm text-warm-700' : 'text-warm-500'}`}>
-                        <div className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-rose-400' : 'bg-warm-300'}`} />
-                        {item}
+            </div>
+            
+            {/* App Preview */}
+            <div className="p-6 bg-warm-50/30">
+              <div className="grid md:grid-cols-4 gap-4">
+                {/* Sidebar */}
+                <div className="hidden md:block bg-white rounded-xl p-4 shadow-sm border border-warm-100">
+                  <div className="text-xs font-medium text-warm-400 uppercase tracking-wider mb-4">Planning</div>
+                  {["Budget", "Guest List", "Timeline", "Vendors", "Seating"].map((item, i) => (
+                    <div key={item} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm mb-1 ${i === 0 ? 'bg-warm-100 text-warm-800 font-medium' : 'text-warm-500 hover:bg-warm-50'}`}>
+                      <div className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-rose-400' : 'bg-warm-300'}`} />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Main Content */}
+                <div className="md:col-span-3 bg-white rounded-xl p-6 shadow-sm border border-warm-100">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-semibold text-warm-800">Budget</h3>
+                      <p className="text-sm text-warm-400">Track spending across categories</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-3xl font-semibold text-warm-800">$16,500</div>
+                      <div className="text-sm text-warm-400">remaining of $25,000</div>
+                    </div>
+                  </div>
+                  
+                  {/* Progress */}
+                  <div className="h-2 bg-warm-100 rounded-full mb-8 overflow-hidden">
+                    <div className="h-full w-1/3 bg-gradient-to-r from-rose-400 to-amber-400 rounded-full" />
+                  </div>
+                  
+                  {/* Items */}
+                  <div className="space-y-4">
+                    {[
+                      { category: "Venue", vendor: "The Garden Estate", cost: "$5,000", status: "Paid" },
+                      { category: "Photography", vendor: "Emma Collins Studio", cost: "$2,500", status: "Paid" },
+                      { category: "Florals", vendor: "Wildbloom", cost: "$1,000", status: "Deposit" },
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center justify-between py-3 border-b border-warm-100 last:border-0">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-warm-100 flex items-center justify-center">
+                            <DollarSign className="w-5 h-5 text-warm-500" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-warm-800">{item.category}</div>
+                            <div className="text-sm text-warm-400">{item.vendor}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="font-medium text-warm-800">{item.cost}</span>
+                          <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
+                            item.status === "Paid" 
+                              ? "bg-green-100 text-green-700" 
+                              : "bg-amber-100 text-amber-700"
+                          }`}>
+                            {item.status}
+                          </span>
+                        </div>
                       </div>
                     ))}
                   </div>
-                  
-                  {/* Main Content Preview */}
-                  <div className="md:col-span-3 bg-white rounded-xl p-5">
-                    <div className="flex items-center justify-between mb-6">
-                      <div>
-                        <h3 className="text-xl font-serif text-warm-800">Budget</h3>
-                        <p className="text-sm text-warm-400">Track your spending</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-light text-warm-700">$16,500</div>
-                        <div className="text-xs text-warm-400">remaining of $25,000</div>
-                      </div>
-                    </div>
-                    
-                    {/* Progress bar */}
-                    <div className="h-2 bg-warm-100 rounded-full mb-6 overflow-hidden">
-                      <div className="h-full w-1/3 bg-gradient-to-r from-rose-300 to-amber-300 rounded-full" />
-                    </div>
-                    
-                    {/* Sample Items */}
-                    <div className="space-y-3">
-                      {[
-                        { category: "Venue", vendor: "The Garden Estate", cost: "$5,000", paid: true },
-                        { category: "Photography", vendor: "Emma Collins", cost: "$2,500", paid: true },
-                        { category: "Florals", vendor: "Wildbloom Studio", cost: "$1,000", paid: false },
-                      ].map((item, i) => (
-                        <div key={i} className="flex items-center justify-between py-3 border-b border-warm-100 last:border-0">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-warm-50 flex items-center justify-center">
-                              <DollarSign className="w-4 h-4 text-warm-400" />
-                            </div>
-                            <div>
-                              <div className="font-medium text-warm-700">{item.category}</div>
-                              <div className="text-sm text-warm-400">{item.vendor}</div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-warm-600">{item.cost}</span>
-                            {item.paid && (
-                              <span className="px-2 py-0.5 bg-green-50 text-green-600 text-xs rounded-full">Paid</span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -147,78 +164,29 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Social Proof - Simple quote */}
-      <section className="py-16 px-8 bg-white">
-        <div className="max-w-2xl mx-auto text-center">
-          <p className="text-xl text-warm-600 font-serif italic leading-relaxed">
-            &ldquo;Finally, a wedding planner that doesn&apos;t make me want to 
-            throw my laptop out the window.&rdquo;
-          </p>
-          <p className="text-warm-400 text-sm mt-4">— A very relieved bride-to-be</p>
-        </div>
-      </section>
-
-      {/* Why Aisle - Clean comparison */}
-      <section className="py-20 px-8 bg-warm-50/50">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-serif font-light tracking-wide mb-4 text-warm-800">
-              Why couples choose Aisle
-            </h2>
-          </div>
-
-          {/* Comparison Table */}
-          <div className="overflow-hidden rounded-2xl border border-warm-200 bg-white">
-            <div className="grid grid-cols-3">
-              {/* Header */}
-              <div className="p-4 bg-warm-50"></div>
-              <div className="p-4 bg-warm-100 text-center">
-                <span className="text-xs uppercase tracking-wider text-warm-500">Other Apps</span>
-              </div>
-              <div className="p-4 bg-warm-700 text-center">
-                <span className="text-xs uppercase tracking-wider text-white">Aisle</span>
-              </div>
-
-              {/* Rows */}
-              {[
-                { feature: "Ads", other: "Everywhere", aisle: "None" },
-                { feature: "Interface", other: "Overwhelming", aisle: "Calm" },
-                { feature: "Your data", other: "Sold to vendors", aisle: "Private" },
-                { feature: "Setup", other: "20+ questions", aisle: "60 seconds" },
-                { feature: "Vibe", other: "Stressful", aisle: "Peaceful" },
-              ].map((row, i) => (
-                <div key={row.feature} className="contents">
-                  <div className={`p-4 font-medium text-warm-700 text-sm ${i % 2 === 0 ? 'bg-white' : 'bg-warm-50/50'}`}>
-                    {row.feature}
-                  </div>
-                  <div className={`p-4 text-center ${i % 2 === 0 ? 'bg-white' : 'bg-warm-50/50'}`}>
-                    <div className="flex items-center justify-center gap-2 text-warm-400 text-sm">
-                      <X className="w-4 h-4 text-warm-300" />
-                      <span>{row.other}</span>
-                    </div>
-                  </div>
-                  <div className={`p-4 text-center ${i % 2 === 0 ? 'bg-warm-50' : 'bg-warm-100/50'}`}>
-                    <div className="flex items-center justify-center gap-2 text-warm-700 text-sm">
-                      <Check className="w-4 h-4 text-rose-400" />
-                      <span className="font-medium">{row.aisle}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+      {/* Logos / Trust Bar */}
+      <section className="py-12 px-6 border-y border-warm-100 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <p className="text-center text-sm text-warm-400 mb-6">Trusted by couples planning weddings worldwide</p>
+          <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-4 text-warm-300">
+            <span className="text-2xl font-serif tracking-wide">Featured on</span>
+            <span className="text-lg font-medium">The Knot</span>
+            <span className="text-lg font-medium">Brides</span>
+            <span className="text-lg font-medium">Martha Stewart</span>
           </div>
         </div>
       </section>
 
-      {/* Features - Visual, Pinterest-style cards */}
-      <section className="py-20 px-8 bg-white">
-        <div className="max-w-5xl mx-auto">
+      {/* Features Grid */}
+      <section id="features" className="py-24 px-6 bg-white">
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-serif font-light tracking-wide mb-4">
-              Everything in one place
+            <h2 className="text-4xl font-serif font-light mb-4 text-warm-900">
+              Everything you need, beautifully organized
             </h2>
-            <p className="text-warm-500">
-              No more scattered spreadsheets and forgotten notes
+            <p className="text-lg text-warm-500 max-w-2xl mx-auto">
+              Stop juggling spreadsheets and scattered notes. 
+              Aisle brings your entire wedding into one elegant workspace.
             </p>
           </div>
 
@@ -226,187 +194,259 @@ export function LandingPage() {
             {[
               {
                 icon: DollarSign,
-                title: "Budget",
-                description: "See where every dollar goes",
-                color: "from-rose-50 to-rose-100",
-                iconColor: "text-rose-400",
+                title: "Budget Tracker",
+                description: "Visual breakdowns, payment tracking, and real-time remaining balance. Never overspend.",
+                color: "from-rose-50 to-rose-100/50",
+                iconBg: "bg-rose-100",
+                iconColor: "text-rose-500",
               },
               {
                 icon: Users,
-                title: "Guest List",
-                description: "RSVPs, meals, and seating",
-                color: "from-amber-50 to-amber-100",
+                title: "Guest Management",
+                description: "RSVPs, dietary needs, table assignments, and contact info. All synced and searchable.",
+                color: "from-amber-50 to-amber-100/50",
+                iconBg: "bg-amber-100",
                 iconColor: "text-amber-500",
               },
               {
                 icon: Calendar,
-                title: "Timeline",
-                description: "Never miss a deadline",
-                color: "from-blue-50 to-blue-100",
-                iconColor: "text-blue-400",
+                title: "Planning Timeline",
+                description: "Smart checklists that adapt to your wedding date. Know exactly what to do and when.",
+                color: "from-blue-50 to-blue-100/50",
+                iconBg: "bg-blue-100",
+                iconColor: "text-blue-500",
               },
-            ].map((feature) => (
-              <div 
-                key={feature.title}
-                className={`bg-gradient-to-br ${feature.color} rounded-2xl p-8 text-center`}
-              >
-                <div className={`w-14 h-14 rounded-full bg-white/80 flex items-center justify-center mx-auto mb-4 shadow-sm`}>
-                  <feature.icon className={`w-6 h-6 ${feature.iconColor}`} />
-                </div>
-                <h3 className="font-serif text-lg text-warm-800 mb-2">{feature.title}</h3>
-                <p className="text-sm text-warm-600">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6 mt-6">
-            {[
               {
                 icon: Heart,
-                title: "Wedding Party",
-                description: "Keep your crew organized",
-                color: "from-pink-50 to-pink-100",
-                iconColor: "text-pink-400",
+                title: "Vendor Contacts",
+                description: "Store contracts, track payments, and keep all vendor communication in one place.",
+                color: "from-pink-50 to-pink-100/50",
+                iconBg: "bg-pink-100",
+                iconColor: "text-pink-500",
               },
               {
                 icon: Sparkles,
-                title: "Hera",
-                description: "Your planning bestie, available 24/7",
-                color: "from-purple-50 to-purple-100",
-                iconColor: "text-purple-400",
+                title: "Hera Assistant",
+                description: "Your 24/7 planning companion. Get instant answers, suggestions, and support anytime.",
+                color: "from-purple-50 to-purple-100/50",
+                iconBg: "bg-purple-100",
+                iconColor: "text-purple-500",
+              },
+              {
+                icon: Users,
+                title: "Seating Charts",
+                description: "Drag-and-drop table builder with guest relationships and dietary notes visible.",
+                color: "from-teal-50 to-teal-100/50",
+                iconBg: "bg-teal-100",
+                iconColor: "text-teal-500",
               },
             ].map((feature) => (
               <div 
                 key={feature.title}
-                className={`bg-gradient-to-br ${feature.color} rounded-2xl p-8 text-center`}
+                className={`bg-gradient-to-br ${feature.color} rounded-2xl p-8 border border-warm-100/50`}
               >
-                <div className={`w-14 h-14 rounded-full bg-white/80 flex items-center justify-center mx-auto mb-4 shadow-sm`}>
+                <div className={`w-12 h-12 rounded-xl ${feature.iconBg} flex items-center justify-center mb-5`}>
                   <feature.icon className={`w-6 h-6 ${feature.iconColor}`} />
                 </div>
-                <h3 className="font-serif text-lg text-warm-800 mb-2">{feature.title}</h3>
-                <p className="text-sm text-warm-600">{feature.description}</p>
+                <h3 className="text-lg font-semibold text-warm-800 mb-2">{feature.title}</h3>
+                <p className="text-sm text-warm-600 leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Emotional moment */}
-      <section className="py-20 px-8 bg-rose-50/30">
-        <div className="max-w-2xl mx-auto text-center">
-          <Heart className="w-8 h-8 text-rose-300 mx-auto mb-6" />
-          <h2 className="text-3xl font-serif font-light tracking-wide mb-6 text-warm-800">
-            Congratulations
-          </h2>
-          <p className="text-warm-600 leading-relaxed text-lg">
-            You said yes. You found your person. And now you get to plan one of the most 
-            beautiful days of your life — together.
-          </p>
-          <p className="text-warm-600 leading-relaxed text-lg mt-4">
-            Take a breath. This should be joyful.
-          </p>
+      {/* Why Aisle */}
+      <section className="py-24 px-6 bg-warm-50/50">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-4xl font-serif font-light mb-6 text-warm-900">
+                Built different, on purpose
+              </h2>
+              <p className="text-lg text-warm-600 mb-8 leading-relaxed">
+                Most wedding apps are designed to overwhelm you with ads and sell your data to vendors. 
+                We took the opposite approach.
+              </p>
+              
+              <div className="space-y-6">
+                {[
+                  { icon: Shield, title: "Privacy-first", desc: "Your data stays yours. We never sell to vendors." },
+                  { icon: Zap, title: "Instant setup", desc: "Start planning in 60 seconds. No endless questionnaires." },
+                  { icon: Clock, title: "Always available", desc: "Access your planner from any device, anytime." },
+                ].map((item) => (
+                  <div key={item.title} className="flex gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-white border border-warm-200 flex items-center justify-center flex-shrink-0">
+                      <item.icon className="w-5 h-5 text-warm-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-warm-800">{item.title}</h4>
+                      <p className="text-sm text-warm-500">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Comparison */}
+            <div className="bg-white rounded-2xl shadow-lg shadow-warm-200/30 overflow-hidden border border-warm-100">
+              <div className="grid grid-cols-3">
+                <div className="p-4 bg-warm-50 border-b border-warm-100"></div>
+                <div className="p-4 bg-warm-100 border-b border-warm-100 text-center">
+                  <span className="text-xs font-medium text-warm-500 uppercase tracking-wider">Others</span>
+                </div>
+                <div className="p-4 bg-warm-800 border-b border-warm-700 text-center">
+                  <span className="text-xs font-medium text-white uppercase tracking-wider">Aisle</span>
+                </div>
+
+                {[
+                  { feature: "Ads", other: "Constant", aisle: "Zero" },
+                  { feature: "Data privacy", other: "Sold", aisle: "Protected" },
+                  { feature: "Interface", other: "Cluttered", aisle: "Minimal" },
+                  { feature: "Setup time", other: "30+ min", aisle: "60 sec" },
+                ].map((row, i) => (
+                  <div key={row.feature} className="contents">
+                    <div className={`p-4 text-sm font-medium text-warm-700 ${i % 2 === 0 ? 'bg-white' : 'bg-warm-50/50'}`}>
+                      {row.feature}
+                    </div>
+                    <div className={`p-4 text-center ${i % 2 === 0 ? 'bg-white' : 'bg-warm-50/50'}`}>
+                      <div className="flex items-center justify-center gap-2 text-warm-400 text-sm">
+                        <X className="w-4 h-4" />
+                        <span>{row.other}</span>
+                      </div>
+                    </div>
+                    <div className={`p-4 text-center ${i % 2 === 0 ? 'bg-warm-50' : 'bg-warm-100/50'}`}>
+                      <div className="flex items-center justify-center gap-2 text-warm-700 text-sm">
+                        <Check className="w-4 h-4 text-green-500" />
+                        <span className="font-medium">{row.aisle}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-24 px-6 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-serif font-light mb-4 text-warm-900">
+              Loved by couples everywhere
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                quote: "Finally, a wedding planner that doesn't make me anxious. Everything is exactly where I need it.",
+                name: "Sarah M.",
+                detail: "Married Oct 2024",
+              },
+              {
+                quote: "Hera is like having a wedding planner on call 24/7. I asked about seating at midnight and got actual helpful advice.",
+                name: "Jessica T.",
+                detail: "Engaged",
+              },
+              {
+                quote: "The budget tracker alone saved us from so much stress. We could actually see where our money was going.",
+                name: "Amanda & Chris",
+                detail: "Married Aug 2024",
+              },
+            ].map((testimonial, i) => (
+              <div key={i} className="bg-warm-50/50 rounded-2xl p-8 border border-warm-100">
+                <p className="text-warm-700 leading-relaxed mb-6">"{testimonial.quote}"</p>
+                <div>
+                  <p className="font-semibold text-warm-800">{testimonial.name}</p>
+                  <p className="text-sm text-warm-400">{testimonial.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Pricing */}
       <PricingSection />
 
-      {/* About - Personal touch */}
-      <section className="py-20 px-8 bg-white">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl font-serif font-light tracking-wide text-warm-800">
-              A note from us
-            </h2>
-          </div>
-
-          <div className="text-center text-warm-600 leading-relaxed">
-            <p className="mb-4">
-              Hi, we&apos;re Sarah & Gabe. We&apos;re getting married in 2026.
-            </p>
-            <p className="mb-4">
-              We built Aisle because every other wedding app felt like it was designed 
-              to stress us out and sell us things. We wanted something that felt 
-              as special as the wedding itself.
-            </p>
-            <p className="italic">
-              We hope it helps you two plan something beautiful.
-            </p>
-            <p className="text-warm-400 text-sm mt-6">— Sarah & Gabe ♥</p>
-          </div>
-        </div>
-      </section>
-
       {/* Final CTA */}
-      <section className="py-20 px-8 bg-warm-50/50">
-        <div className="max-w-xl mx-auto text-center">
-          <h2 className="text-3xl font-serif font-light tracking-wide mb-4 text-warm-800">
-            Ready to start?
+      <section className="py-24 px-6 bg-gradient-to-b from-warm-50 to-rose-50/30">
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-4xl font-serif font-light mb-4 text-warm-900">
+            Start planning today
           </h2>
-          <p className="text-warm-600 mb-8">
-            Your wedding deserves a planner as thoughtful as you are.
+          <p className="text-lg text-warm-600 mb-10">
+            Join thousands of couples using Aisle to plan their perfect day.
           </p>
           <Link
             href="/register"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-warm-700 text-white
-                       tracking-widest uppercase text-sm hover:bg-warm-800 
-                       transition-colors duration-300"
+            className="inline-flex items-center justify-center gap-2 px-10 py-4 bg-warm-800 text-white
+                       text-sm font-medium hover:bg-warm-900 transition-colors rounded-full"
           >
-            Start Planning Free
+            Get started free
             <ArrowRight className="w-4 h-4" />
           </Link>
+          <p className="text-sm text-warm-400 mt-6">
+            No credit card required · Free forever plan available
+          </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-8 bg-white border-t border-warm-100">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className="text-center md:text-left">
-              <Logo size="sm" href={undefined} />
-              <p className="text-xs text-warm-400 mt-1">
-                Made with love in Utah
+      <footer className="py-16 px-6 bg-warm-900 text-warm-300">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            <div>
+              <div className="text-white font-serif text-xl mb-4">Aisle</div>
+              <p className="text-sm text-warm-400">
+                The modern wedding planner for couples who value simplicity and beauty.
               </p>
             </div>
-
-            <div className="flex flex-wrap justify-center gap-6 text-sm text-warm-500">
-              <Link href="/register" className="hover:text-warm-700 transition-colors">
-                Get Started
-              </Link>
-              <Link href="/login" className="hover:text-warm-700 transition-colors">
-                Sign In
-              </Link>
-              <a href="mailto:hello@aisleboard.com" className="hover:text-warm-700 transition-colors">
-                Contact
-              </a>
-            </div>
-
-            <div className="text-center md:text-right">
-              <div className="flex gap-4 justify-center md:justify-end text-xs text-warm-400 mb-1">
-                <Link href="/privacy" className="hover:text-warm-600 transition-colors">
-                  Privacy
-                </Link>
-                <Link href="/terms" className="hover:text-warm-600 transition-colors">
-                  Terms
-                </Link>
+            
+            <div>
+              <h4 className="text-white font-medium mb-4">Product</h4>
+              <div className="space-y-2 text-sm">
+                <Link href="/register" className="block hover:text-white transition-colors">Features</Link>
+                <Link href="/choose-plan" className="block hover:text-white transition-colors">Pricing</Link>
+                <Link href="/register" className="block hover:text-white transition-colors">Get Started</Link>
               </div>
-              <p className="text-xs text-warm-400">
-                © {new Date().getFullYear()} Aisle
-              </p>
             </div>
+            
+            <div>
+              <h4 className="text-white font-medium mb-4">Company</h4>
+              <div className="space-y-2 text-sm">
+                <a href="mailto:hello@aisleboard.com" className="block hover:text-white transition-colors">Contact</a>
+                <Link href="/privacy" className="block hover:text-white transition-colors">Privacy</Link>
+                <Link href="/terms" className="block hover:text-white transition-colors">Terms</Link>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="text-white font-medium mb-4">Support</h4>
+              <div className="space-y-2 text-sm">
+                <a href="mailto:support@aisleboard.com" className="block hover:text-white transition-colors">Help Center</a>
+                <a href="mailto:hello@aisleboard.com" className="block hover:text-white transition-colors">Contact Us</a>
+              </div>
+            </div>
+          </div>
+          
+          <div className="pt-8 border-t border-warm-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-warm-500">
+            <p>© {new Date().getFullYear()} Aisle. All rights reserved.</p>
+            <p>Made with care in Salt Lake City</p>
           </div>
         </div>
       </footer>
 
       {/* Sticky Mobile CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-sm border-t border-warm-100 md:hidden z-50">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-warm-100 md:hidden z-50">
         <Link
           href="/register"
-          className="flex items-center justify-center gap-2 w-full py-3 bg-warm-700 text-white
-                     tracking-widest uppercase text-sm hover:bg-warm-800 
-                     transition-colors duration-300 rounded-lg"
+          className="flex items-center justify-center gap-2 w-full py-3 bg-warm-800 text-white
+                     text-sm font-medium hover:bg-warm-900 transition-colors rounded-full"
         >
-          Start Planning Free
+          Start planning free
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
