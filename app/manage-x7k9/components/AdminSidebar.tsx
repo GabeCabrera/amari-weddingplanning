@@ -19,7 +19,20 @@ interface AdminSidebarProps {
   userEmail: string;
 }
 
-const navItems = [
+interface SubItem {
+  label: string;
+  href: string;
+}
+
+interface NavItem {
+  label: string;
+  href: string;
+  icon: React.ElementType;
+  description: string;
+  subItems?: SubItem[];
+}
+
+const navItems: NavItem[] = [
   {
     label: "Dashboard",
     href: "/manage-x7k9",
@@ -49,6 +62,10 @@ const navItems = [
     href: "/manage-x7k9/marketing",
     icon: Image,
     description: "Ad creatives & assets",
+    subItems: [
+      { label: "Ad Creatives", href: "/manage-x7k9/marketing" },
+      { label: "Media Kit", href: "/manage-x7k9/marketing/media-kit" },
+    ],
   },
   {
     label: "Discounts",
@@ -103,25 +120,49 @@ export default function AdminSidebar({ userEmail }: AdminSidebarProps) {
         {navItems.map((item) => {
           const isActive = pathname === item.href || 
             (item.href !== "/manage-x7k9" && pathname.startsWith(item.href));
+          const hasSubItems = item.subItems && item.subItems.length > 0;
           
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${
-                isActive
-                  ? "bg-warm-700 text-white"
-                  : "text-warm-300 hover:bg-warm-800 hover:text-white"
-              }`}
-            >
-              <item.icon className={`w-5 h-5 ${isActive ? "text-white" : "text-warm-400 group-hover:text-warm-200"}`} />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{item.label}</p>
-                <p className={`text-xs truncate ${isActive ? "text-warm-300" : "text-warm-500"}`}>
-                  {item.description}
-                </p>
-              </div>
-            </Link>
+            <div key={item.href}>
+              <Link
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${
+                  isActive
+                    ? "bg-warm-700 text-white"
+                    : "text-warm-300 hover:bg-warm-800 hover:text-white"
+                }`}
+              >
+                <item.icon className={`w-5 h-5 ${isActive ? "text-white" : "text-warm-400 group-hover:text-warm-200"}`} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{item.label}</p>
+                  <p className={`text-xs truncate ${isActive ? "text-warm-300" : "text-warm-500"}`}>
+                    {item.description}
+                  </p>
+                </div>
+              </Link>
+              
+              {/* Sub-items */}
+              {hasSubItems && isActive && (
+                <div className="ml-8 mt-1 space-y-1">
+                  {item.subItems.map((subItem) => {
+                    const isSubActive = pathname === subItem.href;
+                    return (
+                      <Link
+                        key={subItem.href}
+                        href={subItem.href}
+                        className={`block px-3 py-1.5 rounded text-sm transition-colors ${
+                          isSubActive
+                            ? "text-white bg-warm-600"
+                            : "text-warm-400 hover:text-white hover:bg-warm-800"
+                        }`}
+                      >
+                        {subItem.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           );
         })}
 
