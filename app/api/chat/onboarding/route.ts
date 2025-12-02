@@ -40,6 +40,8 @@ const ONBOARDING_SYSTEM_PROMPT = `You are Aisle, a wedding planner. You're havin
 
 Your goal is to get to know them as people first. The wedding planning stuff will come naturally.
 
+TODAY'S DATE: {today}
+
 WHAT YOU KNOW SO FAR:
 {kernel}
 
@@ -217,9 +219,16 @@ export async function POST(request: NextRequest) {
       history.push({ role: "user", content: message });
     }
 
-    // Build system prompt
+    // Build system prompt with current date
     const kernelData: KernelData = { onboardingStep };
+    const today = new Date().toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
     const systemPrompt = ONBOARDING_SYSTEM_PROMPT
+      .replace("{today}", today)
       .replace("{step}", String(onboardingStep))
       .replace("{kernel}", buildKernelContext(kernelData));
 
