@@ -21,6 +21,7 @@ export default function WelcomePage() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showContinue, setShowContinue] = useState(false);
+  const [hasAskedNames, setHasAskedNames] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -32,14 +33,14 @@ export default function WelcomePage() {
     }
   }, [step]);
 
-  // Initial greeting after naming
+  // Initial greeting - ask for names naturally
   useEffect(() => {
     if (step === "chat" && messages.length === 0) {
       const timer = setTimeout(() => {
         setMessages([
           {
             role: "assistant",
-            content: `Hey! I'm ${plannerName}. I'm here to help you plan your wedding.\n\nTell me a little about what you're envisioning — or just say hi 👋`,
+            content: `Hey! I'm ${plannerName} 👋\n\nI'm so excited to help you plan your wedding. First things first — what's your name, and your partner's name?`,
           },
         ]);
       }, 500);
@@ -59,13 +60,13 @@ export default function WelcomePage() {
     }
   }, [step, messages.length]);
 
-  // Show continue button after a few exchanges
+  // Show continue button after names are captured and a couple exchanges
   useEffect(() => {
     const userMessages = messages.filter((m) => m.role === "user").length;
-    if (userMessages >= 2) {
+    if (hasAskedNames && userMessages >= 2) {
       setShowContinue(true);
     }
-  }, [messages]);
+  }, [messages, hasAskedNames]);
 
   const handleNameSubmit = async (name: string) => {
     const finalName = name.trim() || "Planner";
@@ -105,6 +106,19 @@ export default function WelcomePage() {
 
       const data = await res.json();
       setMessages((prev) => [...prev, { role: "assistant", content: data.message }]);
+      
+      // Check if names were captured
+      if (data.namesExtracted) {
+        setHasAskedNames(true);
+        // Save the display name
+        if (data.displayName) {
+          await fetch("/api/settings/profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ displayName: data.displayName }),
+          });
+        }
+      }
     } catch (error) {
       console.error("Failed to send message:", error);
       setMessages((prev) => [
@@ -265,9 +279,6 @@ export default function WelcomePage() {
               <Send className="w-5 h-5" />
             </button>
           </div>
-          <p className="text-xs text-warm-400 text-center mt-3">
-            {plannerName} learns about your wedding to give you better suggestions
-          </p>
         </div>
       </div>
     </main>

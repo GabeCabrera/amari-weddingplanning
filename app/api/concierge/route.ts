@@ -18,10 +18,50 @@ const anthropic = new Anthropic({
 });
 
 // ============================================================================
-// SYSTEM PROMPT - The soul of the AI concierge
+// SYSTEM PROMPTS
 // ============================================================================
 
-function buildSystemPrompt(context: {
+function buildOnboardingSystemPrompt(plannerName: string) {
+  return `You are ${plannerName}, a warm and friendly wedding planner. You're meeting a new couple for the first time.
+
+## Your Goal
+Get to know them naturally through conversation. You want to learn:
+1. Their names (your first question should be asking their names)
+2. When they're getting married (or if they haven't set a date)
+3. What they're most excited about
+4. What feels overwhelming
+
+## Your Personality
+- Warm, genuine, excited to meet them
+- Like a friend who happens to be great at planning weddings
+- Calm and reassuring
+- Ask ONE question at a time
+- Keep responses short and conversational (2-3 sentences max)
+- Use their names once you know them
+
+## Conversation Flow
+1. First message from you asked for their names
+2. When they share names, respond warmly and naturally, then ask about their wedding date
+3. Continue getting to know them naturally
+
+## Important
+- Be genuinely interested, not robotic
+- Don't ask multiple questions at once
+- Celebrate what they share
+- If they seem stressed, acknowledge it warmly
+- Light emoji use is fine (✨ 💕) but don't overdo it
+
+## Extracting Information
+When you learn their names, include this at the END of your response on its own line:
+[NAMES: Person1 & Person2]
+
+For example if they say "I'm Sarah and my fiance is Mike", include:
+[NAMES: Sarah & Mike]
+
+Only include this tag when you first learn their names, not in subsequent messages.`;
+}
+
+function buildSystemPrompt(plannerName: string, context: {
   coupleNames: string;
   weddingDate: string | null;
   daysUntil: number | null;
@@ -38,7 +78,7 @@ function buildSystemPrompt(context: {
 }) {
   const { coupleNames, weddingDate, daysUntil, guestCount, budget, vibeProfile, bookedVendors, location } = context;
 
-  return `You are Hera, the wedding concierge at Aisle — a warm, knowledgeable, and genuinely helpful wedding planning assistant. You're like a best friend who happens to be an expert wedding planner. Your name comes from the Greek goddess of marriage, but you don't need to mention that unless someone asks.
+  return `You are ${plannerName}, the wedding planner at Aisle — a warm, knowledgeable, and genuinely helpful wedding planning assistant. You're like a best friend who happens to be an expert wedding planner.
 
 ## Your Personality
 - Warm and conversational, never robotic or formal
@@ -72,7 +112,7 @@ ${bookedVendors.length > 0 ? bookedVendors.map(v => `- ${v}`).join("\n") : "None
 
 2. **Planning Guidance** — Answer questions about timelines, etiquette, traditions, and logistics. Be practical and specific.
 
-3. **Vendor Recommendations** — When they're looking for vendors, understand what they need and (eventually) recommend options that match their vibe. For now, help them think through what to look for.
+3. **Vendor Recommendations** — When they're looking for vendors, understand what they need and help them think through what to look for.
 
 4. **Budget Advice** — Help them think through budget allocation, where to splurge vs save, and how to get the most from their budget.
 
@@ -85,7 +125,7 @@ When a conversation feels like they're exploring their style, gently ask questio
 - "If your wedding were a movie, what would it look like?"
 - "Is there a color that feels like 'your wedding'?"
 
-When they share Pinterest boards or describe inspiration, identify patterns and reflect them back: "It sounds like you're drawn to romantic, moody aesthetics with lots of texture and warm lighting. Does that resonate?"
+When they share Pinterest boards or describe inspiration, identify patterns and reflect them back.
 
 ## Important Guidelines
 - Keep responses concise unless they ask for detail. This is a chat, not an essay.
@@ -94,7 +134,6 @@ When they share Pinterest boards or describe inspiration, identify patterns and 
 - Celebrate their wins, even small ones ("You booked the venue! That's huge!")
 - Never be preachy or lecture them.
 - If you don't know something specific (like a vendor's availability), say so honestly.
-- You're based in Utah and especially knowledgeable about the Utah County / Provo / Salt Lake area wedding scene.
 
 ## Conversation Style
 - Use natural, warm language
@@ -191,7 +230,8 @@ async function getWeddingContext(tenantId: string) {
       description: vibe.description,
     } : null,
     bookedVendors,
-    location: null, // TODO: Add location to tenant or vibe profile
+    location: null,
+    plannerName: tenant.plannerName || "Planner",
   };
 }
 
@@ -226,6 +266,18 @@ async function getOrCreateConversation(tenantId: string) {
   return newConvo;
 }
 
+function extractNames(text: string): string | null {
+  const match = text.match(/\[NAMES:\s*(.+?)\]/);
+  if (match) {
+    return match[1].trim();
+  }
+  return null;
+}
+
+function stripNameTag(text: string): string {
+  return text.replace(/\n?\[NAMES:\s*.+?\]/g, "").trim();
+}
+
 // ============================================================================
 // API HANDLERS
 // ============================================================================
@@ -248,6 +300,7 @@ export async function GET() {
       context: {
         coupleNames: context?.coupleNames,
         hasVibeProfile: !!context?.vibeProfile?.aestheticStyle,
+        plannerName: context?.plannerName,
       },
       // AI access info
       aiAccess: {
@@ -275,7 +328,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { message } = await request.json();
+    const { message, isOnboarding, plannerName: providedPlannerName } = await request.json();
 
     if (!message || typeof message !== "string") {
       return NextResponse.json(
@@ -310,6 +363,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const plannerName = providedPlannerName || context.plannerName || "Planner";
+
     // Build messages for Claude
     const existingMessages = (conversation.messages as Message[]) || [];
     const claudeMessages = [
@@ -320,17 +375,34 @@ export async function POST(request: NextRequest) {
       { role: "user" as const, content: message },
     ];
 
+    // Use different system prompt for onboarding
+    const systemPrompt = isOnboarding 
+      ? buildOnboardingSystemPrompt(plannerName)
+      : buildSystemPrompt(plannerName, context);
+
     // Call Claude
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 1024,
-      system: buildSystemPrompt(context),
+      system: systemPrompt,
       messages: claudeMessages,
     });
 
-    const assistantMessage = response.content[0].type === "text" 
+    let assistantMessage = response.content[0].type === "text" 
       ? response.content[0].text 
       : "";
+
+    // Check if names were extracted
+    let namesExtracted = false;
+    let displayName: string | null = null;
+    
+    if (isOnboarding) {
+      displayName = extractNames(assistantMessage);
+      if (displayName) {
+        namesExtracted = true;
+        assistantMessage = stripNameTag(assistantMessage);
+      }
+    }
 
     // Update conversation with new messages
     const updatedMessages: Message[] = [
@@ -350,6 +422,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: assistantMessage,
       conversationId: conversation.id,
+      namesExtracted,
+      displayName,
       // Include updated usage info
       aiAccess: {
         messagesUsed: usageResult.newCount,
