@@ -41,7 +41,7 @@ export function LandingPage() {
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-rose-100/60 rounded-full text-sm text-rose-700 mb-6">
             <Sparkles className="w-4 h-4" />
-            <span>Now with Hera — like a best friend who's planned 1,000 weddings</span>
+            <span>Meet Hera — like a best friend who's planned 1,000 weddings</span>
           </div>
           
           <h1 className="text-5xl md:text-6xl font-serif font-light tracking-tight mb-6 text-warm-900">
