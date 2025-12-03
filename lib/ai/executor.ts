@@ -85,6 +85,20 @@ export async function executeToolCall(
       case "show_artifact":
         return await showArtifact(parameters, context);
 
+      // Decision tools
+      case "update_decision":
+        return await handleUpdateDecision(parameters, context);
+      case "lock_decision":
+        return await handleLockDecision(parameters, context);
+      case "skip_decision":
+        return await handleSkipDecision(parameters, context);
+      case "get_decision_status":
+        return await handleGetDecisionStatus(parameters, context);
+      case "show_checklist":
+        return await handleShowChecklist(parameters, context);
+      case "add_custom_decision":
+        return await handleAddCustomDecision(parameters, context);
+
       // Kernel tools
       case "update_wedding_details":
         return await updateWeddingDetails(parameters, context);
@@ -807,7 +821,146 @@ async function updatePreferences(
 }
 
 // ============================================================================
-// HELPER: Update kernel decisions
+// DECISION TOOLS
+// ============================================================================
+
+import {
+  getDecision,
+  getAllDecisions,
+  getDecisionsByCategory,
+  updateDecision as updateDecisionFn,
+  lockDecision as lockDecisionFn,
+  skipDecision as skipDecisionFn,
+  addCustomDecision as addCustomDecisionFn,
+  getDecisionProgress,
+  initializeDecisionsForTenant,
+  type LockReason,
+} from "./decisions";
+
+async function handleUpdateDecision(
+  params: Record<string, unknown>,
+  context: ToolContext
+): Promise<ToolResult> {
+  await initializeDecisionsForTenant(context.tenantId);
+
+  const result = await updateDecisionFn(
+    context.tenantId,
+    params.decisionName as string,
+    {
+      status: params.status as "not_started" | "researching" | "decided" | undefined,
+      choiceName: params.choiceName as string | undefined,
+      choiceAmount: params.choiceAmount ? (params.choiceAmount as number) * 100 : undefined,
+      choiceNotes: params.notes as string | undefined,
+    }
+  );
+
+  if (result.wasLocked) {
+    return { success: false, message: result.message };
+  }
+
+  return { success: result.success, message: result.message };
+}
+
+async function handleLockDecision(
+  params: Record<string, unknown>,
+  context: ToolContext
+): Promise<ToolResult> {
+  await initializeDecisionsForTenant(context.tenantId);
+
+  const result = await lockDecisionFn(
+    context.tenantId,
+    params.decisionName as string,
+    params.reason as LockReason,
+    params.details as string | undefined
+  );
+
+  return { success: result.success, message: result.message };
+}
+
+async function handleSkipDecision(
+  params: Record<string, unknown>,
+  context: ToolContext
+): Promise<ToolResult> {
+  await initializeDecisionsForTenant(context.tenantId);
+
+  const result = await skipDecisionFn(
+    context.tenantId,
+    params.decisionName as string
+  );
+
+  return { success: result.success, message: result.message };
+}
+
+async function handleGetDecisionStatus(
+  params: Record<string, unknown>,
+  context: ToolContext
+): Promise<ToolResult> {
+  await initializeDecisionsForTenant(context.tenantId);
+
+  const decision = await getDecision(
+    context.tenantId,
+    params.decisionName as string
+  );
+
+  if (!decision) {
+    return { success: false, message: `Decision "${params.decisionName}" not found` };
+  }
+
+  return {
+    success: true,
+    message: `${decision.displayName}: ${decision.status}${decision.choiceName ? ` (${decision.choiceName})` : ""}${decision.status === "locked" ? " - LOCKED" : ""}`,
+    data: {
+      name: decision.name,
+      displayName: decision.displayName,
+      status: decision.status,
+      choiceName: decision.choiceName,
+      isLocked: decision.status === "locked",
+      lockReason: decision.lockReason,
+      lockDetails: decision.lockDetails,
+    }
+  };
+}
+
+async function handleShowChecklist(
+  params: Record<string, unknown>,
+  context: ToolContext
+): Promise<ToolResult> {
+  await initializeDecisionsForTenant(context.tenantId);
+
+  const category = params.category as string | undefined;
+  const decisions = category
+    ? await getDecisionsByCategory(context.tenantId, category)
+    : await getAllDecisions(context.tenantId);
+
+  const progress = await getDecisionProgress(context.tenantId);
+
+  return {
+    success: true,
+    message: `${progress.decided} of ${progress.total} decisions made (${progress.percentComplete}% complete)`,
+    artifact: {
+      type: "checklist_full",
+      data: { progress, decisions }
+    }
+  };
+}
+
+async function handleAddCustomDecision(
+  params: Record<string, unknown>,
+  context: ToolContext
+): Promise<ToolResult> {
+  await initializeDecisionsForTenant(context.tenantId);
+
+  const result = await addCustomDecisionFn(
+    context.tenantId,
+    params.displayName as string,
+    params.category as string
+  );
+
+  return { success: result.success, message: result.message };
+}
+
+// ============================================================================
+// HELPER: Update kernel decisions (legacy)
 // ============================================================================
 
 async function updateKernelDecision(

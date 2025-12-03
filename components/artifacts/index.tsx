@@ -65,6 +65,30 @@ interface Vendor {
   depositPaid?: boolean;
 }
 
+interface Decision {
+  id: string;
+  name: string;
+  displayName: string;
+  category: string;
+  status: string;
+  isRequired: boolean;
+  isSkipped: boolean;
+  choiceName?: string;
+  choiceAmount?: number;
+  lockReason?: string;
+  lockDetails?: string;
+}
+
+interface DecisionProgress {
+  total: number;
+  locked: number;
+  decided: number;
+  researching: number;
+  notStarted: number;
+  skipped: number;
+  percentComplete: number;
+}
+
 // ============================================================================
 // MAIN ARTIFACT RENDERER
 // ============================================================================
@@ -81,6 +105,8 @@ export function Artifact({ type, data }: ArtifactProps) {
       return <Timeline data={data as { events: TimelineEvent[] }} />;
     case "checklist":
       return <Checklist data={data as { tasks: Task[] }} />;
+    case "checklist_full":
+      return <FullChecklist data={data as { progress: DecisionProgress; decisions: Decision[] }} />;
     case "vendor_list":
       return <VendorList data={data as { vendors: Vendor[] }} />;
     case "countdown":
@@ -198,6 +224,116 @@ function BudgetOverview({ data }: { data: { totalBudget: number; items: BudgetIt
           No budget items yet. Tell me about your vendors and costs!
         </div>
       )}
+    </div>
+  );
+}
+
+// ============================================================================
+// FULL CHECKLIST (Wedding Decisions)
+// ============================================================================
+
+function FullChecklist({ data }: { data: { progress: DecisionProgress; decisions: Decision[] } }) {
+  const { progress, decisions } = data;
+
+  const statusIcon = (status: string, isSkipped: boolean) => {
+    if (isSkipped) return <span className="text-stone-400">—</span>;
+    switch (status) {
+      case "locked":
+        return (
+          <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        );
+      case "decided":
+        return (
+          <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        );
+      case "researching":
+        return (
+          <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        );
+      default:
+        return <div className="w-5 h-5 rounded-full border-2 border-stone-300" />;
+    }
+  };
+
+  const categoryLabels: Record<string, string> = {
+    foundation: "Foundation",
+    venue: "Venue",
+    vendors: "Vendors",
+    attire: "Attire",
+    ceremony: "Ceremony",
+    reception: "Reception",
+    guests: "Guests & Invitations",
+    logistics: "Logistics",
+    legal: "Legal",
+    honeymoon: "Honeymoon",
+  };
+
+  // Group by category
+  const byCategory = decisions.reduce((acc, d) => {
+    if (!acc[d.category]) acc[d.category] = [];
+    acc[d.category].push(d);
+    return acc;
+  }, {} as Record<string, Decision[]>);
+
+  return (
+    <div className="bg-white rounded-xl border border-stone-200 overflow-hidden my-4">
+      <div className="bg-gradient-to-r from-rose-50 to-amber-50 px-4 py-3 border-b border-stone-200">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-medium text-stone-800">Wedding Checklist</h3>
+          <span className="text-sm text-stone-600">{progress.percentComplete}% complete</span>
+        </div>
+        <div className="h-2 bg-stone-200 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-gradient-to-r from-rose-400 to-amber-400 rounded-full"
+            style={{ width: `${progress.percentComplete}%` }}
+          />
+        </div>
+        <div className="flex gap-4 mt-2 text-xs text-stone-500">
+          <span className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-green-500" /> {progress.locked} locked
+          </span>
+          <span className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-green-300" /> {progress.decided - progress.locked} decided
+          </span>
+          <span className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-amber-400" /> {progress.researching} researching
+          </span>
+        </div>
+      </div>
+
+      <div className="divide-y divide-stone-100 max-h-96 overflow-y-auto">
+        {Object.entries(byCategory).map(([category, categoryDecisions]) => (
+          <div key={category}>
+            <div className="px-4 py-2 bg-stone-50">
+              <p className="text-xs font-medium text-stone-600 uppercase tracking-wide">
+                {categoryLabels[category] || category}
+              </p>
+            </div>
+            <div className="divide-y divide-stone-50">
+              {categoryDecisions.map(decision => (
+                <div key={decision.id} className={`px-4 py-2 flex items-center gap-3 ${decision.isSkipped ? "opacity-50" : ""}`}>
+                  {statusIcon(decision.status, decision.isSkipped)}
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm ${decision.status === "locked" ? "font-medium" : ""} ${decision.isSkipped ? "line-through text-stone-400" : "text-stone-700"}`}>
+                      {decision.displayName}
+                      {decision.isRequired && !decision.isSkipped && <span className="text-rose-500 ml-1">*</span>}
+                    </p>
+                    {decision.choiceName && <p className="text-xs text-stone-500 truncate">{decision.choiceName}</p>}
+                    {decision.status === "locked" && decision.lockDetails && <p className="text-xs text-green-600">{decision.lockDetails}</p>}
+                  </div>
+                  {decision.choiceAmount && <p className="text-sm text-stone-600">${(decision.choiceAmount / 100).toLocaleString()}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

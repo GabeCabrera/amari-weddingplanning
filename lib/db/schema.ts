@@ -89,6 +89,66 @@ export const knowledgeBase = pgTable("knowledge_base", {
 export type KnowledgeBase = typeof knowledgeBase.$inferSelect;
 export type NewKnowledgeBase = typeof knowledgeBase.$inferInsert;
 
+// ============================================================================
+// WEDDING DECISIONS - Track every major decision and its lock state
+// ============================================================================
+export const weddingDecisions = pgTable("wedding_decisions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id")
+    .notNull()
+    .references(() => tenants.id, { onDelete: "cascade" }),
+  
+  // Identity
+  name: text("name").notNull(), // "venue", "photographer", "wedding_date", etc.
+  displayName: text("display_name").notNull(), // "Wedding Venue"
+  category: text("category").notNull(), // "foundation", "venue", "vendors", "attire", etc.
+  
+  // State
+  status: text("status").notNull().default("not_started"), // not_started, researching, decided, locked
+  isRequired: boolean("is_required").default(false).notNull(),
+  isSkipped: boolean("is_skipped").default(false).notNull(), // User said "we're not doing this"
+  
+  // The actual choice
+  choiceName: text("choice_name"), // "The Grand Ballroom", "John Smith Photography"
+  choiceVendorId: uuid("choice_vendor_id"), // If linked to a vendor record
+  choiceDate: timestamp("choice_date", { withTimezone: true }), // If it's a date decision
+  choiceAmount: integer("choice_amount"), // Cost in cents if applicable
+  choiceNotes: text("choice_notes"),
+  
+  // Lock information
+  lockedAt: timestamp("locked_at", { withTimezone: true }),
+  lockReason: text("lock_reason"), // deposit_paid, contract_signed, full_payment, date_passed, user_confirmed
+  lockDetails: text("lock_details"), // "Paid $5000 deposit on 3/15"
+  
+  // Financial tracking
+  estimatedCost: integer("estimated_cost"), // in cents
+  depositAmount: integer("deposit_amount"), // in cents
+  depositPaidAt: timestamp("deposit_paid_at", { withTimezone: true }),
+  totalPaid: integer("total_paid").default(0), // in cents
+  contractSigned: boolean("contract_signed").default(false),
+  contractSignedAt: timestamp("contract_signed_at", { withTimezone: true }),
+  
+  // Timeline
+  dueBy: timestamp("due_by", { withTimezone: true }), // Recommended deadline
+  decidedAt: timestamp("decided_at", { withTimezone: true }),
+  
+  // Ordering
+  position: integer("position").default(0), // For display order
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const weddingDecisionsRelations = relations(weddingDecisions, ({ one }) => ({
+  tenant: one(tenants, {
+    fields: [weddingDecisions.tenantId],
+    references: [tenants.id],
+  }),
+}));
+
+export type WeddingDecision = typeof weddingDecisions.$inferSelect;
+export type NewWeddingDecision = typeof weddingDecisions.$inferInsert;
+
 import {
   pgTable,
   text,

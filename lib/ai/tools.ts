@@ -539,6 +539,142 @@ export const tools: ToolDefinition[] = [
       },
       required: []
     }
+  },
+
+  // ----------------------------------------
+  // DECISION TOOLS
+  // ----------------------------------------
+  {
+    name: "update_decision",
+    description: "Update a wedding decision (venue, photographer, etc). Use this when the couple makes progress on a decision - whether they're starting to research, have decided, or are locking it in. IMPORTANT: Check if something is locked before trying to change it.",
+    parameters: {
+      type: "object",
+      properties: {
+        decisionName: {
+          type: "string",
+          description: "The decision identifier",
+          enum: [
+            "wedding_date", "budget", "guest_count", "style",
+            "ceremony_venue", "reception_venue",
+            "photographer", "videographer", "caterer", "dj_band", "florist", "officiant", "cake_baker", "hair_makeup",
+            "wedding_dress", "partner_attire", "wedding_rings", "wedding_party_attire",
+            "ceremony_music", "vows", "readings",
+            "menu", "seating_chart", "first_dance_song", "reception_music",
+            "guest_list", "save_the_dates", "invitations",
+            "transportation", "accommodations", "day_of_timeline",
+            "marriage_license",
+            "honeymoon_destination", "honeymoon_bookings"
+          ]
+        },
+        status: {
+          type: "string",
+          description: "The new status",
+          enum: ["not_started", "researching", "decided"]
+        },
+        choiceName: {
+          type: "string",
+          description: "What they chose (venue name, vendor name, etc)"
+        },
+        choiceAmount: {
+          type: "number",
+          description: "Cost in dollars if applicable"
+        },
+        notes: {
+          type: "string",
+          description: "Any notes about this decision"
+        }
+      },
+      required: ["decisionName"]
+    }
+  },
+  {
+    name: "lock_decision",
+    description: "Lock a decision so it can't be changed. Use when deposit is paid, contract is signed, or user explicitly confirms. ALWAYS confirm with user before locking.",
+    parameters: {
+      type: "object",
+      properties: {
+        decisionName: {
+          type: "string",
+          description: "The decision to lock"
+        },
+        reason: {
+          type: "string",
+          description: "Why it's being locked",
+          enum: ["deposit_paid", "contract_signed", "full_payment", "user_confirmed"]
+        },
+        details: {
+          type: "string",
+          description: "Details like amount paid, date signed, etc"
+        }
+      },
+      required: ["decisionName", "reason"]
+    }
+  },
+  {
+    name: "skip_decision",
+    description: "Mark a decision as skipped (e.g., 'we're not having a videographer'). Cannot skip required decisions.",
+    parameters: {
+      type: "object",
+      properties: {
+        decisionName: {
+          type: "string",
+          description: "The decision to skip"
+        }
+      },
+      required: ["decisionName"]
+    }
+  },
+  {
+    name: "get_decision_status",
+    description: "Check the status of a specific decision, including whether it's locked.",
+    parameters: {
+      type: "object",
+      properties: {
+        decisionName: {
+          type: "string",
+          description: "The decision to check"
+        }
+      },
+      required: ["decisionName"]
+    }
+  },
+  {
+    name: "show_checklist",
+    description: "Show the wedding planning checklist with all decisions and their status.",
+    parameters: {
+      type: "object",
+      properties: {
+        category: {
+          type: "string",
+          description: "Filter by category (optional)",
+          enum: ["foundation", "venue", "vendors", "attire", "ceremony", "reception", "guests", "logistics", "legal", "honeymoon"]
+        },
+        showCompleted: {
+          type: "boolean",
+          description: "Whether to show completed/locked items (default true)"
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: "add_custom_decision",
+    description: "Add a custom decision to the checklist that isn't in the default list.",
+    parameters: {
+      type: "object",
+      properties: {
+        displayName: {
+          type: "string",
+          description: "Display name for the decision (e.g., 'After Party Venue')"
+        },
+        category: {
+          type: "string",
+          description: "Which category it belongs to",
+          enum: ["foundation", "venue", "vendors", "attire", "ceremony", "reception", "guests", "logistics", "legal", "honeymoon"]
+        }
+      },
+      required: ["displayName", "category"]
+    }
   }
 ];
 
