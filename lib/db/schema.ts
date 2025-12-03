@@ -1,3 +1,94 @@
+// ============================================================================
+// AGGREGATE INSIGHTS - Anonymized data across all users
+// ============================================================================
+export const aggregateInsights = pgTable("aggregate_insights", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  
+  // Scope
+  region: text("region"), // NULL for global, or "Utah", "California", etc.
+  season: text("season"), // NULL for all, or "spring", "summer", etc.
+  
+  // Budget insights (in cents)
+  avgTotalBudget: integer("avg_total_budget"),
+  medianTotalBudget: integer("median_total_budget"),
+  avgVenueBudget: integer("avg_venue_budget"),
+  avgPhotographyBudget: integer("avg_photography_budget"),
+  avgCateringBudget: integer("avg_catering_budget"),
+  avgFloristBudget: integer("avg_florist_budget"),
+  avgMusicBudget: integer("avg_music_budget"),
+  avgAttireBudget: integer("avg_attire_budget"),
+  
+  // Guest insights
+  avgGuestCount: integer("avg_guest_count"),
+  medianGuestCount: integer("median_guest_count"),
+  
+  // Timeline insights (in days before wedding)
+  avgVenueBookingLeadTime: integer("avg_venue_booking_lead_time"),
+  avgPhotographerBookingLeadTime: integer("avg_photographer_booking_lead_time"),
+  avgCatererBookingLeadTime: integer("avg_caterer_booking_lead_time"),
+  
+  // Vibe patterns
+  commonVibes: jsonb("common_vibes").default({}), // { "rustic": 234, "modern": 189 }
+  commonFormalities: jsonb("common_formalities").default({}), // { "semi_formal": 450 }
+  commonColorPalettes: jsonb("common_color_palettes").default([]), // [["dusty rose", "sage"], ...]
+  
+  // Stressor patterns
+  commonStressors: jsonb("common_stressors").default({}), // { "budget": 500, "seating": 340 }
+  
+  // Vendor patterns
+  popularVendorCategories: jsonb("popular_vendor_categories").default([]), // Ordered by booking frequency
+  
+  // Meta
+  sampleSize: integer("sample_size").notNull().default(0),
+  computedAt: timestamp("computed_at", { withTimezone: true }).defaultNow().notNull(),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type AggregateInsights = typeof aggregateInsights.$inferSelect;
+export type NewAggregateInsights = typeof aggregateInsights.$inferInsert;
+
+// ============================================================================
+// KNOWLEDGE BASE - Curated wedding planning knowledge
+// ============================================================================
+export const knowledgeBase = pgTable("knowledge_base", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  
+  // Categorization
+  category: text("category").notNull(), // "budget", "timeline", "etiquette", "vendors", "tips"
+  subcategory: text("subcategory"), // "photography", "venue", etc.
+  
+  // Content
+  title: text("title").notNull(),
+  content: text("content").notNull(), // The actual knowledge/advice
+  
+  // Context - when this applies
+  region: text("region"), // NULL for universal
+  season: text("season"), // NULL for all seasons
+  budgetRange: text("budget_range"), // "budget", "moderate", "luxury"
+  planningPhase: text("planning_phase"), // "early", "mid", "final"
+  
+  // Search/matching
+  tags: jsonb("tags").default([]),
+  keywords: jsonb("keywords").default([]), // For semantic matching
+  
+  // Source
+  source: text("source"), // Where this info came from
+  sourceUrl: text("source_url"),
+  
+  // Quality
+  isVerified: boolean("is_verified").default(false).notNull(),
+  useCount: integer("use_count").default(0).notNull(), // How often AI uses this
+  helpfulRating: integer("helpful_rating"), // User feedback
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type KnowledgeBase = typeof knowledgeBase.$inferSelect;
+export type NewKnowledgeBase = typeof knowledgeBase.$inferInsert;
+
 import {
   pgTable,
   text,

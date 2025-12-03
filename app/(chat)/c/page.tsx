@@ -2,14 +2,18 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useSession, signIn } from "next-auth/react";
+import { Artifact } from "@/components/artifacts";
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+  artifact?: {
+    type: string;
+    data: unknown;
+  };
 }
 
-// Thinking status messages that cycle through
 const thinkingMessages = [
   "Reading your message...",
   "Thinking about your wedding...",
@@ -18,7 +22,6 @@ const thinkingMessages = [
   "Almost ready...",
 ];
 
-// Sketchy hand-drawn ring paths (imperfect circles)
 const leftRingPaths = [
   "M 4 22 C 4 14, 8 12, 14 12 C 21 12, 24 15, 24 22 C 24 29, 20 32, 14 32 C 7 32, 4 28, 4 22",
   "M 4.5 22 C 4 13, 9 11.5, 14 12 C 20 12.5, 24.5 16, 24 22 C 23.5 29, 19 32.5, 14 32 C 8 31.5, 4.5 27, 4.5 22",
@@ -33,40 +36,22 @@ const rightRingPaths = [
   "M 16.2 22.2 C 15.8 14.5, 20 12, 26.2 12.2 C 32.5 11.8, 36.2 15.8, 35.8 22 C 36 29.2, 31.5 32, 25.8 31.8 C 19.8 32.2, 16 28.5, 16.2 22.2",
 ];
 
-// Sketchy Logo Component - static version
 function SketchyLogo({ size = 32, className = "" }: { size?: number; className?: string }) {
   return (
     <div className={className} style={{ width: size, height: size }}>
       <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-        <path
-          d={leftRingPaths[0]}
-          stroke="#78716c"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-        <path
-          d={rightRingPaths[0]}
-          stroke="#78716c"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
+        <path d={leftRingPaths[0]} stroke="#78716c" strokeWidth="2" strokeLinecap="round" fill="none" />
+        <path d={rightRingPaths[0]} stroke="#78716c" strokeWidth="2" strokeLinecap="round" fill="none" />
       </svg>
     </div>
   );
 }
 
-// Claude-style low FPS thinking logo
 function ThinkingLogo({ size = 32 }: { size?: number }) {
   const [frame, setFrame] = useState(0);
   
   useEffect(() => {
-    const interval = setInterval(() => {
-      setFrame(f => (f + 1) % 4);
-    }, 150);
+    const interval = setInterval(() => setFrame(f => (f + 1) % 4), 150);
     return () => clearInterval(interval);
   }, []);
 
@@ -76,47 +61,23 @@ function ThinkingLogo({ size = 32 }: { size?: number }) {
     { rotate: -1, scale: 0.98, x: -0.5, y: 0 },
     { rotate: 2, scale: 1.01, x: 0, y: 0.5 },
   ];
-
   const t = transforms[frame];
 
   return (
-    <div 
-      style={{
-        transform: `rotate(${t.rotate}deg) scale(${t.scale}) translate(${t.x}px, ${t.y}px)`,
-        width: size,
-        height: size,
-      }}
-    >
+    <div style={{ transform: `rotate(${t.rotate}deg) scale(${t.scale}) translate(${t.x}px, ${t.y}px)`, width: size, height: size }}>
       <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-        <path
-          d={leftRingPaths[frame]}
-          stroke="#78716c"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-        <path
-          d={rightRingPaths[frame]}
-          stroke="#78716c"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
+        <path d={leftRingPaths[frame]} stroke="#78716c" strokeWidth="2" strokeLinecap="round" fill="none" />
+        <path d={rightRingPaths[frame]} stroke="#78716c" strokeWidth="2" strokeLinecap="round" fill="none" />
       </svg>
     </div>
   );
 }
 
-// Thinking Indicator Component
 function ThinkingIndicator() {
   const [messageIndex, setMessageIndex] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setMessageIndex((prev) => (prev + 1) % thinkingMessages.length);
-    }, 2000);
+    const interval = setInterval(() => setMessageIndex(prev => (prev + 1) % thinkingMessages.length), 2000);
     return () => clearInterval(interval);
   }, []);
 
@@ -125,9 +86,7 @@ function ThinkingIndicator() {
       <div className="flex-shrink-0 mt-1">
         <ThinkingLogo size={48} />
       </div>
-      <p className="text-stone-500 text-sm pt-3">
-        {thinkingMessages[messageIndex]}
-      </p>
+      <p className="text-stone-500 text-sm pt-3">{thinkingMessages[messageIndex]}</p>
     </div>
   );
 }
@@ -149,15 +108,45 @@ export default function ChatPage() {
   }, [messages, isLoading]);
 
   useEffect(() => {
-    if (!isLoading) {
-      inputRef.current?.focus();
-    }
+    if (!isLoading) inputRef.current?.focus();
   }, [isLoading]);
+
+  // Load initial greeting on mount
+  useEffect(() => {
+    if (status === "authenticated" && messages.length === 0 && !isLoading) {
+      loadGreeting();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  const loadGreeting = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: null, conversationId: null }),
+      });
+      const data = await response.json();
+      if (response.ok && data.message) {
+        setConversationId(data.conversationId);
+        setMessages([{
+          id: Date.now().toString(),
+          role: "assistant",
+          content: data.message,
+          artifact: data.artifact,
+        }]);
+      }
+    } catch (err) {
+      console.error("Failed to load greeting:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
-    // If not logged in, sign in first
     if (status === "unauthenticated") {
       signIn("google");
       return;
@@ -167,16 +156,15 @@ export default function ChatPage() {
     setInput("");
     setError(null);
     
-    const userMsg: Message = {
+    setMessages(prev => [...prev, {
       id: Date.now().toString(),
       role: "user",
       content: userMessage,
-    };
-    setMessages(prev => [...prev, userMsg]);
+    }]);
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/chat/onboarding", {
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMessage, conversationId }),
@@ -188,17 +176,16 @@ export default function ChatPage() {
         throw new Error(data.details || data.error || "Request failed");
       }
 
-      // Store the conversation ID for future messages
       if (data.conversationId) {
         setConversationId(data.conversationId);
       }
 
-      const assistantMsg: Message = {
+      setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: "assistant",
         content: data.message,
-      };
-      setMessages(prev => [...prev, assistantMsg]);
+        artifact: data.artifact,
+      }]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -225,19 +212,14 @@ export default function ChatPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas">
-      {/* Messages area */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className="max-w-3xl mx-auto">
-          {/* Empty state - big logo centered */}
-          {!hasMessages && !isLoading && (
+          {/* Empty state */}
+          {!hasMessages && !isLoading && status === "unauthenticated" && (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
               <SketchyLogo size={80} className="mb-6" />
-              <h1 className="font-serif tracking-[0.2em] uppercase text-stone-600 text-2xl mb-2">
-                Aisle
-              </h1>
-              <p className="text-stone-500 text-center max-w-md">
-                Your wedding planner. Tell me about your big day.
-              </p>
+              <h1 className="font-serif tracking-[0.2em] uppercase text-stone-600 text-2xl mb-2">Aisle</h1>
+              <p className="text-stone-500 text-center max-w-md">Your wedding planner. Tell me about your big day.</p>
             </div>
           )}
           
@@ -247,22 +229,22 @@ export default function ChatPage() {
               {messages.map((msg) => (
                 <div key={msg.id}>
                   {msg.role === "user" ? (
-                    /* User message - soft warm bubble, right aligned */
                     <div className="flex justify-end">
                       <div className="bg-rose-100/80 text-stone-700 px-4 py-3 rounded-2xl rounded-br-md max-w-[80%] border border-rose-200/50">
                         <p className="whitespace-pre-wrap">{msg.content}</p>
                       </div>
                     </div>
                   ) : (
-                    /* Assistant message - flush with background, logo outside */
                     <div className="flex items-start gap-3">
                       <div className="flex-shrink-0 mt-1">
                         <SketchyLogo size={24} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-stone-800 whitespace-pre-wrap leading-relaxed">
-                          {msg.content}
-                        </p>
+                        <p className="text-stone-800 whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                        {/* Render artifact if present */}
+                        {msg.artifact && (
+                          <Artifact type={msg.artifact.type} data={msg.artifact.data} />
+                        )}
                       </div>
                     </div>
                   )}
@@ -271,7 +253,7 @@ export default function ChatPage() {
             </div>
           )}
           
-          {/* Thinking indicator - below messages */}
+          {/* Thinking */}
           {isLoading && (
             <div className={hasMessages ? "mt-6" : "mt-8"}>
               <ThinkingIndicator />
@@ -281,12 +263,8 @@ export default function ChatPage() {
           {/* Error */}
           {error && (
             <div className="flex items-start gap-3 mt-6">
-              <div className="flex-shrink-0 mt-1">
-                <SketchyLogo size={24} />
-              </div>
-              <p className="text-red-600 text-sm">
-                Oops! {error}
-              </p>
+              <SketchyLogo size={24} />
+              <p className="text-red-600 text-sm">Oops! {error}</p>
             </div>
           )}
           
@@ -294,7 +272,7 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Input - always at bottom */}
+      {/* Input */}
       <div className="border-t border-stone-200 bg-white/80 backdrop-blur-sm p-4">
         <div className="flex gap-3 max-w-3xl mx-auto">
           <textarea
