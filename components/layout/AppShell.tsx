@@ -137,11 +137,11 @@ export function AppShell({ children }: AppShellProps) {
             const Icon = item.icon;
             
             return (
-              <Link
+              <button
                 key={item.href}
-                href={item.href}
+                onClick={() => router.push(item.href)}
                 className={`
-                  group flex items-center gap-3 px-3 py-2.5 rounded-lg
+                  group flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-left
                   transition-colors duration-200 ease-out
                   ${isActive 
                     ? "bg-rose-100 text-rose-700 shadow-sm" 
@@ -157,7 +157,7 @@ export function AppShell({ children }: AppShellProps) {
                 {sidebarOpen && (
                   <span className="font-medium text-sm">{item.label}</span>
                 )}
-              </Link>
+              </button>
             );
           })}
         </nav>
@@ -169,11 +169,11 @@ export function AppShell({ children }: AppShellProps) {
             const Icon = item.icon;
             
             return (
-              <Link
+              <button
                 key={item.href}
-                href={item.href}
+                onClick={() => router.push(item.href)}
                 className={`
-                  group flex items-center gap-3 px-3 py-2.5 rounded-lg
+                  group flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-left
                   transition-colors duration-200 ease-out
                   ${isActive 
                     ? "bg-rose-100 text-rose-700 shadow-sm" 
@@ -189,7 +189,7 @@ export function AppShell({ children }: AppShellProps) {
                 {sidebarOpen && (
                   <span className="font-medium text-sm">{item.label}</span>
                 )}
-              </Link>
+              </button>
             );
           })}
 
