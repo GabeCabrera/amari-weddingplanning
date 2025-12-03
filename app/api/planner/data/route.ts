@@ -33,11 +33,11 @@ export async function GET() {
       where: eq(planners.tenantId, tenantId),
     });
 
-    let budgetData = { totalBudget: 0, items: [] };
-    let guestData = { guests: [] };
-    let vendorData = { vendors: [] };
-    let timelineData = { events: [] };
-    let taskData = { tasks: [] };
+    let budgetData: { totalBudget: number; items: unknown[] } = { totalBudget: 0, items: [] };
+    let guestData: { guests: unknown[] } = { guests: [] };
+    let vendorData: { vendors: unknown[] } = { vendors: [] };
+    let timelineData: { events: unknown[] } = { events: [] };
+    let taskData: { tasks: unknown[] } = { tasks: [] };
 
     if (planner) {
       const allPages = await db.query.pages.findMany({
