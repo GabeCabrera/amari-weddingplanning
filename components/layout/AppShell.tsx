@@ -144,11 +144,11 @@ function NavItem({
   sidebarOpen: boolean;
 }) {
   return (
-    <Link
+    <a
       href={item.href}
       className={`
         group flex items-center gap-3 px-3 py-2.5 rounded-lg
-        transition-all duration-200 ease-out
+        transition-all duration-200 ease-out cursor-pointer
         ${isActive 
           ? "bg-rose-100 text-rose-700 shadow-sm" 
           : "text-ink-soft hover:bg-stone-50 hover:text-ink hover:translate-x-1"
@@ -161,7 +161,7 @@ function NavItem({
       {sidebarOpen && (
         <span className="font-medium text-sm">{item.label}</span>
       )}
-    </Link>
+    </a>
   );
 }
 
