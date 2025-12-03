@@ -21,13 +21,71 @@ const thinkingMessages = [
   "Almost there...",
 ];
 
-// Animated thinking logo
-function ThinkingDots() {
+// Wobbly ring path variations for animation
+const leftRingPaths = [
+  "M 4 22 C 4 14, 8 12, 14 12 C 21 12, 24 15, 24 22 C 24 29, 20 32, 14 32 C 7 32, 4 28, 4 22",
+  "M 4.5 22 C 4 13, 9 11.5, 14 12 C 20 12.5, 24.5 16, 24 22 C 23.5 29, 19 32.5, 14 32 C 8 31.5, 4.5 27, 4.5 22",
+  "M 4 21.5 C 4.5 14, 8.5 12.5, 14 12.5 C 20.5 12, 24 15.5, 24 22.5 C 24 28.5, 20 31.5, 14 31.5 C 7.5 32, 3.5 28, 4 21.5",
+  "M 4.2 22.2 C 3.8 14.5, 8 12, 14.2 12.2 C 20.5 11.8, 24.2 15.8, 23.8 22 C 24 29.2, 19.5 32, 13.8 31.8 C 7.8 32.2, 4 28.5, 4.2 22.2",
+];
+
+const rightRingPaths = [
+  "M 16 22 C 16 14, 20 12, 26 12 C 33 12, 36 15, 36 22 C 36 29, 32 32, 26 32 C 19 32, 16 28, 16 22",
+  "M 16.5 22 C 16 13, 21 11.5, 26 12 C 32 12.5, 36.5 16, 36 22 C 35.5 29, 31 32.5, 26 32 C 20 31.5, 16.5 27, 16.5 22",
+  "M 16 21.5 C 16.5 14, 20.5 12.5, 26 12.5 C 32.5 12, 36 15.5, 36 22.5 C 36 28.5, 32 31.5, 26 31.5 C 19.5 32, 15.5 28, 16 21.5",
+  "M 16.2 22.2 C 15.8 14.5, 20 12, 26.2 12.2 C 32.5 11.8, 36.2 15.8, 35.8 22 C 36 29.2, 31.5 32, 25.8 31.8 C 19.8 32.2, 16 28.5, 16.2 22.2",
+];
+
+// Breathing, wobbly thinking logo - like Claude's orb
+function BreathingLogo({ size = 48 }: { size?: number }) {
+  const [frame, setFrame] = useState(0);
+  const [breathePhase, setBreathePhase] = useState(0);
+
+  // Wobbly animation - fast
+  useEffect(() => {
+    const interval = setInterval(() => setFrame(f => (f + 1) % 4), 120);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Breathing animation - slow, smooth
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBreathePhase(p => (p + 1) % 100);
+    }, 40);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Calculate breathing scale (1.0 to 1.15, smooth sine wave)
+  const breatheScale = 1 + 0.15 * Math.sin((breathePhase / 100) * Math.PI * 2);
+  
+  // Subtle rotation wobble
+  const wobbleRotate = Math.sin((breathePhase / 100) * Math.PI * 4) * 2;
+
   return (
-    <div className="flex items-center gap-1">
-      <div className="w-2 h-2 rounded-full bg-rose-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-      <div className="w-2 h-2 rounded-full bg-rose-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-      <div className="w-2 h-2 rounded-full bg-rose-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+    <div 
+      className="transition-transform"
+      style={{ 
+        width: size, 
+        height: size,
+        transform: `scale(${breatheScale}) rotate(${wobbleRotate}deg)`,
+      }}
+    >
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+        <path
+          d={leftRingPaths[frame]}
+          stroke="#D4A69C"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          fill="none"
+        />
+        <path
+          d={rightRingPaths[frame]}
+          stroke="#D4A69C"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          fill="none"
+        />
+      </svg>
     </div>
   );
 }
@@ -204,7 +262,7 @@ export default function ChatPage() {
   if (status === "loading") {
     return (
       <div className="h-full flex items-center justify-center">
-        <ThinkingDots />
+        <BreathingLogo size={64} />
       </div>
     );
   }
@@ -258,14 +316,13 @@ export default function ChatPage() {
             ))}
           </div>
           
-          {/* Thinking indicator */}
+          {/* Thinking indicator - breathing logo */}
           {isLoading && (
-            <div className="flex gap-3 mt-6">
-              <Avatar isUser={false} />
-              <div className="flex items-center gap-3 px-4 py-3 bg-white border border-stone-200 rounded-2xl">
-                <ThinkingDots />
-                <span className="text-sm text-ink-soft">{thinkingMessages[thinkingMessage]}</span>
-              </div>
+            <div className="flex flex-col items-center justify-center py-8">
+              <BreathingLogo size={56} />
+              <p className="text-sm text-ink-soft mt-3 animate-pulse">
+                {thinkingMessages[thinkingMessage]}
+              </p>
             </div>
           )}
           
