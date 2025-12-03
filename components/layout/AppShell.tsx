@@ -7,11 +7,7 @@ import { useSession, signOut } from "next-auth/react";
 
 /**
  * Aisle App Shell
- * 
- * The main layout wrapper providing:
- * - Collapsible sidebar navigation
- * - Header with user menu
- * - Main content area
+ * Enhanced with hover states and micro-interactions
  */
 
 // Logo with customizable color
@@ -128,6 +124,38 @@ const bottomNavItems = [
   },
 ];
 
+// Nav item component with enhanced hover
+function NavItem({ 
+  item, 
+  isActive, 
+  sidebarOpen 
+}: { 
+  item: typeof navItems[0]; 
+  isActive: boolean; 
+  sidebarOpen: boolean;
+}) {
+  return (
+    <Link
+      href={item.href}
+      className={`
+        group flex items-center gap-3 px-3 py-2.5 rounded-lg
+        transition-all duration-200 ease-out
+        ${isActive 
+          ? "bg-rose-100 text-rose-700 shadow-sm" 
+          : "text-ink-soft hover:bg-stone-50 hover:text-ink hover:translate-x-1"
+        }
+      `}
+    >
+      <span className={`transition-transform duration-200 ${isActive ? "text-rose-600" : "group-hover:scale-110"}`}>
+        {item.icon}
+      </span>
+      {sidebarOpen && (
+        <span className="font-medium text-sm">{item.label}</span>
+      )}
+    </Link>
+  );
+}
+
 interface AppShellProps {
   children: React.ReactNode;
 }
@@ -138,7 +166,6 @@ export function AppShell({ children }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  // Get user initials for avatar
   const initials = session?.user?.name
     ?.split(" ")
     .map(n => n[0])
@@ -153,16 +180,21 @@ export function AppShell({ children }: AppShellProps) {
         className={`
           fixed inset-y-0 left-0 z-50 flex flex-col
           bg-white border-r border-stone-200
-          transition-all duration-300 ease-in-out
+          transition-all duration-300 ease-out
           ${sidebarOpen ? "w-64" : "w-20"}
         `}
       >
         {/* Logo */}
         <div className="h-16 flex items-center px-4 border-b border-stone-100">
-          <Link href="/c" className="flex items-center gap-3">
-            <AisleLogo size={36} color="#D4A69C" />
+          <Link 
+            href="/c" 
+            className="flex items-center gap-3 group"
+          >
+            <div className="transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3">
+              <AisleLogo size={36} color="#D4A69C" />
+            </div>
             {sidebarOpen && (
-              <span className="font-serif text-xl tracking-wide text-ink">
+              <span className="font-serif text-xl tracking-wide text-ink group-hover:text-rose-600 transition-colors duration-200">
                 Aisle
               </span>
             )}
@@ -174,23 +206,12 @@ export function AppShell({ children }: AppShellProps) {
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`
-                  flex items-center gap-3 px-3 py-2.5 rounded-lg
-                  transition-all duration-150
-                  ${isActive 
-                    ? "bg-rose-100 text-rose-700" 
-                    : "text-ink-soft hover:bg-stone-100 hover:text-ink"
-                  }
-                `}
-              >
-                <span className={isActive ? "text-rose-600" : ""}>{item.icon}</span>
-                {sidebarOpen && (
-                  <span className="font-medium text-sm">{item.label}</span>
-                )}
-              </Link>
+              <NavItem 
+                key={item.href} 
+                item={item} 
+                isActive={isActive} 
+                sidebarOpen={sidebarOpen} 
+              />
             );
           })}
         </nav>
@@ -200,34 +221,23 @@ export function AppShell({ children }: AppShellProps) {
           {bottomNavItems.map((item) => {
             const isActive = pathname === item.href;
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`
-                  flex items-center gap-3 px-3 py-2.5 rounded-lg
-                  transition-all duration-150
-                  ${isActive 
-                    ? "bg-rose-100 text-rose-700" 
-                    : "text-ink-soft hover:bg-stone-100 hover:text-ink"
-                  }
-                `}
-              >
-                <span className={isActive ? "text-rose-600" : ""}>{item.icon}</span>
-                {sidebarOpen && (
-                  <span className="font-medium text-sm">{item.label}</span>
-                )}
-              </Link>
+              <NavItem 
+                key={item.href} 
+                item={item} 
+                isActive={isActive} 
+                sidebarOpen={sidebarOpen} 
+              />
             );
           })}
 
           {/* Collapse toggle */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg w-full
-              text-ink-soft hover:bg-stone-100 hover:text-ink transition-all duration-150"
+            className="group flex items-center gap-3 px-3 py-2.5 rounded-lg w-full
+              text-ink-soft hover:bg-stone-50 hover:text-ink transition-all duration-200"
           >
             <svg 
-              className={`w-5 h-5 transition-transform duration-300 ${sidebarOpen ? "" : "rotate-180"}`} 
+              className={`w-5 h-5 transition-all duration-300 group-hover:scale-110 ${sidebarOpen ? "" : "rotate-180"}`} 
               fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M18.75 19.5l-7.5-7.5 7.5-7.5m-6 15L5.25 12l7.5-7.5" />
@@ -243,24 +253,23 @@ export function AppShell({ children }: AppShellProps) {
       <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? "ml-64" : "ml-20"}`}>
         {/* Header */}
         <header className="h-16 bg-white border-b border-stone-200 flex items-center justify-between px-6 sticky top-0 z-40">
-          {/* Left side - breadcrumb/title could go here */}
           <div />
 
-          {/* Right side - user menu */}
+          {/* User menu */}
           <div className="relative">
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-stone-100 transition-colors"
+              className="group flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-stone-50 transition-all duration-200"
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-400 to-rose-500 flex items-center justify-center text-white text-sm font-medium">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-400 to-rose-500 flex items-center justify-center text-white text-sm font-medium transition-transform duration-200 group-hover:scale-105 group-hover:shadow-md">
                 {initials}
               </div>
               {session?.user?.name && (
-                <span className="text-sm font-medium text-ink hidden sm:block">
+                <span className="text-sm font-medium text-ink hidden sm:block group-hover:text-rose-600 transition-colors">
                   {session.user.name}
                 </span>
               )}
-              <svg className="w-4 h-4 text-ink-soft" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4 text-ink-soft transition-transform duration-200 group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
               </svg>
             </button>
@@ -272,14 +281,14 @@ export function AppShell({ children }: AppShellProps) {
                   className="fixed inset-0 z-40" 
                   onClick={() => setUserMenuOpen(false)}
                 />
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lifted border border-stone-200 py-2 z-50">
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-stone-200 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="px-4 py-2 border-b border-stone-100">
                     <p className="text-sm font-medium text-ink">{session?.user?.name}</p>
                     <p className="text-xs text-ink-soft truncate">{session?.user?.email}</p>
                   </div>
                   <Link
                     href="/settings"
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-ink-soft hover:bg-stone-100 hover:text-ink"
+                    className="flex items-center gap-2 px-4 py-2.5 text-sm text-ink-soft hover:bg-stone-50 hover:text-ink transition-colors"
                     onClick={() => setUserMenuOpen(false)}
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -290,7 +299,7 @@ export function AppShell({ children }: AppShellProps) {
                   </Link>
                   <button
                     onClick={() => signOut()}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-ink-soft hover:bg-stone-100 hover:text-ink w-full text-left"
+                    className="flex items-center gap-2 px-4 py-2.5 text-sm text-ink-soft hover:bg-red-50 hover:text-red-600 w-full text-left transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
