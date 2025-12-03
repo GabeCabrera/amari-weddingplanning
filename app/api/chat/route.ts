@@ -56,6 +56,12 @@ interface WeddingKernel {
   decisions?: Record<string, unknown>;
   vendorsBooked?: string[];
   planningPhase?: string;
+  communicationStyle?: string;
+  // User profile fields stored in kernel
+  usesEmojis?: boolean;
+  usesSwearing?: boolean;
+  messageLength?: "short" | "medium" | "long";
+  knowledgeLevel?: "beginner" | "intermediate" | "experienced";
 }
 
 interface UserProfile {
@@ -66,16 +72,11 @@ interface UserProfile {
   communicationStyle: "casual" | "balanced" | "formal";
 }
 
-interface ConversationMeta {
-  userProfile?: UserProfile;
-  messageCount?: number;
-}
-
 // ============================================================================
 // ANALYZE USER MESSAGE
 // ============================================================================
 
-function analyzeUserMessage(message: string, existingProfile: UserProfile | null): Partial<UserProfile> {
+function analyzeUserMessage(message: string, existingProfile: Partial<UserProfile> | null): Partial<UserProfile> {
   const updates: Partial<UserProfile> = {};
   
   // Check for emojis
@@ -109,6 +110,16 @@ function analyzeUserMessage(message: string, existingProfile: UserProfile | null
   }
   
   return updates;
+}
+
+function buildUserProfileFromKernel(kernel: WeddingKernel): UserProfile {
+  return {
+    usesEmojis: kernel.usesEmojis || false,
+    usesSwearing: kernel.usesSwearing || false,
+    messageLength: kernel.messageLength || "medium",
+    knowledgeLevel: kernel.knowledgeLevel || "intermediate",
+    communicationStyle: (kernel.communicationStyle as "casual" | "balanced" | "formal") || "balanced",
+  };
 }
 
 // ============================================================================
@@ -162,7 +173,6 @@ export async function POST(request: NextRequest) {
         tenantId,
         title: "Chat",
         messages: [],
-        meta: { userProfile: null, messageCount: 0 },
       }).returning();
       conversation = newConv;
     }
@@ -172,24 +182,19 @@ export async function POST(request: NextRequest) {
       ? (conversation.messages as Message[]).filter(m => m?.role && m?.content)
       : [];
     
-    // Get conversation meta (user profile)
-    const meta = (conversation.meta as ConversationMeta) || {};
-    let userProfile: UserProfile | null = meta.userProfile || null;
+    // Get user profile from kernel
+    let userProfile: UserProfile = buildUserProfileFromKernel(kernel as unknown as WeddingKernel);
     
     // Analyze the new message for communication style signals
+    const kernelProfileUpdates: Record<string, unknown> = {};
     if (message) {
       const profileUpdates = analyzeUserMessage(message, userProfile);
       if (Object.keys(profileUpdates).length > 0) {
-        userProfile = { 
-          ...(userProfile || {
-            usesEmojis: false,
-            usesSwearing: false,
-            messageLength: "medium",
-            knowledgeLevel: "intermediate",
-            communicationStyle: "balanced"
-          }),
-          ...profileUpdates 
-        };
+        userProfile = { ...userProfile, ...profileUpdates };
+        // Track what to save to kernel
+        if (profileUpdates.usesEmojis !== undefined) kernelProfileUpdates.usesEmojis = profileUpdates.usesEmojis;
+        if (profileUpdates.usesSwearing !== undefined) kernelProfileUpdates.usesSwearing = profileUpdates.usesSwearing;
+        if (profileUpdates.messageLength !== undefined) kernelProfileUpdates.messageLength = profileUpdates.messageLength;
       }
     }
     
@@ -202,17 +207,17 @@ export async function POST(request: NextRequest) {
     const today = new Date().toLocaleDateString('en-US', { 
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
     });
-    const systemPrompt = buildSystemPrompt(kernel as WeddingKernel, userProfile, today);
+    const systemPrompt = buildSystemPrompt(kernel as unknown as Parameters<typeof buildSystemPrompt>[0], userProfile, today);
 
     // Handle first message vs returning user
     const isFirstMessage = history.length === 0;
-    const isReturningUser = !isFirstMessage && existingMessages.length === 0 && kernel.names && kernel.names.length > 0;
+    const isReturningUser = !isFirstMessage && existingMessages.length === 0 && kernel.names && (kernel.names as string[]).length > 0;
     
     let messagesToSend;
     if (isFirstMessage) {
       messagesToSend = [{ role: "user" as const, content: getFirstMessagePrompt() }];
     } else if (isReturningUser && !message) {
-      messagesToSend = [{ role: "user" as const, content: getReturningUserPrompt(kernel as WeddingKernel) }];
+      messagesToSend = [{ role: "user" as const, content: getReturningUserPrompt(kernel as unknown as Parameters<typeof getReturningUserPrompt>[0]) }];
     } else {
       messagesToSend = history;
     }
@@ -281,33 +286,34 @@ export async function POST(request: NextRequest) {
     const extractMatch = finalText.match(/<extract>([\s\S]*?)<\/extract>/);
     const cleanMessage = finalText.replace(/<extract>[\s\S]*?<\/extract>/, "").trim();
 
-    // Update kernel and profile from extraction
+    // Update kernel from extraction
     if (extractMatch) {
       try {
         const extracted = JSON.parse(extractMatch[1]);
-        await updateKernelFromExtraction(kernel.id, tenantId, extracted);
         
-        // Update user profile from extraction
-        if (extracted.knowledgeLevel || extracted.usesEmojis !== undefined || extracted.usesSwearing !== undefined) {
-          userProfile = {
-            ...(userProfile || {
-              usesEmojis: false,
-              usesSwearing: false,
-              messageLength: "medium",
-              knowledgeLevel: "intermediate",
-              communicationStyle: "balanced"
-            }),
-            ...(extracted.knowledgeLevel && { knowledgeLevel: extracted.knowledgeLevel }),
-            ...(extracted.usesEmojis !== undefined && { usesEmojis: extracted.usesEmojis }),
-            ...(extracted.usesSwearing !== undefined && { usesSwearing: extracted.usesSwearing }),
-          };
-        }
+        // Merge profile updates from extraction
+        if (extracted.knowledgeLevel) kernelProfileUpdates.knowledgeLevel = extracted.knowledgeLevel;
+        if (extracted.usesEmojis !== undefined && extracted.usesEmojis !== null) kernelProfileUpdates.usesEmojis = extracted.usesEmojis;
+        if (extracted.usesSwearing !== undefined && extracted.usesSwearing !== null) kernelProfileUpdates.usesSwearing = extracted.usesSwearing;
+        
+        await updateKernelFromExtraction(kernel.id, tenantId, extracted, kernelProfileUpdates);
       } catch (e) {
         console.error("Extraction parse error:", e);
+        // Still save profile updates even if extraction parsing fails
+        if (Object.keys(kernelProfileUpdates).length > 0) {
+          await db.update(weddingKernels)
+            .set({ ...kernelProfileUpdates, updatedAt: new Date() })
+            .where(eq(weddingKernels.id, kernel.id));
+        }
       }
+    } else if (Object.keys(kernelProfileUpdates).length > 0) {
+      // Save profile updates even without extraction
+      await db.update(weddingKernels)
+        .set({ ...kernelProfileUpdates, updatedAt: new Date() })
+        .where(eq(weddingKernels.id, kernel.id));
     }
 
-    // Save messages and updated meta
+    // Save messages
     const newMessages: Message[] = message
       ? [...existingMessages, { role: "user", content: message }, { role: "assistant", content: cleanMessage, artifact }]
       : [...existingMessages, { role: "assistant", content: cleanMessage, artifact }];
@@ -315,11 +321,6 @@ export async function POST(request: NextRequest) {
     await db.update(conciergeConversations)
       .set({ 
         messages: newMessages, 
-        meta: { 
-          ...meta, 
-          userProfile,
-          messageCount: (meta.messageCount || 0) + (message ? 2 : 1)
-        },
         updatedAt: new Date() 
       })
       .where(eq(conciergeConversations.id, conversation.id));
@@ -347,14 +348,15 @@ export async function POST(request: NextRequest) {
 async function updateKernelFromExtraction(
   kernelId: string,
   tenantId: string,
-  extracted: Record<string, unknown>
+  extracted: Record<string, unknown>,
+  profileUpdates: Record<string, unknown>
 ): Promise<void> {
   const kernel = await db.query.weddingKernels.findFirst({
     where: eq(weddingKernels.id, kernelId)
   });
   if (!kernel) return;
 
-  const updates: Record<string, unknown> = { updatedAt: new Date() };
+  const updates: Record<string, unknown> = { ...profileUpdates, updatedAt: new Date() };
 
   if (extracted.names && Array.isArray(extracted.names)) {
     const current = (kernel.names as string[]) || [];

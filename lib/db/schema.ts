@@ -803,9 +803,15 @@ export const weddingKernels = pgTable("wedding_kernels", {
   // COMMUNICATION PATTERNS
   // ============================================
   tone: text("tone").default("excited"), // excited, anxious, overwhelmed, calm, frustrated
-  communicationStyle: text("communication_style").default("practical"), // detailed, brief, emotional, practical
+  communicationStyle: text("communication_style").default("balanced"), // casual, balanced, formal
   decisionMakingStyle: text("decision_making_style"), // quick, research_heavy, needs_reassurance
   planningTogether: boolean("planning_together").default(true), // both involved equally?
+  
+  // User communication profile (for AI mirroring)
+  usesEmojis: boolean("uses_emojis").default(false), // Has user sent emojis?
+  usesSwearing: boolean("uses_swearing").default(false), // Has user used casual swearing?
+  messageLength: text("message_length").default("medium"), // short, medium, long
+  knowledgeLevel: text("knowledge_level").default("intermediate"), // beginner, intermediate, experienced
   
   // ============================================
   // CONTEXT & META
