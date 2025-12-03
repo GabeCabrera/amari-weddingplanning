@@ -2,7 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { X } from "lucide-react";
+import { 
+  X, 
+  LayoutDashboard, 
+  DollarSign, 
+  Users, 
+  Store, 
+  Calendar, 
+  CheckCircle, 
+  Sparkles, 
+  Settings 
+} from "lucide-react";
 
 /**
  * Aisle App Shell - Modal-based navigation
@@ -24,56 +34,56 @@ const tools = [
     id: "dashboard", 
     label: "Dashboard", 
     description: "Overview of your wedding",
-    icon: "📊",
+    icon: LayoutDashboard,
     color: "from-rose-500 to-pink-500"
   },
   { 
     id: "budget", 
     label: "Budget", 
     description: "Track spending & vendors",
-    icon: "💰",
+    icon: DollarSign,
     color: "from-green-500 to-emerald-500"
   },
   { 
     id: "guests", 
     label: "Guests", 
     description: "Manage your guest list",
-    icon: "👥",
+    icon: Users,
     color: "from-blue-500 to-cyan-500"
   },
   { 
     id: "vendors", 
     label: "Vendors", 
     description: "Your vendor contacts",
-    icon: "🏪",
+    icon: Store,
     color: "from-purple-500 to-violet-500"
   },
   { 
     id: "timeline", 
     label: "Timeline", 
     description: "Day-of schedule",
-    icon: "📅",
+    icon: Calendar,
     color: "from-orange-500 to-amber-500"
   },
   { 
     id: "checklist", 
     label: "Checklist", 
     description: "Planning to-dos",
-    icon: "✅",
+    icon: CheckCircle,
     color: "from-teal-500 to-cyan-500"
   },
   { 
     id: "inspo", 
     label: "Inspo", 
     description: "Save your ideas",
-    icon: "✨",
+    icon: Sparkles,
     color: "from-pink-500 to-rose-500"
   },
   { 
     id: "settings", 
     label: "Settings", 
     description: "Account & preferences",
-    icon: "⚙️",
+    icon: Settings,
     color: "from-slate-500 to-gray-500"
   },
 ];
@@ -184,7 +194,7 @@ function ToolModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200 bg-stone-50">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">{tool?.icon}</span>
+{tool?.icon && <tool.icon className="w-6 h-6 text-stone-600" />}
             <div>
               <h2 className="font-serif text-xl text-stone-800">{tool?.label}</h2>
               <p className="text-sm text-stone-500">{tool?.description}</p>
@@ -236,8 +246,8 @@ function ToolsMenu({
               }}
               className="flex flex-col items-start p-3 rounded-lg hover:bg-stone-50 transition-all group text-left"
             >
-              <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${tool.color} flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform`}>
-                {tool.icon}
+              <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${tool.color} flex items-center justify-center mb-2 group-hover:scale-110 transition-transform`}>
+                <tool.icon className="w-5 h-5 text-white" />
               </div>
               <span className="font-medium text-sm text-stone-800">{tool.label}</span>
               <span className="text-xs text-stone-500 line-clamp-1">{tool.description}</span>
