@@ -561,46 +561,108 @@ export const weddingKernels = pgTable("wedding_kernels", {
     .unique()
     .references(() => tenants.id, { onDelete: "cascade" }),
   
-  // Identity - who they are
+  // ============================================
+  // THE COUPLE - who they are
+  // ============================================
   names: jsonb("names").notNull().default([]), // ["Sarah", "Mike"]
+  pronouns: jsonb("pronouns").default([]), // ["she/her", "he/him"]
   location: text("location"), // "Draper, Utah"
   occupations: jsonb("occupations").notNull().default([]), // ["Aerial PM", "L&D Nurse"]
   
   // Their story
   howTheyMet: text("how_they_met"), // "On Tinder"
   howLongTogether: text("how_long_together"), // "A little over a year"
-  engagementStory: text("engagement_story"), // "Proposed on July 4th before fireworks"
-  
-  // Timeline
-  weddingDate: timestamp("wedding_date", { withTimezone: true }),
   engagementDate: timestamp("engagement_date", { withTimezone: true }),
-  planningPhase: text("planning_phase").notNull().default("early"), // dreaming, early, mid, final, week_of, post
+  engagementStory: text("engagement_story"), // "Proposed on July 4th before fireworks"
+  whoProposed: text("who_proposed"), // "Gabe"
+  
+  // ============================================
+  // THE WEDDING - the event
+  // ============================================
+  weddingDate: timestamp("wedding_date", { withTimezone: true }),
+  season: text("season"), // spring, summer, fall, winter
+  dayOfWeek: text("day_of_week"), // saturday, friday, etc.
+  timeOfDay: text("time_of_day"), // morning, afternoon, evening
   
   // Scale
   guestCount: integer("guest_count"),
+  guestCountRange: text("guest_count_range"), // intimate, medium, large
+  weddingPartySize: integer("wedding_party_size"),
+  
+  // Location
+  region: text("region"), // "Utah", "Pacific Northwest", etc.
+  isDestinationWedding: boolean("is_destination_wedding").default(false),
+  indoorOutdoor: text("indoor_outdoor"), // indoor, outdoor, both
+  
+  // Budget
   budgetTotal: integer("budget_total"), // in cents
-  budgetSpent: integer("budget_spent").default(0), // in cents
+  budgetSpent: integer("budget_spent").default(0),
+  budgetRange: text("budget_range"), // budget, moderate, luxury
+  budgetFlexibility: text("budget_flexibility"), // strict, flexible, very_flexible
+  budgetPriorities: jsonb("budget_priorities").default([]), // ["photography", "food"]
   
-  // Preferences
+  // ============================================
+  // THE VIBE - style & aesthetics
+  // ============================================
   vibe: jsonb("vibe").notNull().default([]), // ["rustic", "outdoor", "intimate"]
-  priorities: jsonb("priorities").notNull().default([]), // ["photography", "food", "music"]
-  dealbreakers: jsonb("dealbreakers").notNull().default([]), // ["no_buffet", "must_have_band"]
+  formality: text("formality"), // casual, semi_formal, formal, black_tie
+  colorPalette: jsonb("color_palette").default([]), // ["dusty rose", "sage", "cream"]
+  theme: text("theme"), // if they have a specific theme
+  mustHaves: jsonb("must_haves").default([]), // things they definitely want
+  dealbreakers: jsonb("dealbreakers").notNull().default([]), // things they definitely don't want
   
-  // Stress points
+  // ============================================
+  // PLANNING STATE - where they are
+  // ============================================
+  planningPhase: text("planning_phase").notNull().default("early"), // dreaming, early, mid, final, week_of
+  planningStyle: text("planning_style"), // diy, planner_assisted, full_service
+  
+  // All decisions tracked as JSON object
+  // { venue: { status, name, locked, notes }, photographer: { ... }, ... }
+  decisions: jsonb("decisions").notNull().default({}),
+  
+  // What they've already booked (quick reference)
+  vendorsBooked: jsonb("vendors_booked").default([]), // ["venue", "photographer"]
+  vendorsPriority: jsonb("vendors_priority").default([]), // what to book next
+  
+  // ============================================
+  // CONCERNS & PRIORITIES
+  // ============================================
   stressors: jsonb("stressors").notNull().default([]), // ["seating", "family_drama", "budget"]
+  biggestConcern: text("biggest_concern"),
+  priorities: jsonb("priorities").notNull().default([]), // ["photography", "food", "music"]
+  lessImportant: jsonb("less_important").default([]), // what they care less about
+  familyDynamics: text("family_dynamics"), // any family situations to note
   
-  // Decisions made - venue, vendors, etc.
-  decisions: jsonb("decisions").notNull().default({}), // { venue: { name, status, locked }, photographer: { name, locked } }
+  // ============================================
+  // KEY PEOPLE
+  // ============================================
+  weddingParty: jsonb("wedding_party").default([]), // [{ name, role, side }]
+  officiant: text("officiant"), // who's officiating
+  weddingPlanner: text("wedding_planner"), // if they have one
   
-  // Conversation patterns
+  // ============================================
+  // TIMELINE & EVENTS
+  // ============================================
+  ceremonyTime: text("ceremony_time"),
+  receptionTime: text("reception_time"),
+  honeymoonPlans: text("honeymoon_plans"), // destination or "not yet planned"
+  
+  // ============================================
+  // COMMUNICATION PATTERNS
+  // ============================================
   tone: text("tone").default("excited"), // excited, anxious, overwhelmed, calm, frustrated
   communicationStyle: text("communication_style").default("practical"), // detailed, brief, emotional, practical
+  decisionMakingStyle: text("decision_making_style"), // quick, research_heavy, needs_reassurance
+  planningTogether: boolean("planning_together").default(true), // both involved equally?
   
-  // Recent topics for continuity
+  // ============================================
+  // CONTEXT & META
+  // ============================================
   recentTopics: jsonb("recent_topics").notNull().default([]),
-  
-  // Onboarding progress
-  onboardingStep: integer("onboarding_step").notNull().default(0), // 0 = not started, 1-7 = in progress, 8 = complete
+  onboardingStep: integer("onboarding_step").notNull().default(0),
+  onboardingComplete: boolean("onboarding_complete").default(false),
+  lastInteraction: timestamp("last_interaction", { withTimezone: true }),
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
