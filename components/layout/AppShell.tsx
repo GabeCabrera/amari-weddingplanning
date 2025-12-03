@@ -60,7 +60,7 @@ export function AisleLogo({
 
 // Navigation configuration
 const mainNavItems = [
-  { href: "/c", label: "Chat", icon: MessageSquare },
+  { href: "/", label: "Chat", icon: MessageSquare },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/checklist", label: "Checklist", icon: CheckCircle },
   { href: "/budget", label: "Budget", icon: DollarSign },
@@ -98,7 +98,7 @@ export function AppShell({ children }: AppShellProps) {
   };
 
   const isActivePath = (href: string) => {
-    if (href === "/c") return pathname === "/c" || pathname.startsWith("/c/");
+    if (href === "/") return pathname === "/";
     return pathname === href || pathname.startsWith(href + "/");
   };
 
@@ -116,7 +116,7 @@ export function AppShell({ children }: AppShellProps) {
         {/* Logo */}
         <div className="h-16 flex items-center px-4 border-b border-stone-100">
           <button 
-            onClick={() => handleNavClick("/c")}
+            onClick={() => handleNavClick("/")}
             className="flex items-center gap-3 group"
           >
             <div className="transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3">

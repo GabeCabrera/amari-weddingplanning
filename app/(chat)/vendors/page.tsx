@@ -99,7 +99,7 @@ export default function VendorsPage() {
             Tell me about your vendors in chat and I&apos;ll track them here.
           </p>
           <a 
-            href="/c" 
+            href="/" 
             className="inline-flex items-center gap-2 px-6 py-3 bg-rose-500 text-white rounded-xl hover:bg-rose-600 transition-colors"
           >
             Go to chat
@@ -177,7 +177,7 @@ export default function VendorsPage() {
           <div className="mt-6 p-4 bg-stone-50 rounded-xl text-center">
             <p className="text-sm text-ink-soft">
               Need to add or update a vendor?{" "}
-              <a href="/c" className="text-rose-600 hover:text-rose-700 font-medium">
+              <a href="/" className="text-rose-600 hover:text-rose-700 font-medium">
                 Tell me in chat
               </a>
             </p>
