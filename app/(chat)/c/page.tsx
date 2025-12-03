@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { Artifact } from "@/components/artifacts";
 
@@ -8,6 +8,7 @@ interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+  isTyping?: boolean;
   artifact?: {
     type: string;
     data: unknown;
@@ -58,7 +59,6 @@ function BreathingLogo({ size = 48 }: { size?: number }) {
 
   return (
     <div 
-      className="transition-transform"
       style={{ 
         width: size, 
         height: size,
@@ -94,17 +94,62 @@ function Avatar({ isUser }: { isUser: boolean }) {
   );
 }
 
-// Message bubble component with hover states
+// Typewriter hook for fast typing effect
+function useTypewriter(text: string, isTyping: boolean, speed: number = 8) {
+  const [displayedText, setDisplayedText] = useState(isTyping ? "" : text);
+  const [isComplete, setIsComplete] = useState(!isTyping);
+
+  useEffect(() => {
+    if (!isTyping) {
+      setDisplayedText(text);
+      setIsComplete(true);
+      return;
+    }
+
+    setDisplayedText("");
+    setIsComplete(false);
+    let index = 0;
+
+    const interval = setInterval(() => {
+      if (index < text.length) {
+        // Type multiple characters at once for speed
+        const charsToAdd = Math.min(speed, text.length - index);
+        setDisplayedText(text.slice(0, index + charsToAdd));
+        index += charsToAdd;
+      } else {
+        setIsComplete(true);
+        clearInterval(interval);
+      }
+    }, 16); // ~60fps
+
+    return () => clearInterval(interval);
+  }, [text, isTyping, speed]);
+
+  return { displayedText, isComplete };
+}
+
+// Message bubble component with typewriter effect
 function MessageBubble({ 
   content, 
   isUser, 
-  artifact 
+  isTyping = false,
+  artifact,
+  onTypewriterComplete
 }: { 
   content: string; 
   isUser: boolean; 
+  isTyping?: boolean;
   artifact?: { type: string; data: unknown };
+  onTypewriterComplete?: () => void;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const { displayedText, isComplete } = useTypewriter(content, isTyping);
+
+  useEffect(() => {
+    if (isComplete && onTypewriterComplete) {
+      onTypewriterComplete();
+    }
+  }, [isComplete, onTypewriterComplete]);
   
   return (
     <div className={`flex-1 ${isUser ? "flex justify-end" : ""}`}>
@@ -120,26 +165,32 @@ function MessageBubble({
           }
         `}
       >
-        <p className="whitespace-pre-wrap leading-relaxed">{content}</p>
+        <p className="whitespace-pre-wrap leading-relaxed">
+          {displayedText}
+          {!isComplete && <span className="inline-block w-0.5 h-4 bg-rose-400 ml-0.5 animate-pulse" />}
+        </p>
         
-        {/* Hover actions */}
-        <div className={`
-          absolute -top-8 ${isUser ? "right-0" : "left-0"} 
-          flex gap-1 
-          transition-all duration-200
-          ${isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1 pointer-events-none"}
-        `}>
-          <button 
-            className="p-1.5 rounded-md bg-white border border-stone-200 text-stone-500 hover:text-ink hover:border-stone-300 hover:shadow-sm transition-all"
-            title="Copy"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
-            </svg>
-          </button>
-        </div>
+        {/* Hover actions - only show when complete */}
+        {isComplete && (
+          <div className={`
+            absolute -top-8 ${isUser ? "right-0" : "left-0"} 
+            flex gap-1 
+            transition-all duration-200
+            ${isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1 pointer-events-none"}
+          `}>
+            <button 
+              onClick={() => navigator.clipboard.writeText(content)}
+              className="p-1.5 rounded-md bg-white border border-stone-200 text-stone-500 hover:text-ink hover:border-stone-300 hover:shadow-sm transition-all"
+              title="Copy"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
-      {artifact && (
+      {artifact && isComplete && (
         <div className="mt-3">
           <Artifact type={artifact.type} data={artifact.data} />
         </div>
@@ -200,6 +251,7 @@ export default function ChatPage() {
           role: m.role as "user" | "assistant",
           content: m.content,
           artifact: m.artifact,
+          isTyping: false, // Don't animate loaded messages
         })));
       } else {
         const response = await fetch("/api/chat", {
@@ -215,6 +267,7 @@ export default function ChatPage() {
             role: "assistant",
             content: data.message,
             artifact: data.artifact,
+            isTyping: true, // Animate initial greeting
           }]);
         }
       }
@@ -224,6 +277,12 @@ export default function ChatPage() {
       setIsLoading(false);
     }
   };
+
+  const handleTypewriterComplete = useCallback((messageId: string) => {
+    setMessages(prev => prev.map(m => 
+      m.id === messageId ? { ...m, isTyping: false } : m
+    ));
+  }, []);
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -260,11 +319,13 @@ export default function ChatPage() {
         setConversationId(data.conversationId);
       }
 
+      const newMessageId = (Date.now() + 1).toString();
       setMessages(prev => [...prev, {
-        id: (Date.now() + 1).toString(),
+        id: newMessageId,
         role: "assistant",
         content: data.message,
         artifact: data.artifact,
+        isTyping: true, // Enable typewriter effect
       }]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -347,17 +408,19 @@ export default function ChatPage() {
                 <MessageBubble 
                   content={msg.content} 
                   isUser={msg.role === "user"} 
+                  isTyping={msg.isTyping}
                   artifact={msg.artifact}
+                  onTypewriterComplete={() => handleTypewriterComplete(msg.id)}
                 />
               </div>
             ))}
           </div>
           
-          {/* Thinking indicator */}
+          {/* Thinking indicator - left aligned */}
           {isLoading && (
-            <div className="flex flex-col items-center justify-center py-8">
-              <BreathingLogo size={56} />
-              <p className="text-sm text-ink-soft mt-3 animate-pulse">
+            <div className="flex items-center gap-3 py-4 mt-2">
+              <BreathingLogo size={32} />
+              <p className="text-sm text-ink-soft animate-pulse">
                 {thinkingMessages[thinkingMessage]}
               </p>
             </div>
@@ -377,22 +440,22 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Pinterest-style input */}
-      <div className="p-4 pb-6">
+      {/* Fixed input bar with proper centering */}
+      <div className="p-4 pb-6 bg-canvas">
         <div className="max-w-3xl mx-auto">
           <div 
             className={`
-              relative bg-white rounded-full
-              transition-all duration-300 ease-out
+              relative bg-white rounded-full overflow-hidden
+              transition-shadow duration-300 ease-out
               ${isFocused 
-                ? "shadow-xl ring-2 ring-rose-200 scale-[1.02]" 
-                : "shadow-lg hover:shadow-xl hover:scale-[1.01]"
+                ? "shadow-[0_0_0_2px_rgba(212,166,156,0.3),0_8px_32px_-8px_rgba(0,0,0,0.15)]" 
+                : "shadow-[0_4px_16px_-4px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.15)]"
               }
             `}
           >
-            {/* Left icon with hover */}
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none transition-transform duration-200 group-hover:scale-110">
-              <svg viewBox="0 0 40 40" fill="none" className={`w-6 h-6 transition-all duration-200 ${isFocused ? "scale-110" : ""}`}>
+            {/* Left icon */}
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+              <svg viewBox="0 0 40 40" fill="none" className={`w-6 h-6 transition-transform duration-200 ${isFocused ? "scale-110" : ""}`}>
                 <path d="M 4 22 C 4 14, 8 12, 14 12 C 21 12, 24 15, 24 22 C 24 29, 20 32, 14 32 C 7 32, 4 28, 4 22" stroke="#D4A69C" strokeWidth="2" strokeLinecap="round" fill="none" />
                 <path d="M 16 22 C 16 14, 20 12, 26 12 C 33 12, 36 15, 36 22 C 36 29, 32 32, 26 32 C 19 32, 16 28, 16 22" stroke="#D4A69C" strokeWidth="2" strokeLinecap="round" fill="none" />
               </svg>
@@ -410,13 +473,12 @@ export default function ChatPage() {
               className="w-full bg-transparent pl-14 pr-14 py-4
                 resize-none focus:outline-none
                 text-ink placeholder:text-stone-400
-                min-h-[56px] max-h-[200px]
-                rounded-full"
+                min-h-[56px] max-h-[200px]"
               rows={1}
               disabled={isLoading}
             />
 
-            {/* Send button with enhanced hover */}
+            {/* Send button */}
             <button
               onClick={sendMessage}
               disabled={isLoading || !input.trim()}
@@ -426,13 +488,13 @@ export default function ChatPage() {
                 flex items-center justify-center
                 transition-all duration-200
                 ${input.trim() 
-                  ? "bg-rose-500 text-white hover:bg-rose-600 hover:scale-110 hover:shadow-lg hover:shadow-rose-500/25 active:scale-95" 
+                  ? "bg-rose-500 text-white hover:bg-rose-600 hover:scale-110 active:scale-95" 
                   : "bg-stone-100 text-stone-400 hover:bg-stone-200"
                 }
                 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
               `}
             >
-              <svg className={`w-5 h-5 transition-transform duration-200 ${input.trim() ? "group-hover:-translate-y-0.5" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
               </svg>
             </button>
