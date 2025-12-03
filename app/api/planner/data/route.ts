@@ -202,12 +202,12 @@ export async function GET() {
       
       summary: {
         daysUntil,
-        coupleNames: kernel?.names?.length === 2 
-          ? `${(kernel.names as string[])[0]} & ${(kernel.names as string[])[1]}` 
+        coupleNames: Array.isArray(kernel?.names) && kernel.names.length === 2 
+          ? `${kernel.names[0]} & ${kernel.names[1]}` 
           : null,
         weddingDate: kernel?.weddingDate || null,
-        vibe: kernel?.vibe || [],
-        vendorsBooked: kernel?.vendorsBooked || [],
+        vibe: Array.isArray(kernel?.vibe) ? kernel.vibe : [],
+        vendorsBooked: Array.isArray(kernel?.vendorsBooked) ? kernel.vendorsBooked : [],
       },
     });
 
