@@ -172,6 +172,15 @@ function PlannerEditorContent({
     <WeddingDataProvider pages={pages} userPlan={userPlan}>
       <div className="min-h-screen flex flex-col md:flex-row bg-warm-50">
         
+        {/* Soft white glow at bottom of screen */}
+        <div 
+          className="fixed bottom-0 left-0 right-0 h-40 pointer-events-none z-[5]"
+          style={{
+            background: 'radial-gradient(ellipse 80% 70% at 50% 100%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 40%, transparent 70%)',
+            filter: 'blur(30px)',
+          }}
+        />
+        
         {/* Mobile Header */}
         {isMobile && (
           <header className="bg-white border-b border-warm-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
