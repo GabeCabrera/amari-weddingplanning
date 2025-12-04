@@ -285,7 +285,7 @@ export default function DashboardPage() {
                       : "bg-stone-100 text-stone-600"
                   }`}
                 >
-                  {isBooked && "✓ "}{vendor.name}
+                  {isBooked && <><svg className="w-3 h-3 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg></>}{vendor.name}
                 </span>
               );
             })}

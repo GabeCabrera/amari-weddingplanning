@@ -237,7 +237,7 @@ export function DayOfScheduleRenderer({ page, fields, updateField, allPages }: R
                       <p className="text-xs md:text-sm font-medium text-warm-700 truncate">{template.event}</p>
                       <p className="text-[10px] md:text-xs text-warm-500">{template.time}</p>
                     </div>
-                    {alreadyAdded && <span className="text-[10px] text-warm-400">✓</span>}
+                    {alreadyAdded && <svg className="w-3 h-3 text-warm-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                   </button>
                 );
               })}

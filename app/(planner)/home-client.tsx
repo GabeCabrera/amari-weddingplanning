@@ -6,7 +6,7 @@ import { signOut } from "next-auth/react";
 import { Logo } from "@/components/logo";
 import { ConciergeChat, ConciergeTrigger } from "@/components/concierge-chat";
 import { 
-  BookOpen, Menu, Users, DollarSign, ArrowRight
+  BookOpen, Menu, Users, DollarSign, ArrowRight, MessageCircle, PartyPopper
 } from "lucide-react";
 
 interface WeddingStats {
@@ -136,8 +136,8 @@ export function HomeClient({ displayName, plannerName, hasStartedPlanning }: Hom
                   {stats.daysUntil} days until your wedding
                 </p>
               ) : stats?.isToday ? (
-                <p className="text-lg text-warm-500">
-                  Today's the day! 🎉
+                <p className="text-lg text-warm-500 flex items-center gap-2">
+                  Today&apos;s the day! <PartyPopper className="w-5 h-5 text-rose-500" />
                 </p>
               ) : (
                 <p className="text-lg text-warm-500">
@@ -170,7 +170,7 @@ export function HomeClient({ displayName, plannerName, hasStartedPlanning }: Hom
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-white/80 flex items-center justify-center">
-                    <span className="text-2xl">💬</span>
+                    <MessageCircle className="w-6 h-6 text-purple-500" />
                   </div>
                   <div>
                     <h3 className="font-medium text-warm-800">Chat with {plannerName}</h3>

@@ -417,7 +417,7 @@ export function CalendarRenderer({ page, fields, updateField, allPages }: Render
   if (weddingDate) {
     calendarEvents.push({
       id: "wedding-day",
-      title: "💍 Wedding Day!",
+      title: "Wedding Day!",
       start: weddingDate,
       allDay: true,
       backgroundColor: "#EC4899",

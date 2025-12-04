@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { 
   Plus, Trash2, Calendar, Clock, Users, DollarSign, Heart, 
   Phone, Palette, CheckCircle2, AlertCircle, TrendingUp, Sparkles,
-  ChevronRight, Circle, Music, Utensils, Camera
+  ChevronRight, Circle, Music, Utensils, Camera, PartyPopper, Check
 } from "lucide-react";
 import { type RendererWithAllPagesProps } from "./types";
 import { useWeddingData } from "../context";
@@ -251,7 +251,7 @@ export function OverviewRenderer({ page, fields, updateField, allPages }: Render
             {wedding.daysUntil !== null ? (
               <>
                 <p className="text-4xl font-light text-warm-800 tabular-nums">
-                  {wedding.daysUntil > 0 ? animatedDays : wedding.isToday ? "🎉" : "✓"}
+                  {wedding.daysUntil > 0 ? animatedDays : wedding.isToday ? <PartyPopper className="w-8 h-8 text-rose-500 mx-auto" /> : <Check className="w-8 h-8 text-green-500 mx-auto" />}
                 </p>
                 <p className="text-xs tracking-wider uppercase text-warm-500 mt-1">
                   {wedding.daysUntil > 0 ? "Days to Go" : wedding.isToday ? "Today!" : "Married!"}
@@ -387,7 +387,9 @@ export function OverviewRenderer({ page, fields, updateField, allPages }: Render
                     )}
 
                     {allPendingTasks.length === 0 && (
-                      <p className="text-green-600 text-sm text-center py-4">🎉 All tasks complete!</p>
+                      <p className="text-green-600 text-sm text-center py-4 flex items-center justify-center gap-2">
+                        <CheckCircle2 className="w-4 h-4" /> All tasks complete!
+                      </p>
                     )}
                   </>
                 ) : (

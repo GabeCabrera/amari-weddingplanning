@@ -834,3 +834,64 @@ export const weddingKernelsRelations = relations(weddingKernels, ({ one }) => ({
 
 export type WeddingKernel = typeof weddingKernels.$inferSelect;
 export type NewWeddingKernel = typeof weddingKernels.$inferInsert;
+
+// ============================================================================
+// OAUTH ACCOUNTS - Stored tokens for all OAuth providers (Google, Pinterest, etc.)
+// ============================================================================
+export const oauthAccounts = pgTable(
+  "oauth_accounts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    
+    // Provider info
+    provider: text("provider").notNull(), // "google", "pinterest", "instagram", etc.
+    providerAccountId: text("provider_account_id").notNull(), // The ID from the provider
+    
+    // Tokens
+    accessToken: text("access_token").notNull(),
+    refreshToken: text("refresh_token"), // Not all providers give refresh tokens
+    accessTokenExpiresAt: timestamp("access_token_expires_at", { withTimezone: true }),
+    
+    // Scope tracking - what permissions we have
+    scope: text("scope"), // Space-separated scopes
+    
+    // Provider-specific data
+    tokenType: text("token_type").default("Bearer"),
+    idToken: text("id_token"), // For OIDC providers
+    
+    // User info from provider
+    providerEmail: text("provider_email"),
+    providerName: text("provider_name"),
+    providerImage: text("provider_image"),
+    
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    // Each user can only have one account per provider
+    userProviderIdx: uniqueIndex("oauth_user_provider_idx").on(
+      table.userId,
+      table.provider
+    ),
+  })
+);
+
+export const oauthAccountsRelations = relations(oauthAccounts, ({ one }) => ({
+  user: one(users, {
+    fields: [oauthAccounts.userId],
+    references: [users.id],
+  }),
+  tenant: one(tenants, {
+    fields: [oauthAccounts.tenantId],
+    references: [tenants.id],
+  }),
+}));
+
+export type OAuthAccount = typeof oauthAccounts.$inferSelect;
+export type NewOAuthAccount = typeof oauthAccounts.$inferInsert;

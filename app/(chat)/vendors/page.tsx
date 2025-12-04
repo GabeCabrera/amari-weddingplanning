@@ -2,32 +2,37 @@
 
 import { useState } from "react";
 import { usePlannerData, formatCurrency, Vendor } from "@/lib/hooks/usePlannerData";
+import {
+  Building2, Utensils, Camera, Video, Flower2, Music, Guitar, Cake,
+  Heart, Scissors, Sparkles, Armchair, Car, ClipboardList, Mail, Pin
+} from "lucide-react";
+import { LucideIcon } from "lucide-react";
 
 // Category icons and colors
-const categoryConfig: Record<string, { icon: string; color: string }> = {
-  venue: { icon: "🏛️", color: "bg-blue-50 text-blue-700" },
-  catering: { icon: "🍽️", color: "bg-orange-50 text-orange-700" },
-  photographer: { icon: "📸", color: "bg-purple-50 text-purple-700" },
-  photography: { icon: "📸", color: "bg-purple-50 text-purple-700" },
-  videographer: { icon: "🎬", color: "bg-pink-50 text-pink-700" },
-  videography: { icon: "🎬", color: "bg-pink-50 text-pink-700" },
-  florist: { icon: "💐", color: "bg-green-50 text-green-700" },
-  flowers: { icon: "💐", color: "bg-green-50 text-green-700" },
-  dj: { icon: "🎵", color: "bg-yellow-50 text-yellow-700" },
-  band: { icon: "🎸", color: "bg-yellow-50 text-yellow-700" },
-  music: { icon: "🎵", color: "bg-yellow-50 text-yellow-700" },
-  cake: { icon: "🎂", color: "bg-amber-50 text-amber-700" },
-  bakery: { icon: "🎂", color: "bg-amber-50 text-amber-700" },
-  officiant: { icon: "💒", color: "bg-sky-50 text-sky-700" },
-  hair: { icon: "💇", color: "bg-red-50 text-red-700" },
-  makeup: { icon: "💄", color: "bg-red-50 text-red-700" },
-  beauty: { icon: "💄", color: "bg-red-50 text-red-700" },
-  rentals: { icon: "🪑", color: "bg-cyan-50 text-cyan-700" },
-  transportation: { icon: "🚗", color: "bg-indigo-50 text-indigo-700" },
-  planner: { icon: "📋", color: "bg-teal-50 text-teal-700" },
-  coordinator: { icon: "📋", color: "bg-teal-50 text-teal-700" },
-  invitations: { icon: "💌", color: "bg-rose-50 text-rose-700" },
-  stationery: { icon: "💌", color: "bg-rose-50 text-rose-700" },
+const categoryConfig: Record<string, { Icon: LucideIcon; color: string }> = {
+  venue: { Icon: Building2, color: "bg-blue-50 text-blue-700" },
+  catering: { Icon: Utensils, color: "bg-orange-50 text-orange-700" },
+  photographer: { Icon: Camera, color: "bg-purple-50 text-purple-700" },
+  photography: { Icon: Camera, color: "bg-purple-50 text-purple-700" },
+  videographer: { Icon: Video, color: "bg-pink-50 text-pink-700" },
+  videography: { Icon: Video, color: "bg-pink-50 text-pink-700" },
+  florist: { Icon: Flower2, color: "bg-green-50 text-green-700" },
+  flowers: { Icon: Flower2, color: "bg-green-50 text-green-700" },
+  dj: { Icon: Music, color: "bg-yellow-50 text-yellow-700" },
+  band: { Icon: Guitar, color: "bg-yellow-50 text-yellow-700" },
+  music: { Icon: Music, color: "bg-yellow-50 text-yellow-700" },
+  cake: { Icon: Cake, color: "bg-amber-50 text-amber-700" },
+  bakery: { Icon: Cake, color: "bg-amber-50 text-amber-700" },
+  officiant: { Icon: Heart, color: "bg-sky-50 text-sky-700" },
+  hair: { Icon: Scissors, color: "bg-red-50 text-red-700" },
+  makeup: { Icon: Sparkles, color: "bg-red-50 text-red-700" },
+  beauty: { Icon: Sparkles, color: "bg-red-50 text-red-700" },
+  rentals: { Icon: Armchair, color: "bg-cyan-50 text-cyan-700" },
+  transportation: { Icon: Car, color: "bg-indigo-50 text-indigo-700" },
+  planner: { Icon: ClipboardList, color: "bg-teal-50 text-teal-700" },
+  coordinator: { Icon: ClipboardList, color: "bg-teal-50 text-teal-700" },
+  invitations: { Icon: Mail, color: "bg-rose-50 text-rose-700" },
+  stationery: { Icon: Mail, color: "bg-rose-50 text-rose-700" },
 };
 
 function getCategoryConfig(category: string) {
@@ -35,7 +40,7 @@ function getCategoryConfig(category: string) {
   for (const [k, v] of Object.entries(categoryConfig)) {
     if (key.includes(k)) return v;
   }
-  return { icon: "📌", color: "bg-stone-50 text-stone-700" };
+  return { Icon: Pin, color: "bg-stone-50 text-stone-700" };
 }
 
 export default function VendorsPage() {
@@ -155,7 +160,13 @@ export default function VendorsPage() {
           {Object.entries(byCategory).map(([category, categoryVendors]) => (
             <div key={category} className="mb-6">
               <h3 className="font-medium text-ink mb-3 flex items-center gap-2">
-                <span>{getCategoryConfig(category).icon}</span>
+                <span className={`w-6 h-6 rounded flex items-center justify-center ${getCategoryConfig(category).color}`}>
+                  {(() => {
+                    const config = getCategoryConfig(category);
+                    const IconComponent = config.Icon;
+                    return <IconComponent className="w-4 h-4" />;
+                  })()}
+                </span>
                 {category}
                 <span className="text-xs text-ink-faint font-normal">({categoryVendors.length})</span>
               </h3>
@@ -225,8 +236,8 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
     <div className="bg-white rounded-2xl border border-stone-200 p-5 hover:border-stone-300 transition-colors">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <span className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${config.color}`}>
-            {config.icon}
+          <span className={`w-10 h-10 rounded-xl flex items-center justify-center ${config.color}`}>
+            <config.Icon className="w-5 h-5" />
           </span>
           <div>
             <h4 className="font-medium text-ink">{vendor.name}</h4>

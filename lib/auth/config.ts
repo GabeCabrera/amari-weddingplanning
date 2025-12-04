@@ -4,8 +4,8 @@ import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { getUserByEmail, getTenantById } from "@/lib/db/queries";
 import { db } from "@/lib/db";
-import { users, tenants } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { users, tenants, oauthAccounts } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 declare module "next-auth" {
@@ -39,6 +39,16 @@ declare module "next-auth/jwt" {
   }
 }
 
+// Google OAuth scopes we request
+// Add more scopes here as you integrate more Google APIs
+const GOOGLE_SCOPES = [
+  "openid",
+  "email",
+  "profile",
+  "https://www.googleapis.com/auth/calendar.events", // Read/write calendar events
+  "https://www.googleapis.com/auth/calendar.readonly", // Read calendars list
+].join(" ");
+
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
@@ -52,7 +62,9 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
-          prompt: "select_account",
+          prompt: "consent", // Always show consent screen to get refresh token
+          access_type: "offline", // Request refresh token
+          scope: GOOGLE_SCOPES,
         },
       },
     }),
@@ -121,11 +133,20 @@ export const authOptions: NextAuthOptions = {
                 .update(users)
                 .set({
                   googleId: account.providerAccountId,
-                  name: existingUser.name || user.name, // Keep existing name or use Google name
+                  name: existingUser.name || user.name,
                   updatedAt: new Date(),
                 })
                 .where(eq(users.id, existingUser.id));
             }
+
+            // Save/update OAuth tokens
+            await saveOAuthTokens(
+              existingUser.id,
+              existingUser.tenantId,
+              account,
+              user
+            );
+
             return true;
           }
 
@@ -146,16 +167,22 @@ export const authOptions: NextAuthOptions = {
             .returning();
 
           // Create user linked to tenant
-          await db.insert(users).values({
-            email: user.email.toLowerCase(),
-            name: user.name,
-            passwordHash: "", // No password for Google-only users
-            tenantId: tenant.id,
-            role: "owner",
-            googleId: account.providerAccountId,
-            emailOptIn: true, // Default opt-in for Google signups
-            unsubscribeToken,
-          });
+          const [newUser] = await db
+            .insert(users)
+            .values({
+              email: user.email.toLowerCase(),
+              name: user.name,
+              passwordHash: "", // No password for Google-only users
+              tenantId: tenant.id,
+              role: "owner",
+              googleId: account.providerAccountId,
+              emailOptIn: true,
+              unsubscribeToken,
+            })
+            .returning();
+
+          // Save OAuth tokens for the new user
+          await saveOAuthTokens(newUser.id, tenant.id, account, user);
 
           return true;
         } catch (error) {
@@ -178,7 +205,7 @@ export const authOptions: NextAuthOptions = {
             token.id = dbUser.id;
             token.tenantId = dbUser.tenantId;
             token.tenantSlug = tenant?.slug ?? "";
-            token.mustChangePassword = false; // Google users don't need to change password
+            token.mustChangePassword = false;
           }
         } else {
           // Credentials login
@@ -191,7 +218,8 @@ export const authOptions: NextAuthOptions = {
 
       // Handle session updates (e.g., after password change)
       if (trigger === "update" && session) {
-        token.mustChangePassword = session.mustChangePassword ?? token.mustChangePassword;
+        token.mustChangePassword =
+          session.mustChangePassword ?? token.mustChangePassword;
       }
 
       return token;
@@ -210,3 +238,84 @@ export const authOptions: NextAuthOptions = {
     },
   },
 };
+
+/**
+ * Save or update OAuth tokens for a user
+ */
+async function saveOAuthTokens(
+  userId: string,
+  tenantId: string,
+  account: {
+    provider: string;
+    providerAccountId: string;
+    access_token?: string;
+    refresh_token?: string;
+    expires_at?: number;
+    scope?: string;
+    token_type?: string;
+    id_token?: string;
+  },
+  user: {
+    email?: string | null;
+    name?: string | null;
+    image?: string | null;
+  }
+) {
+  if (!account.access_token) {
+    console.warn("No access token to save for", account.provider);
+    return;
+  }
+
+  const expiresAt = account.expires_at
+    ? new Date(account.expires_at * 1000)
+    : null;
+
+  // Check if we already have an OAuth account for this user/provider
+  const existing = await db.query.oauthAccounts.findFirst({
+    where: and(
+      eq(oauthAccounts.userId, userId),
+      eq(oauthAccounts.provider, account.provider)
+    ),
+  });
+
+  if (existing) {
+    // Update existing tokens
+    await db
+      .update(oauthAccounts)
+      .set({
+        accessToken: account.access_token,
+        // Only update refresh token if we got a new one (Google doesn't always send it)
+        ...(account.refresh_token && { refreshToken: account.refresh_token }),
+        accessTokenExpiresAt: expiresAt,
+        scope: account.scope,
+        tokenType: account.token_type,
+        idToken: account.id_token,
+        providerEmail: user.email,
+        providerName: user.name,
+        providerImage: user.image,
+        updatedAt: new Date(),
+      })
+      .where(eq(oauthAccounts.id, existing.id));
+
+    console.log(`Updated OAuth tokens for ${account.provider}`);
+  } else {
+    // Create new OAuth account
+    await db.insert(oauthAccounts).values({
+      userId,
+      tenantId,
+      provider: account.provider,
+      providerAccountId: account.providerAccountId,
+      accessToken: account.access_token,
+      refreshToken: account.refresh_token,
+      accessTokenExpiresAt: expiresAt,
+      scope: account.scope,
+      tokenType: account.token_type || "Bearer",
+      idToken: account.id_token,
+      providerEmail: user.email,
+      providerName: user.name,
+      providerImage: user.image,
+    });
+
+    console.log(`Created OAuth account for ${account.provider}`);
+  }
+}

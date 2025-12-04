@@ -107,7 +107,7 @@ const TaskCard = memo(function TaskCard({
     switch (assignee) {
       case "partner1": return partner1Name.charAt(0).toUpperCase();
       case "partner2": return partner2Name.charAt(0).toUpperCase();
-      case "both": return "★";
+      case "both": return "B";
       default: return "?";
     }
   };
@@ -449,7 +449,7 @@ export function TaskBoardRenderer({ page, fields, updateField, allPages }: Rende
       currentTasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t)
     );
     if (newStatus === "done") {
-      toast.success("Task completed! 🎉");
+      toast.success("Task completed!");
     }
   }, [updateTasksOptimistically]);
 

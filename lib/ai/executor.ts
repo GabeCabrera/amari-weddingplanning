@@ -11,7 +11,9 @@ import {
   pages, 
   planners,
   calendarEvents,
-  tenants 
+  tenants,
+  rsvpForms,
+  rsvpResponses
 } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 
@@ -66,6 +68,14 @@ export async function executeToolCall(
         return await deleteGuest(parameters, context);
       case "add_guest_group":
         return await addGuestGroup(parameters, context);
+
+      // RSVP tools
+      case "create_rsvp_link":
+        return await createRsvpLink(parameters, context);
+      case "get_rsvp_link":
+        return await getRsvpLink(parameters, context);
+      case "get_rsvp_responses":
+        return await getRsvpResponses(parameters, context);
 
       // Calendar tools
       case "add_event":
@@ -212,12 +222,13 @@ async function addBudgetItem(
   
   const items = (fields.items as Array<Record<string, unknown>>) || [];
   
+  // Store as string in dollars (matching BudgetRenderer format)
   const newItem = {
     id: crypto.randomUUID(),
     category: params.category,
     vendor: params.vendor || "",
-    totalCost: (params.estimatedCost as number) * 100, // Convert to cents
-    amountPaid: ((params.amountPaid as number) || 0) * 100,
+    totalCost: String(params.estimatedCost || 0),
+    amountPaid: String(params.amountPaid || 0),
     notes: params.notes || "",
     createdAt: new Date().toISOString()
   };
@@ -236,7 +247,7 @@ async function addBudgetItem(
 
   return {
     success: true,
-    message: `Added ${params.category} to budget: $${params.estimatedCost}`,
+    message: `Added ${params.category} to budget: ${(params.estimatedCost as number).toLocaleString()}`,
     data: newItem
   };
 }
@@ -254,11 +265,12 @@ async function updateBudgetItem(
     return { success: false, message: "Budget item not found" };
   }
 
+  // Store as string in dollars (matching BudgetRenderer format)
   if (params.estimatedCost !== undefined) {
-    items[itemIndex].totalCost = (params.estimatedCost as number) * 100;
+    items[itemIndex].totalCost = String(params.estimatedCost);
   }
   if (params.amountPaid !== undefined) {
-    items[itemIndex].amountPaid = (params.amountPaid as number) * 100;
+    items[itemIndex].amountPaid = String(params.amountPaid);
   }
   if (params.vendor !== undefined) {
     items[itemIndex].vendor = params.vendor;
@@ -288,19 +300,58 @@ async function deleteBudgetItem(
   let itemIndex = -1;
   let deletedItem: Record<string, unknown> | null = null;
 
+  // Normalize search strings for comparison
+  const normalize = (s: string | undefined | null) => 
+    (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
   // Find by ID first
   if (params.itemId) {
     itemIndex = items.findIndex(i => i.id === params.itemId);
   }
-  // Fall back to category match
-  else if (params.category) {
+  
+  // Try vendor name match (exact or partial)
+  if (itemIndex === -1 && params.vendor) {
+    const searchVendor = normalize(params.vendor as string);
     itemIndex = items.findIndex(i => 
-      (i.category as string)?.toLowerCase() === (params.category as string).toLowerCase()
+      normalize(i.vendor as string) === searchVendor ||
+      normalize(i.vendor as string).includes(searchVendor) ||
+      searchVendor.includes(normalize(i.vendor as string))
     );
+  }
+  
+  // Try category match (flexible - handles "Wedding Attire" vs "attire")
+  if (itemIndex === -1 && params.category) {
+    const searchCategory = normalize(params.category as string);
+    itemIndex = items.findIndex(i => {
+      const itemCategory = normalize(i.category as string);
+      // Exact match after normalization
+      if (itemCategory === searchCategory) return true;
+      // Check if one contains the other (e.g., "weddingattire" contains "attire")
+      if (itemCategory.includes(searchCategory) || searchCategory.includes(itemCategory)) return true;
+      return false;
+    });
+  }
+
+  // Try matching by amount (useful for finding specific items)
+  if (itemIndex === -1 && params.amount) {
+    const searchAmount = params.amount as number;
+    // Check both dollars and cents (in case of mixed formats)
+    itemIndex = items.findIndex(i => {
+      const cost = i.totalCost as number;
+      return cost === searchAmount || cost === searchAmount * 100 || cost === searchAmount / 100;
+    });
   }
 
   if (itemIndex === -1) {
-    return { success: false, message: "Budget item not found" };
+    // Provide helpful error with available items
+    const itemList = items.map(i => {
+      const cost = parseFloat(String(i.totalCost)) || 0;
+      return `${i.category || "Unknown"} - ${i.vendor || "No vendor"} (${cost.toLocaleString()})`;
+    }).join(", ");
+    return { 
+      success: false, 
+      message: `Budget item not found. Available items: ${itemList || "none"}` 
+    };
   }
 
   deletedItem = items[itemIndex];
@@ -310,9 +361,12 @@ async function deleteBudgetItem(
     .set({ fields: { ...fields, items }, updatedAt: new Date() })
     .where(eq(pages.id, pageId));
 
+  // Format the cost - values are stored in dollars as strings
+  const cost = parseFloat(String(deletedItem.totalCost)) || 0;
+
   return {
     success: true,
-    message: `Removed ${deletedItem.category} ($${((deletedItem.totalCost as number) / 100).toLocaleString()}) from budget`,
+    message: `Removed ${deletedItem.vendor || deletedItem.category} (${cost.toLocaleString()}) from budget`,
     data: deletedItem
   };
 }
@@ -322,20 +376,21 @@ async function setTotalBudget(
   context: ToolContext
 ): Promise<ToolResult> {
   const { pageId, fields } = await getOrCreatePage(context.tenantId, "budget");
-  const amount = (params.amount as number) * 100; // Convert to cents
+  // Store as string in dollars (matching BudgetRenderer format)
+  const amount = params.amount as number;
 
   await db.update(pages)
-    .set({ fields: { ...fields, totalBudget: amount }, updatedAt: new Date() })
+    .set({ fields: { ...fields, totalBudget: String(amount) }, updatedAt: new Date() })
     .where(eq(pages.id, pageId));
 
-  // Also update kernel
+  // Also update kernel (kernel uses cents for historical reasons)
   await db.update(weddingKernels)
-    .set({ budgetTotal: amount, updatedAt: new Date() })
+    .set({ budgetTotal: amount * 100, updatedAt: new Date() })
     .where(eq(weddingKernels.tenantId, context.tenantId));
 
   return {
     success: true,
-    message: `Total budget set to $${params.amount}`,
+    message: `Total budget set to ${amount.toLocaleString()}`,
     data: { totalBudget: amount }
   };
 }
@@ -495,6 +550,229 @@ async function addGuestGroup(
     success: true,
     message: `Added ${guestNames.length} guests to the list`,
     data: newGuests
+  };
+}
+
+// ============================================================================
+// RSVP TOOLS
+// ============================================================================
+
+function generateSlug(displayName: string): string {
+  return displayName
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .slice(0, 50);
+}
+
+async function createRsvpLink(
+  params: Record<string, unknown>,
+  context: ToolContext
+): Promise<ToolResult> {
+  // Get the guest list page (RSVP forms are linked to guest list pages)
+  const { pageId } = await getOrCreatePage(context.tenantId, "guest-list");
+
+  // Get tenant for slug generation
+  const tenant = await db.query.tenants.findFirst({
+    where: eq(tenants.id, context.tenantId)
+  });
+
+  if (!tenant) {
+    return { success: false, message: "Tenant not found" };
+  }
+
+  // Build the fields configuration
+  const fields = {
+    name: true, // Always required
+    email: params.collectEmail !== false, // Default true
+    phone: params.collectPhone === true, // Default false
+    address: params.collectAddress !== false, // Default true
+    attending: true, // Always include RSVP status
+    mealChoice: params.collectMealChoice === true,
+    dietaryRestrictions: params.collectDietaryRestrictions === true,
+    plusOne: params.collectPlusOne === true,
+    plusOneName: params.collectPlusOne === true,
+    plusOneMeal: params.collectPlusOne === true && params.collectMealChoice === true,
+    songRequest: params.collectSongRequest === true,
+    notes: true, // Always include notes
+  };
+
+  const mealOptions = (params.mealOptions as string[]) || [];
+
+  // Check if form already exists
+  const existingForm = await db.query.rsvpForms.findFirst({
+    where: and(
+      eq(rsvpForms.pageId, pageId),
+      eq(rsvpForms.tenantId, context.tenantId)
+    )
+  });
+
+  if (existingForm) {
+    // Update existing form
+    const [updatedForm] = await db
+      .update(rsvpForms)
+      .set({
+        fields,
+        mealOptions,
+        updatedAt: new Date(),
+      })
+      .where(eq(rsvpForms.id, existingForm.id))
+      .returning();
+
+    const link = `${process.env.NEXTAUTH_URL || "https://aisleboard.com"}/rsvp/${updatedForm.slug}`;
+
+    return {
+      success: true,
+      message: `Your RSVP link has been updated! Share this with your guests:\n\n**${link}**`,
+      data: { slug: updatedForm.slug, link, fields, mealOptions }
+    };
+  }
+
+  // Generate slug from couple names
+  const baseSlug = generateSlug(tenant.displayName || "wedding");
+  let slug = baseSlug;
+
+  // Check if slug exists
+  const slugExists = await db.query.rsvpForms.findFirst({
+    where: eq(rsvpForms.slug, slug)
+  });
+
+  if (slugExists) {
+    slug = `${baseSlug}-${context.tenantId.slice(-4)}`;
+  }
+
+  // Create new RSVP form
+  const [newForm] = await db
+    .insert(rsvpForms)
+    .values({
+      tenantId: context.tenantId,
+      pageId,
+      slug,
+      title: "RSVP",
+      weddingDate: tenant.weddingDate,
+      fields,
+      mealOptions,
+    })
+    .returning();
+
+  const link = `${process.env.NEXTAUTH_URL || "https://aisleboard.com"}/rsvp/${newForm.slug}`;
+
+  return {
+    success: true,
+    message: `I've created your RSVP link! Share this with your guests:\n\n**${link}**\n\nGuests can use this to submit their name, ${params.collectAddress !== false ? "address, " : ""}${params.collectMealChoice ? "meal choice, " : ""}and RSVP status.`,
+    data: { slug: newForm.slug, link, fields, mealOptions }
+  };
+}
+
+async function getRsvpLink(
+  params: Record<string, unknown>,
+  context: ToolContext
+): Promise<ToolResult> {
+  // Find existing RSVP form for this tenant
+  const form = await db.query.rsvpForms.findFirst({
+    where: eq(rsvpForms.tenantId, context.tenantId)
+  });
+
+  if (!form) {
+    return {
+      success: false,
+      message: "You don't have an RSVP link yet. Would you like me to create one for you?"
+    };
+  }
+
+  const link = `${process.env.NEXTAUTH_URL || "https://aisleboard.com"}/rsvp/${form.slug}`;
+
+  // Get response count
+  const responses = await db.query.rsvpResponses.findMany({
+    where: eq(rsvpResponses.formId, form.id)
+  });
+
+  const attending = responses.filter(r => r.attending === true).length;
+  const notAttending = responses.filter(r => r.attending === false).length;
+  const pending = responses.filter(r => r.attending === null).length;
+
+  let statsMessage = "";
+  if (responses.length > 0) {
+    statsMessage = `\n\nSo far: ${attending} attending, ${notAttending} not attending, ${pending} haven't responded yet.`;
+  }
+
+  return {
+    success: true,
+    message: `Here's your RSVP link:\n\n**${link}**${statsMessage}`,
+    data: { slug: form.slug, link, responseCount: responses.length }
+  };
+}
+
+async function getRsvpResponses(
+  params: Record<string, unknown>,
+  context: ToolContext
+): Promise<ToolResult> {
+  // Find RSVP form for this tenant
+  const form = await db.query.rsvpForms.findFirst({
+    where: eq(rsvpForms.tenantId, context.tenantId)
+  });
+
+  if (!form) {
+    return {
+      success: false,
+      message: "You don't have an RSVP form yet. Would you like me to create one?"
+    };
+  }
+
+  // Get all responses
+  const responses = await db.query.rsvpResponses.findMany({
+    where: eq(rsvpResponses.formId, form.id),
+    orderBy: (responses, { desc }) => [desc(responses.createdAt)]
+  });
+
+  if (responses.length === 0) {
+    return {
+      success: true,
+      message: "No responses yet! Make sure to share your RSVP link with your guests.",
+      data: { responses: [], stats: { total: 0, attending: 0, notAttending: 0, pending: 0 } }
+    };
+  }
+
+  const attending = responses.filter(r => r.attending === true);
+  const notAttending = responses.filter(r => r.attending === false);
+  const pending = responses.filter(r => r.attending === null);
+
+  let message = `**RSVP Summary:**\n`;
+  message += `• ${attending.length} attending`;
+  if (attending.length > 0) {
+    message += `: ${attending.slice(0, 5).map(r => r.name).join(", ")}${attending.length > 5 ? ` and ${attending.length - 5} more` : ""}`;
+  }
+  message += `\n• ${notAttending.length} not attending`;
+  message += `\n• ${pending.length} haven't responded yet`;
+  message += `\n\n**Total responses:** ${responses.length}`;
+
+  // Check for dietary restrictions
+  const dietary = responses.filter(r => r.dietaryRestrictions).map(r => ({
+    name: r.name,
+    restriction: r.dietaryRestrictions
+  }));
+
+  if (dietary.length > 0) {
+    message += `\n\n**Dietary restrictions:**`;
+    dietary.forEach(d => {
+      message += `\n• ${d.name}: ${d.restriction}`;
+    });
+  }
+
+  return {
+    success: true,
+    message,
+    data: {
+      responses,
+      stats: {
+        total: responses.length,
+        attending: attending.length,
+        notAttending: notAttending.length,
+        pending: pending.length
+      }
+    }
   };
 }
 

@@ -87,7 +87,7 @@ function ChoosePlanContent() {
       if (data.valid) {
         setPromoResult(data);
         if (data.type === "free") {
-          toast.success("🎉 Free membership code applied!");
+          toast.success("Free membership code applied!");
         } else {
           toast.success(`${data.description} applied!`);
         }
@@ -152,7 +152,7 @@ function ChoosePlanContent() {
             body: JSON.stringify({ onboardingComplete: true }),
           });
 
-          toast.success("🎉 " + data.message);
+          toast.success(data.message);
           redditPixel.trackPurchase(0);
           router.push("/welcome");
           return;
@@ -410,8 +410,8 @@ function ChoosePlanContent() {
             )}
           </div>
           {promoResult?.valid && (
-            <p className="text-sm text-green-600 mt-2 text-center">
-              ✓ {promoResult.type === "free" ? "Free membership code applied!" : `${promoResult.description} applied!`}
+            <p className="text-sm text-green-600 mt-2 text-center flex items-center justify-center gap-1">
+              <Check className="w-4 h-4" /> {promoResult.type === "free" ? "Free membership code applied!" : `${promoResult.description} applied!`}
             </p>
           )}
         </div>

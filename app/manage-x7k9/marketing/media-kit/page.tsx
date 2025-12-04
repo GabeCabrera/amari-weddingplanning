@@ -371,9 +371,9 @@ function PinterestPin() {
           Budget tracker, guest list, seating charts, timeline & more
         </p>
         <div className="space-y-2 text-left text-sm text-warm-600">
-          <p>✓ No monthly fees</p>
-          <p>✓ No vendor ads</p>
-          <p>✓ Plan together</p>
+          <p className="flex items-center gap-2"><svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg> No monthly fees</p>
+          <p className="flex items-center gap-2"><svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg> No vendor ads</p>
+          <p className="flex items-center gap-2"><svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg> Plan together</p>
         </div>
       </div>
       

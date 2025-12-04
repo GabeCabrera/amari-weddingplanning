@@ -112,7 +112,7 @@ export const tools: ToolDefinition[] = [
   },
   {
     name: "delete_budget_item",
-    description: "Remove a budget item. Use when user says to remove, delete, or cancel an expense.",
+    description: "Remove a budget item. Use when user says to remove, delete, or cancel an expense. Can search by ID, vendor name, category, or amount.",
     parameters: {
       type: "object",
       properties: {
@@ -120,9 +120,17 @@ export const tools: ToolDefinition[] = [
           type: "string",
           description: "The ID of the budget item to delete"
         },
+        vendor: {
+          type: "string",
+          description: "Vendor name to search for (partial match supported)"
+        },
         category: {
           type: "string",
-          description: "If no itemId, delete by category name"
+          description: "Category name to search for (e.g., 'attire', 'rings', 'Wedding Attire')"
+        },
+        amount: {
+          type: "number",
+          description: "Cost amount in dollars to match (useful for finding specific items)"
         }
       },
       required: []
@@ -260,6 +268,71 @@ export const tools: ToolDefinition[] = [
         }
       },
       required: ["guests"]
+    }
+  },
+
+  // ----------------------------------------
+  // RSVP TOOLS
+  // ----------------------------------------
+  {
+    name: "create_rsvp_link",
+    description: "Create a shareable RSVP link for guests to submit their information (address, meal choice, attendance, etc). Use when the user wants to collect guest information or create a form for guests to RSVP.",
+    parameters: {
+      type: "object",
+      properties: {
+        collectEmail: {
+          type: "boolean",
+          description: "Whether to collect email addresses (default true)"
+        },
+        collectPhone: {
+          type: "boolean",
+          description: "Whether to collect phone numbers (default false)"
+        },
+        collectAddress: {
+          type: "boolean",
+          description: "Whether to collect mailing addresses (default true)"
+        },
+        collectMealChoice: {
+          type: "boolean",
+          description: "Whether to collect meal preferences (default false)"
+        },
+        collectDietaryRestrictions: {
+          type: "boolean",
+          description: "Whether to collect dietary restrictions (default false)"
+        },
+        collectPlusOne: {
+          type: "boolean",
+          description: "Whether to ask about plus ones (default false)"
+        },
+        collectSongRequest: {
+          type: "boolean",
+          description: "Whether to collect song requests (default false)"
+        },
+        mealOptions: {
+          type: "array",
+          description: "List of meal options if collecting meal choice (e.g., ['Chicken', 'Fish', 'Vegetarian'])",
+          items: { type: "string", description: "Meal option" }
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: "get_rsvp_link",
+    description: "Get the existing RSVP link for sharing with guests. Use when the user asks for their RSVP link or wants to share it.",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: []
+    }
+  },
+  {
+    name: "get_rsvp_responses",
+    description: "Get a summary of RSVP responses received so far.",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: []
     }
   },
 

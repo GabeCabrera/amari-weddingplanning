@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Sparkles, Check, ArrowRight } from "lucide-react";
+import { Sparkles, Check, ArrowRight, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import * as redditPixel from "@/lib/reddit-pixel";
@@ -78,7 +78,7 @@ function SubscriptionSuccessContent() {
       <main className="min-h-screen flex items-center justify-center px-8">
         <div className="text-center max-w-md">
           <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">⚠️</span>
+            <AlertTriangle className="w-8 h-8 text-red-500" />
           </div>
           <h1 className="text-2xl font-serif text-warm-800 mb-2">Something went wrong</h1>
           <p className="text-warm-600 mb-6">{error}</p>

@@ -568,7 +568,7 @@ export function GuestListRenderer({ page, fields, updateField, allPages }: Rende
                           onClick={() => removeMealOption(option)}
                           className="text-warm-400 hover:text-warm-600"
                         >
-                          ×
+                          <X className="w-3 h-3" />
                         </button>
                       </span>
                     ))}
@@ -649,7 +649,7 @@ export function GuestListRenderer({ page, fields, updateField, allPages }: Rende
                           onClick={() => removeMealOption(option)}
                           className="text-warm-400 hover:text-warm-600"
                         >
-                          ×
+                          <X className="w-3 h-3" />
                         </button>
                       </span>
                     ))}

@@ -484,14 +484,14 @@ export function BudgetRenderer({ page, fields, updateField, allPages }: Renderer
                 <p className="text-sm font-medium text-warm-700 mb-1">Smart Insights</p>
                 <div className="space-y-1">
                   {calculations.insights.slice(0, 2).map((insight, idx) => (
-                    <p key={idx} className={`text-sm ${
+                    <p key={idx} className={`text-sm flex items-center gap-1.5 ${
                       insight.type === "warning" ? "text-amber-700" :
                       insight.type === "success" ? "text-green-700" :
                       "text-warm-600"
                     }`}>
-                      {insight.type === "warning" && "⚠️ "}
-                      {insight.type === "success" && "✓ "}
-                      {insight.type === "tip" && "💡 "}
+                      {insight.type === "warning" && <AlertCircle className="w-4 h-4" />}
+                      {insight.type === "success" && <CheckCircle2 className="w-4 h-4" />}
+                      {insight.type === "tip" && <Lightbulb className="w-4 h-4" />}
                       {insight.message}
                     </p>
                   ))}
@@ -786,7 +786,7 @@ export function BudgetRenderer({ page, fields, updateField, allPages }: Renderer
                                   >
                                     <option value="none">No Contract</option>
                                     <option value="pending">Pending Signature</option>
-                                    <option value="signed">Signed ✓</option>
+                                    <option value="signed">Signed</option>
                                     <option value="completed">Completed</option>
                                   </select>
                                 </div>

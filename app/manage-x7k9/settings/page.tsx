@@ -16,6 +16,7 @@ import {
   Copy,
   UserPlus,
   Sparkles,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -261,7 +262,7 @@ export default function SettingsPage() {
                 onClick={() => setShowNewForm(false)}
                 className="text-warm-400 hover:text-warm-600"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>

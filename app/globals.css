@@ -84,8 +84,21 @@
 }
 
 /* Focus styles - softer ring */
-*:focus-visible {
+/* Exclude form inputs which have their own focus styles */
+*:focus-visible:not(input):not(textarea):not(select):not(button) {
   @apply outline-none ring-2 ring-stone-400/50 ring-offset-2 ring-offset-canvas;
+}
+
+/* Form inputs get subtle focus without offset (respects border-radius) */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  @apply outline-none;
+}
+
+/* Buttons get subtle focus */
+button:focus-visible {
+  @apply outline-none ring-2 ring-stone-400/30 ring-offset-0;
 }
 
 /* Selection color */
