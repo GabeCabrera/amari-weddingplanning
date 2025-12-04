@@ -15,6 +15,75 @@ import {
 } from "lucide-react";
 
 /**
+ * Animated wave glow for bottom of screen
+ */
+function WaveGlow() {
+  return (
+    <div className="fixed bottom-0 left-0 right-0 h-48 pointer-events-none z-[5] overflow-hidden">
+      {/* Primary wave */}
+      <div 
+        className="absolute inset-0 animate-wave-slow"
+        style={{
+          background: 'radial-gradient(ellipse 100% 80% at 50% 120%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.2) 40%, transparent 70%)',
+          filter: 'blur(40px)',
+        }}
+      />
+      {/* Secondary wave - offset timing */}
+      <div 
+        className="absolute inset-0 animate-wave-medium"
+        style={{
+          background: 'radial-gradient(ellipse 80% 60% at 40% 110%, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.15) 50%, transparent 70%)',
+          filter: 'blur(35px)',
+        }}
+      />
+      {/* Tertiary wave - different position */}
+      <div 
+        className="absolute inset-0 animate-wave-fast"
+        style={{
+          background: 'radial-gradient(ellipse 70% 50% at 60% 115%, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.1) 45%, transparent 65%)',
+          filter: 'blur(30px)',
+        }}
+      />
+      <style jsx>{`
+        @keyframes wave-slow {
+          0%, 100% {
+            transform: translateX(-5%) translateY(0%);
+          }
+          50% {
+            transform: translateX(5%) translateY(-8%);
+          }
+        }
+        @keyframes wave-medium {
+          0%, 100% {
+            transform: translateX(3%) translateY(-3%);
+          }
+          50% {
+            transform: translateX(-4%) translateY(5%);
+          }
+        }
+        @keyframes wave-fast {
+          0%, 100% {
+            transform: translateX(-2%) translateY(5%);
+          }
+          50% {
+            transform: translateX(6%) translateY(-3%);
+          }
+        }
+        .animate-wave-slow {
+          animation: wave-slow 8s ease-in-out infinite;
+        }
+        .animate-wave-medium {
+          animation: wave-medium 6s ease-in-out infinite;
+        }
+        .animate-wave-fast {
+          animation: wave-fast 5s ease-in-out infinite;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/**
  * Aisle App Shell - Modal-based navigation
  * Chat is the main view, everything else opens in modals
  */
@@ -274,6 +343,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-canvas">
+      {/* Animated wave glow */}
+      <WaveGlow />
+      
       {/* Top Header Bar */}
       <header className="fixed top-0 left-0 right-0 h-14 bg-white/80 backdrop-blur-md border-b border-stone-200 z-30 flex items-center justify-between px-4">
         {/* Logo */}
