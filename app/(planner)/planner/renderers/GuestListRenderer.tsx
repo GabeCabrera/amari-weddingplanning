@@ -23,7 +23,24 @@ export function GuestListRenderer({ page, fields, updateField, allPages }: Rende
   const { isFree } = useUserPlan();
   const guests = (fields.guests as Record<string, unknown>[]) || [];
   const [rsvpForm, setRsvpForm] = useState<RsvpFormData | null>(null);
+  const [rsvpResponses, setRsvpResponses] = useState<Array<{
+    id: string;
+    name: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    attending: boolean | null;
+    mealChoice?: string;
+    dietaryRestrictions?: string;
+    plusOne?: boolean;
+    plusOneName?: string;
+    songRequest?: string;
+    notes?: string;
+    syncedToGuestList: boolean;
+    createdAt: string;
+  }>>([]);
   const [isLoadingRsvp, setIsLoadingRsvp] = useState(true);
+  const [isSyncingResponse, setIsSyncingResponse] = useState<string | null>(null);
   const [showRsvpSetup, setShowRsvpSetup] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isCreatingLink, setIsCreatingLink] = useState(false);
@@ -48,7 +65,7 @@ export function GuestListRenderer({ page, fields, updateField, allPages }: Rende
   const [mealOptions, setMealOptions] = useState<string[]>([]);
   const [newMealOption, setNewMealOption] = useState("");
 
-  // Fetch existing RSVP form
+  // Fetch existing RSVP form and responses
   useEffect(() => {
     const fetchRsvpForm = async () => {
       try {
@@ -59,6 +76,8 @@ export function GuestListRenderer({ page, fields, updateField, allPages }: Rende
             setRsvpForm(data);
             setFormFields(data.fields || {});
             setMealOptions(data.mealOptions || []);
+            // Fetch responses if form exists
+            fetchResponses(data.id);
           }
         }
       } catch (error) {
@@ -70,6 +89,19 @@ export function GuestListRenderer({ page, fields, updateField, allPages }: Rende
     fetchRsvpForm();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page.id]);
+
+  // Fetch RSVP responses
+  const fetchResponses = async (formId: string) => {
+    try {
+      const response = await fetch(`/api/rsvp/responses?formId=${formId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setRsvpResponses(data.responses || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch RSVP responses:", error);
+    }
+  };
 
   const createOrUpdateRsvpForm = async (isNew: boolean = false) => {
     if (isNew) setIsCreatingLink(true);
@@ -126,6 +158,72 @@ export function GuestListRenderer({ page, fields, updateField, allPages }: Rende
 
   const removeMealOption = (option: string) => {
     setMealOptions(mealOptions.filter(o => o !== option));
+  };
+
+  // Sync an RSVP response to the guest list
+  const syncResponseToGuest = async (response: typeof rsvpResponses[0]) => {
+    setIsSyncingResponse(response.id);
+    try {
+      // Check if guest already exists by name
+      const existingIndex = guests.findIndex(
+        (g) => (g.name as string)?.toLowerCase() === response.name.toLowerCase()
+      );
+
+      if (existingIndex >= 0) {
+        // Update existing guest
+        const updated = [...guests];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          email: response.email || updated[existingIndex].email,
+          phone: response.phone || updated[existingIndex].phone,
+          address: response.address || updated[existingIndex].address,
+          rsvp: response.attending === true,
+          meal: response.mealChoice || updated[existingIndex].meal,
+          dietaryRestrictions: response.dietaryRestrictions,
+          plusOneName: response.plusOneName,
+          songRequest: response.songRequest,
+        };
+        updateField("guests", updated);
+      } else {
+        // Add new guest
+        const newGuest = {
+          name: response.name,
+          email: response.email || "",
+          phone: response.phone || "",
+          address: response.address || "",
+          rsvp: response.attending === true,
+          meal: response.mealChoice || "",
+          dietaryRestrictions: response.dietaryRestrictions || "",
+          plusOneName: response.plusOneName || "",
+          songRequest: response.songRequest || "",
+          giftReceived: false,
+          thankYouSent: false,
+        };
+        updateField("guests", [...guests, newGuest]);
+      }
+
+      // Mark as synced in the API
+      await fetch(`/api/rsvp/responses/${response.id}`, { method: "POST" });
+      
+      // Update local state
+      setRsvpResponses(prev =>
+        prev.map(r => r.id === response.id ? { ...r, syncedToGuestList: true } : r)
+      );
+      
+      toast.success(`Added ${response.name} to guest list`);
+    } catch (error) {
+      toast.error("Failed to sync response");
+    } finally {
+      setIsSyncingResponse(null);
+    }
+  };
+
+  // Sync all unsynced responses
+  const syncAllResponses = async () => {
+    const unsynced = rsvpResponses.filter(r => !r.syncedToGuestList);
+    for (const response of unsynced) {
+      await syncResponseToGuest(response);
+    }
   };
 
   const addGuest = () => {
@@ -220,6 +318,88 @@ export function GuestListRenderer({ page, fields, updateField, allPages }: Rende
             </div>
           )}
         </div>
+
+        {/* RSVP Responses Section */}
+        {rsvpForm && rsvpResponses.length > 0 && (
+          <div className="mb-6 md:mb-10 p-4 md:p-6 bg-white border border-warm-200 rounded-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+              <div>
+                <h3 className="font-medium text-warm-700">RSVP Responses</h3>
+                <p className="text-sm text-warm-500">
+                  {rsvpResponses.filter(r => r.attending === true).length} attending, {rsvpResponses.filter(r => r.attending === false).length} not attending, {rsvpResponses.filter(r => r.attending === null).length} pending
+                </p>
+              </div>
+              {rsvpResponses.filter(r => !r.syncedToGuestList).length > 0 && (
+                <Button variant="outline" size="sm" onClick={syncAllResponses}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add All to Guest List ({rsvpResponses.filter(r => !r.syncedToGuestList).length})
+                </Button>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              {rsvpResponses.map((response) => (
+                <div
+                  key={response.id}
+                  className={`flex items-center justify-between p-3 rounded-lg border ${
+                    response.attending === true
+                      ? "bg-green-50 border-green-200"
+                      : response.attending === false
+                      ? "bg-red-50 border-red-200"
+                      : "bg-warm-50 border-warm-200"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      response.attending === true
+                        ? "bg-green-100"
+                        : response.attending === false
+                        ? "bg-red-100"
+                        : "bg-warm-100"
+                    }`}>
+                      {response.attending === true ? (
+                        <Check className="w-4 h-4 text-green-600" />
+                      ) : response.attending === false ? (
+                        <X className="w-4 h-4 text-red-600" />
+                      ) : (
+                        <span className="text-sm font-medium text-warm-500">?</span>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-warm-800">{response.name}</p>
+                      <p className="text-xs text-warm-500">
+                        {response.email && response.email}
+                        {response.mealChoice && ` • ${response.mealChoice}`}
+                        {response.plusOneName && ` • +1: ${response.plusOneName}`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {response.syncedToGuestList ? (
+                      <span className="text-xs text-warm-400 px-2 py-1 bg-warm-100 rounded">Added</span>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => syncResponseToGuest(response)}
+                        disabled={isSyncingResponse === response.id}
+                      >
+                        {isSyncingResponse === response.id ? (
+                          "Adding..."
+                        ) : (
+                          <>
+                            <Plus className="w-4 h-4 mr-1" />
+                            Add
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6 md:mb-10">
