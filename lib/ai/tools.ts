@@ -156,7 +156,7 @@ export const tools: ToolDefinition[] = [
   // ----------------------------------------
   {
     name: "add_guest",
-    description: "Add a guest to the wedding guest list.",
+    description: "Add a guest to the wedding guest list. Use when user mentions someone they want to invite.",
     parameters: {
       type: "object",
       properties: {
@@ -172,6 +172,10 @@ export const tools: ToolDefinition[] = [
           type: "string",
           description: "Guest's phone number"
         },
+        address: {
+          type: "string",
+          description: "Mailing address for invitations"
+        },
         side: {
           type: "string",
           description: "Which partner invited them",
@@ -179,15 +183,32 @@ export const tools: ToolDefinition[] = [
         },
         group: {
           type: "string",
-          description: "Guest grouping (family, friends, work, etc.)"
+          description: "Guest grouping (e.g., 'Family', 'College Friends', 'Work', 'Neighborhood')"
         },
         plusOne: {
           type: "boolean",
           description: "Whether they get a plus one"
         },
-        address: {
+        rsvp: {
           type: "string",
-          description: "Mailing address for invitations"
+          description: "RSVP status if known",
+          enum: ["pending", "confirmed", "declined"]
+        },
+        mealChoice: {
+          type: "string",
+          description: "Meal preference if known"
+        },
+        dietaryRestrictions: {
+          type: "string",
+          description: "Any dietary restrictions or allergies"
+        },
+        tableNumber: {
+          type: "number",
+          description: "Assigned table number for seating"
+        },
+        notes: {
+          type: "string",
+          description: "Any notes about this guest"
         }
       },
       required: ["name"]
@@ -195,18 +216,55 @@ export const tools: ToolDefinition[] = [
   },
   {
     name: "update_guest",
-    description: "Update a guest's information or RSVP status.",
+    description: "Update a guest's information. Can find guest by name (partial match supported) or ID. Use when user wants to change guest details, RSVP status, meal choice, table assignment, etc.",
     parameters: {
       type: "object",
       properties: {
+        guestName: {
+          type: "string",
+          description: "Guest's name to search for (partial match supported)"
+        },
         guestId: {
           type: "string",
-          description: "The ID of the guest to update"
+          description: "The ID of the guest to update (if known)"
+        },
+        name: {
+          type: "string",
+          description: "New name for the guest"
+        },
+        email: {
+          type: "string",
+          description: "Updated email address"
+        },
+        phone: {
+          type: "string",
+          description: "Updated phone number"
+        },
+        address: {
+          type: "string",
+          description: "Updated mailing address"
+        },
+        side: {
+          type: "string",
+          description: "Which partner invited them",
+          enum: ["partner1", "partner2", "both"]
+        },
+        group: {
+          type: "string",
+          description: "Updated group assignment"
+        },
+        plusOne: {
+          type: "boolean",
+          description: "Whether they get a plus one"
+        },
+        plusOneName: {
+          type: "string",
+          description: "Name of their plus one"
         },
         rsvp: {
           type: "string",
           description: "RSVP status",
-          enum: ["pending", "yes", "no", "maybe"]
+          enum: ["pending", "confirmed", "declined"]
         },
         mealChoice: {
           type: "string",
@@ -219,14 +277,26 @@ export const tools: ToolDefinition[] = [
         tableNumber: {
           type: "number",
           description: "Assigned table number"
+        },
+        giftReceived: {
+          type: "boolean",
+          description: "Whether a gift has been received from this guest"
+        },
+        thankYouSent: {
+          type: "boolean",
+          description: "Whether a thank you note has been sent"
+        },
+        notes: {
+          type: "string",
+          description: "Any notes about this guest"
         }
       },
-      required: ["guestId"]
+      required: []
     }
   },
   {
     name: "delete_guest",
-    description: "Remove a guest from the guest list. Use when user says someone is no longer invited or to remove a guest.",
+    description: "Remove a guest from the guest list. Can find by name (partial match) or ID. Use when user says someone is no longer invited.",
     parameters: {
       type: "object",
       properties: {
@@ -236,7 +306,7 @@ export const tools: ToolDefinition[] = [
         },
         guestName: {
           type: "string",
-          description: "If no guestId, find and remove by name"
+          description: "Guest's name to search for (partial match supported)"
         }
       },
       required: []
@@ -244,7 +314,7 @@ export const tools: ToolDefinition[] = [
   },
   {
     name: "add_guest_group",
-    description: "Add multiple guests at once (like a family). Use for bulk additions.",
+    description: "Add multiple guests at once (like a family or friend group). Use for bulk additions.",
     parameters: {
       type: "object",
       properties: {
@@ -260,14 +330,69 @@ export const tools: ToolDefinition[] = [
         },
         group: {
           type: "string",
-          description: "Group name (e.g., 'Smith Family')"
+          description: "Group name (e.g., 'Smith Family', 'College Friends')"
         },
         plusOnes: {
           type: "boolean",
           description: "Whether all guests in this group get plus ones"
+        },
+        address: {
+          type: "string",
+          description: "Shared address for the group (useful for families)"
         }
       },
       required: ["guests"]
+    }
+  },
+  {
+    name: "get_guest_list",
+    description: "Get the current guest list with optional filtering. Use to see who's on the list, check RSVPs, see meal choices, etc.",
+    parameters: {
+      type: "object",
+      properties: {
+        filter: {
+          type: "string",
+          description: "Filter type",
+          enum: ["all", "confirmed", "declined", "pending", "no_address", "no_meal", "with_plus_one", "no_thank_you"]
+        },
+        group: {
+          type: "string",
+          description: "Filter by group name"
+        },
+        side: {
+          type: "string",
+          description: "Filter by side",
+          enum: ["partner1", "partner2", "both"]
+        },
+        search: {
+          type: "string",
+          description: "Search by name"
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: "get_guest_stats",
+    description: "Get statistics about the guest list - counts, RSVPs, meal choices, etc. Use when user asks 'how many guests', 'who has RSVPed', 'meal count', etc.",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: []
+    }
+  },
+  {
+    name: "sync_rsvp_responses",
+    description: "Sync all unsynced RSVP form responses to the guest list. Use when user wants to import RSVP responses or update guest list from form submissions.",
+    parameters: {
+      type: "object",
+      properties: {
+        onlyNew: {
+          type: "boolean",
+          description: "Only sync responses that haven't been synced yet (default true)"
+        }
+      },
+      required: []
     }
   },
 

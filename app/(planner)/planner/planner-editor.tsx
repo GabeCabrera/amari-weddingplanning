@@ -37,7 +37,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface PlannerEditorProps {
   plannerId: string;
@@ -70,9 +70,53 @@ function PlannerEditorContent({
     deletePage,
     reorderPages,
     selectedPage,
+    refreshFromServer,
   } = usePlanner();
 
   const { pages, isSaving, pendingSaves, lastSaved } = state;
+  
+  // Track page timestamps for change detection
+  const lastTimestampsRef = useRef<Record<string, string>>({});
+  
+  // Poll for changes every 3 seconds when not actively saving
+  useEffect(() => {
+    // Initialize timestamps
+    pages.forEach(p => {
+      lastTimestampsRef.current[p.id] = p.updatedAt?.toISOString() || "";
+    });
+    
+    const pollInterval = setInterval(async () => {
+      // Don't poll if we're in the middle of saving
+      if (pendingSaves.size > 0 || isSaving) return;
+      
+      try {
+        const response = await fetch("/api/planner/pages/timestamps");
+        if (response.ok) {
+          const timestamps = await response.json();
+          
+          // Check if any timestamps have changed
+          let hasChanges = false;
+          for (const [pageId, timestamp] of Object.entries(timestamps)) {
+            if (lastTimestampsRef.current[pageId] !== timestamp) {
+              hasChanges = true;
+              break;
+            }
+          }
+          
+          if (hasChanges) {
+            console.log("[Planner] Detected external changes, refreshing...");
+            await refreshFromServer();
+            // Update our stored timestamps
+            Object.assign(lastTimestampsRef.current, timestamps);
+          }
+        }
+      } catch (e) {
+        // Silently ignore polling errors
+      }
+    }, 3000);
+    
+    return () => clearInterval(pollInterval);
+  }, [pendingSaves.size, isSaving, refreshFromServer, pages]);
   
   // Mobile state
   const [isMobile, setIsMobile] = useState(false);

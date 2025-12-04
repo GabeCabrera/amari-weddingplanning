@@ -68,6 +68,12 @@ export async function executeToolCall(
         return await deleteGuest(parameters, context);
       case "add_guest_group":
         return await addGuestGroup(parameters, context);
+      case "get_guest_list":
+        return await getGuestList(parameters, context);
+      case "get_guest_stats":
+        return await getGuestStats(parameters, context);
+      case "sync_rsvp_responses":
+        return await syncRsvpResponses(parameters, context);
 
       // RSVP tools
       case "create_rsvp_link":
@@ -399,24 +405,63 @@ async function setTotalBudget(
 // GUEST TOOLS
 // ============================================================================
 
+interface GuestData {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  side?: string;
+  group?: string;
+  plusOne?: boolean;
+  plusOneName?: string;
+  rsvp?: string; // "pending" | "confirmed" | "declined"
+  mealChoice?: string;
+  dietaryRestrictions?: string;
+  tableNumber?: number;
+  giftReceived?: boolean;
+  thankYouSent?: boolean;
+  notes?: string;
+  createdAt?: string;
+}
+
 async function addGuest(
   params: Record<string, unknown>,
   context: ToolContext
 ): Promise<ToolResult> {
   const { pageId, fields } = await getOrCreatePage(context.tenantId, "guest-list");
   
-  const guests = (fields.guests as Array<Record<string, unknown>>) || [];
+  const guests = (fields.guests as GuestData[]) || [];
   
-  const newGuest = {
+  // Check if guest already exists (by name)
+  const existingGuest = guests.find(
+    g => g.name?.toLowerCase() === (params.name as string)?.toLowerCase()
+  );
+  
+  if (existingGuest) {
+    return {
+      success: false,
+      message: `${params.name} is already on the guest list. Use update_guest to modify their info.`
+    };
+  }
+  
+  const newGuest: GuestData = {
     id: crypto.randomUUID(),
-    name: params.name,
-    email: params.email || "",
-    phone: params.phone || "",
-    address: params.address || "",
-    side: params.side || "both",
-    group: params.group || "",
-    plusOne: params.plusOne || false,
-    rsvp: "pending",
+    name: params.name as string,
+    email: (params.email as string) || "",
+    phone: (params.phone as string) || "",
+    address: (params.address as string) || "",
+    side: (params.side as string) || "both",
+    group: (params.group as string) || "",
+    plusOne: (params.plusOne as boolean) || false,
+    plusOneName: "",
+    rsvp: (params.rsvp as string) || "pending",
+    mealChoice: (params.mealChoice as string) || "",
+    dietaryRestrictions: (params.dietaryRestrictions as string) || "",
+    tableNumber: params.tableNumber as number | undefined,
+    giftReceived: false,
+    thankYouSent: false,
+    notes: (params.notes as string) || "",
     createdAt: new Date().toISOString()
   };
 
@@ -431,10 +476,15 @@ async function addGuest(
     .set({ guestCount: guests.length, updatedAt: new Date() })
     .where(eq(weddingKernels.tenantId, context.tenantId));
 
+  const extras: string[] = [];
+  if (params.group) extras.push(`group: ${params.group}`);
+  if (params.plusOne) extras.push("with plus one");
+  if (params.rsvp === "confirmed") extras.push("confirmed");
+  
   return {
     success: true,
-    message: `Added ${params.name} to guest list`,
-    data: newGuest
+    message: `Added ${params.name} to guest list${extras.length ? ` (${extras.join(", ")})` : ""}. Total guests: ${guests.length}`,
+    data: { guest: newGuest, totalGuests: guests.length, pageId }
   };
 }
 
@@ -444,19 +494,103 @@ async function updateGuest(
 ): Promise<ToolResult> {
   const { pageId, fields } = await getOrCreatePage(context.tenantId, "guest-list");
   
-  const guests = (fields.guests as Array<Record<string, unknown>>) || [];
-  const guestIndex = guests.findIndex(g => g.id === params.guestId);
+  const guests = (fields.guests as GuestData[]) || [];
+  let guestIndex = -1;
 
-  if (guestIndex === -1) {
-    return { success: false, message: "Guest not found" };
+  // Find by ID first
+  if (params.guestId) {
+    guestIndex = guests.findIndex(g => g.id === params.guestId);
+  }
+  // Find by name (partial match, case insensitive)
+  else if (params.guestName) {
+    const searchName = (params.guestName as string).toLowerCase();
+    // Try exact match first
+    guestIndex = guests.findIndex(g => 
+      g.name?.toLowerCase() === searchName
+    );
+    // Then try partial match
+    if (guestIndex === -1) {
+      guestIndex = guests.findIndex(g => 
+        g.name?.toLowerCase().includes(searchName) ||
+        searchName.includes(g.name?.toLowerCase() || "")
+      );
+    }
   }
 
-  // Update fields that were provided
-  Object.keys(params).forEach(key => {
-    if (key !== "guestId" && params[key] !== undefined) {
-      guests[guestIndex][key] = params[key];
-    }
-  });
+  if (guestIndex === -1) {
+    const guestNames = guests.slice(0, 10).map(g => g.name).join(", ");
+    return { 
+      success: false, 
+      message: `Guest not found. Available guests: ${guestNames || "none"}${guests.length > 10 ? `... and ${guests.length - 10} more` : ""}` 
+    };
+  }
+
+  const guest = guests[guestIndex];
+  const updates: string[] = [];
+
+  // Update all provided fields
+  if (params.name !== undefined) {
+    guest.name = params.name as string;
+    updates.push("name");
+  }
+  if (params.email !== undefined) {
+    guest.email = params.email as string;
+    updates.push("email");
+  }
+  if (params.phone !== undefined) {
+    guest.phone = params.phone as string;
+    updates.push("phone");
+  }
+  if (params.address !== undefined) {
+    guest.address = params.address as string;
+    updates.push("address");
+  }
+  if (params.side !== undefined) {
+    guest.side = params.side as string;
+    updates.push("side");
+  }
+  if (params.group !== undefined) {
+    guest.group = params.group as string;
+    updates.push("group");
+  }
+  if (params.plusOne !== undefined) {
+    guest.plusOne = params.plusOne as boolean;
+    updates.push("plus one");
+  }
+  if (params.plusOneName !== undefined) {
+    guest.plusOneName = params.plusOneName as string;
+    updates.push("plus one name");
+  }
+  if (params.rsvp !== undefined) {
+    guest.rsvp = params.rsvp as string;
+    updates.push(`RSVP: ${params.rsvp}`);
+  }
+  if (params.mealChoice !== undefined) {
+    guest.mealChoice = params.mealChoice as string;
+    updates.push(`meal: ${params.mealChoice}`);
+  }
+  if (params.dietaryRestrictions !== undefined) {
+    guest.dietaryRestrictions = params.dietaryRestrictions as string;
+    updates.push("dietary restrictions");
+  }
+  if (params.tableNumber !== undefined) {
+    guest.tableNumber = params.tableNumber as number;
+    updates.push(`table ${params.tableNumber}`);
+  }
+  if (params.giftReceived !== undefined) {
+    guest.giftReceived = params.giftReceived as boolean;
+    updates.push(params.giftReceived ? "gift received" : "gift not received");
+  }
+  if (params.thankYouSent !== undefined) {
+    guest.thankYouSent = params.thankYouSent as boolean;
+    updates.push(params.thankYouSent ? "thank you sent" : "thank you not sent");
+  }
+  if (params.notes !== undefined) {
+    guest.notes = params.notes as string;
+    updates.push("notes");
+  }
+
+  guests[guestIndex] = guest;
 
   await db.update(pages)
     .set({ fields: { ...fields, guests }, updatedAt: new Date() })
@@ -464,8 +598,8 @@ async function updateGuest(
 
   return {
     success: true,
-    message: `Updated guest: ${guests[guestIndex].name}`,
-    data: guests[guestIndex]
+    message: `Updated ${guest.name}: ${updates.join(", ")}`,
+    data: { guest, pageId }
   };
 }
 
@@ -475,26 +609,38 @@ async function deleteGuest(
 ): Promise<ToolResult> {
   const { pageId, fields } = await getOrCreatePage(context.tenantId, "guest-list");
   
-  const guests = (fields.guests as Array<Record<string, unknown>>) || [];
+  const guests = (fields.guests as GuestData[]) || [];
   let guestIndex = -1;
-  let deletedGuest: Record<string, unknown> | null = null;
 
   // Find by ID first
   if (params.guestId) {
     guestIndex = guests.findIndex(g => g.id === params.guestId);
   }
-  // Fall back to name match (case insensitive)
+  // Find by name (partial match, case insensitive)
   else if (params.guestName) {
+    const searchName = (params.guestName as string).toLowerCase();
+    // Try exact match first
     guestIndex = guests.findIndex(g => 
-      (g.name as string)?.toLowerCase() === (params.guestName as string).toLowerCase()
+      g.name?.toLowerCase() === searchName
     );
+    // Then try partial match
+    if (guestIndex === -1) {
+      guestIndex = guests.findIndex(g => 
+        g.name?.toLowerCase().includes(searchName) ||
+        searchName.includes(g.name?.toLowerCase() || "")
+      );
+    }
   }
 
   if (guestIndex === -1) {
-    return { success: false, message: "Guest not found" };
+    const guestNames = guests.slice(0, 5).map(g => g.name).join(", ");
+    return { 
+      success: false, 
+      message: `Guest not found. Current guests: ${guestNames || "none"}${guests.length > 5 ? `... and ${guests.length - 5} more` : ""}` 
+    };
   }
 
-  deletedGuest = guests[guestIndex];
+  const deletedGuest = guests[guestIndex];
   guests.splice(guestIndex, 1);
 
   await db.update(pages)
@@ -508,8 +654,8 @@ async function deleteGuest(
 
   return {
     success: true,
-    message: `Removed ${deletedGuest.name} from guest list`,
-    data: deletedGuest
+    message: `Removed ${deletedGuest.name} from guest list. Total guests: ${guests.length}`,
+    data: { guest: deletedGuest, totalGuests: guests.length, pageId }
   };
 }
 
@@ -519,22 +665,45 @@ async function addGuestGroup(
 ): Promise<ToolResult> {
   const { pageId, fields } = await getOrCreatePage(context.tenantId, "guest-list");
   
-  const guests = (fields.guests as Array<Record<string, unknown>>) || [];
+  const guests = (fields.guests as GuestData[]) || [];
   const guestNames = params.guests as string[];
-  const newGuests: Array<Record<string, unknown>> = [];
+  const newGuests: GuestData[] = [];
+  const skipped: string[] = [];
 
   for (const name of guestNames) {
-    const newGuest = {
+    // Check if guest already exists
+    const exists = guests.some(g => g.name?.toLowerCase() === name.toLowerCase());
+    if (exists) {
+      skipped.push(name);
+      continue;
+    }
+    
+    const newGuest: GuestData = {
       id: crypto.randomUUID(),
       name,
-      side: params.side || "both",
-      group: params.group || "",
-      plusOne: params.plusOnes || false,
+      email: "",
+      phone: "",
+      address: (params.address as string) || "",
+      side: (params.side as string) || "both",
+      group: (params.group as string) || "",
+      plusOne: (params.plusOnes as boolean) || false,
       rsvp: "pending",
+      mealChoice: "",
+      dietaryRestrictions: "",
+      giftReceived: false,
+      thankYouSent: false,
+      notes: "",
       createdAt: new Date().toISOString()
     };
     guests.push(newGuest);
     newGuests.push(newGuest);
+  }
+
+  if (newGuests.length === 0) {
+    return {
+      success: false,
+      message: `All ${skipped.length} guests are already on the list: ${skipped.join(", ")}`
+    };
   }
 
   await db.update(pages)
@@ -546,10 +715,288 @@ async function addGuestGroup(
     .set({ guestCount: guests.length, updatedAt: new Date() })
     .where(eq(weddingKernels.tenantId, context.tenantId));
 
+  let message = `Added ${newGuests.length} guest${newGuests.length > 1 ? "s" : ""}: ${newGuests.map(g => g.name).join(", ")}`;
+  if (skipped.length > 0) {
+    message += `. Skipped ${skipped.length} (already on list): ${skipped.join(", ")}`;
+  }
+  message += `. Total guests: ${guests.length}`;
+
   return {
     success: true,
-    message: `Added ${guestNames.length} guests to the list`,
-    data: newGuests
+    message,
+    data: { guests: newGuests, totalGuests: guests.length, skipped, pageId }
+  };
+}
+
+async function getGuestList(
+  params: Record<string, unknown>,
+  context: ToolContext
+): Promise<ToolResult> {
+  const { fields } = await getOrCreatePage(context.tenantId, "guest-list");
+  
+  let guests = (fields.guests as GuestData[]) || [];
+  const totalCount = guests.length;
+
+  // Apply filters
+  if (params.filter) {
+    const filter = params.filter as string;
+    switch (filter) {
+      case "confirmed":
+        guests = guests.filter(g => g.rsvp === "confirmed");
+        break;
+      case "declined":
+        guests = guests.filter(g => g.rsvp === "declined");
+        break;
+      case "pending":
+        guests = guests.filter(g => g.rsvp === "pending" || !g.rsvp);
+        break;
+      case "no_address":
+        guests = guests.filter(g => !g.address || g.address.trim() === "");
+        break;
+      case "no_meal":
+        guests = guests.filter(g => !g.mealChoice || g.mealChoice.trim() === "");
+        break;
+      case "with_plus_one":
+        guests = guests.filter(g => g.plusOne === true);
+        break;
+      case "no_thank_you":
+        guests = guests.filter(g => g.giftReceived && !g.thankYouSent);
+        break;
+    }
+  }
+
+  if (params.group) {
+    const searchGroup = (params.group as string).toLowerCase();
+    guests = guests.filter(g => g.group?.toLowerCase().includes(searchGroup));
+  }
+
+  if (params.side) {
+    guests = guests.filter(g => g.side === params.side);
+  }
+
+  if (params.search) {
+    const search = (params.search as string).toLowerCase();
+    guests = guests.filter(g => g.name?.toLowerCase().includes(search));
+  }
+
+  // Format response
+  const guestList = guests.map(g => {
+    let status = "";
+    if (g.rsvp === "confirmed") status = " [confirmed]";
+    else if (g.rsvp === "declined") status = " [declined]";
+    return `${g.name}${status}${g.group ? ` (${g.group})` : ""}`;
+  });
+
+  let message = `**Guest List** (${guests.length}${totalCount !== guests.length ? ` of ${totalCount}` : ""}):\n`;
+  if (guests.length === 0) {
+    message += "\nNo guests match your criteria.";
+  } else if (guests.length <= 20) {
+    message += guestList.map(g => `• ${g}`).join("\n");
+  } else {
+    message += guestList.slice(0, 15).map(g => `• ${g}`).join("\n");
+    message += `\n... and ${guests.length - 15} more`;
+  }
+
+  return {
+    success: true,
+    message,
+    data: { guests, count: guests.length, totalCount }
+  };
+}
+
+async function getGuestStats(
+  params: Record<string, unknown>,
+  context: ToolContext
+): Promise<ToolResult> {
+  const { fields } = await getOrCreatePage(context.tenantId, "guest-list");
+  
+  const guests = (fields.guests as GuestData[]) || [];
+
+  const stats = {
+    total: guests.length,
+    confirmed: guests.filter(g => g.rsvp === "confirmed").length,
+    declined: guests.filter(g => g.rsvp === "declined").length,
+    pending: guests.filter(g => g.rsvp === "pending" || !g.rsvp).length,
+    withPlusOne: guests.filter(g => g.plusOne).length,
+    noAddress: guests.filter(g => !g.address || g.address.trim() === "").length,
+    noMealChoice: guests.filter(g => !g.mealChoice || g.mealChoice.trim() === "").length,
+    giftsReceived: guests.filter(g => g.giftReceived).length,
+    thankYousPending: guests.filter(g => g.giftReceived && !g.thankYouSent).length,
+  };
+
+  // Count meal choices
+  const mealCounts: Record<string, number> = {};
+  guests.forEach(g => {
+    if (g.mealChoice) {
+      mealCounts[g.mealChoice] = (mealCounts[g.mealChoice] || 0) + 1;
+    }
+  });
+
+  // Count by group
+  const groupCounts: Record<string, number> = {};
+  guests.forEach(g => {
+    const group = g.group || "Ungrouped";
+    groupCounts[group] = (groupCounts[group] || 0) + 1;
+  });
+
+  // Count dietary restrictions
+  const dietaryGuests = guests.filter(g => g.dietaryRestrictions);
+
+  let message = `**Guest List Stats:**\n`;
+  message += `• Total: ${stats.total} guests`;
+  if (stats.withPlusOne > 0) {
+    message += ` (${stats.withPlusOne} with plus ones = up to ${stats.total + stats.withPlusOne} attendees)`;
+  }
+  message += `\n• RSVPs: ${stats.confirmed} confirmed, ${stats.declined} declined, ${stats.pending} pending`;
+  
+  if (Object.keys(mealCounts).length > 0) {
+    message += `\n\n**Meal Choices:**`;
+    Object.entries(mealCounts).forEach(([meal, count]) => {
+      message += `\n• ${meal}: ${count}`;
+    });
+    if (stats.noMealChoice > 0) {
+      message += `\n• No choice yet: ${stats.noMealChoice}`;
+    }
+  }
+
+  if (dietaryGuests.length > 0) {
+    message += `\n\n**Dietary Restrictions:** ${dietaryGuests.length} guest${dietaryGuests.length > 1 ? "s" : ""}`;
+    dietaryGuests.slice(0, 5).forEach(g => {
+      message += `\n• ${g.name}: ${g.dietaryRestrictions}`;
+    });
+    if (dietaryGuests.length > 5) {
+      message += `\n... and ${dietaryGuests.length - 5} more`;
+    }
+  }
+
+  if (stats.noAddress > 0) {
+    message += `\n\n**Missing Info:** ${stats.noAddress} guests need addresses`;
+  }
+
+  if (stats.thankYousPending > 0) {
+    message += `\n\n**Thank You Notes:** ${stats.thankYousPending} pending`;
+  }
+
+  return {
+    success: true,
+    message,
+    data: { stats, mealCounts, groupCounts, dietaryGuests }
+  };
+}
+
+async function syncRsvpResponses(
+  params: Record<string, unknown>,
+  context: ToolContext
+): Promise<ToolResult> {
+  const { pageId, fields } = await getOrCreatePage(context.tenantId, "guest-list");
+  
+  // Find RSVP form for this tenant
+  const form = await db.query.rsvpForms.findFirst({
+    where: eq(rsvpForms.tenantId, context.tenantId)
+  });
+
+  if (!form) {
+    return {
+      success: false,
+      message: "No RSVP form found. Create one first with create_rsvp_link."
+    };
+  }
+
+  // Get responses
+  let responses = await db.query.rsvpResponses.findMany({
+    where: eq(rsvpResponses.formId, form.id)
+  });
+
+  // Filter to only unsynced if requested (default)
+  if (params.onlyNew !== false) {
+    responses = responses.filter(r => !r.syncedToGuestList);
+  }
+
+  if (responses.length === 0) {
+    return {
+      success: true,
+      message: params.onlyNew !== false 
+        ? "No new RSVP responses to sync." 
+        : "No RSVP responses found."
+    };
+  }
+
+  const guests = (fields.guests as GuestData[]) || [];
+  const added: string[] = [];
+  const updated: string[] = [];
+
+  for (const response of responses) {
+    // Check if guest already exists by name
+    const existingIndex = guests.findIndex(
+      g => g.name?.toLowerCase() === response.name.toLowerCase()
+    );
+
+    if (existingIndex >= 0) {
+      // Update existing guest
+      const guest = guests[existingIndex];
+      if (response.email) guest.email = response.email;
+      if (response.phone) guest.phone = response.phone;
+      if (response.address) guest.address = response.address;
+      guest.rsvp = response.attending === true ? "confirmed" : response.attending === false ? "declined" : "pending";
+      if (response.mealChoice) guest.mealChoice = response.mealChoice;
+      if (response.dietaryRestrictions) guest.dietaryRestrictions = response.dietaryRestrictions;
+      if (response.plusOneName) guest.plusOneName = response.plusOneName;
+      if (response.songRequest) guest.notes = (guest.notes || "") + (guest.notes ? "\n" : "") + `Song request: ${response.songRequest}`;
+      guests[existingIndex] = guest;
+      updated.push(response.name);
+    } else {
+      // Add new guest
+      const newGuest: GuestData = {
+        id: crypto.randomUUID(),
+        name: response.name,
+        email: response.email || "",
+        phone: response.phone || "",
+        address: response.address || "",
+        side: "both",
+        group: "",
+        plusOne: response.plusOne || false,
+        plusOneName: response.plusOneName || "",
+        rsvp: response.attending === true ? "confirmed" : response.attending === false ? "declined" : "pending",
+        mealChoice: response.mealChoice || "",
+        dietaryRestrictions: response.dietaryRestrictions || "",
+        giftReceived: false,
+        thankYouSent: false,
+        notes: response.songRequest ? `Song request: ${response.songRequest}` : "",
+        createdAt: new Date().toISOString()
+      };
+      guests.push(newGuest);
+      added.push(response.name);
+    }
+
+    // Mark response as synced
+    await db.update(rsvpResponses)
+      .set({ syncedToGuestList: true })
+      .where(eq(rsvpResponses.id, response.id));
+  }
+
+  // Save updated guest list
+  await db.update(pages)
+    .set({ fields: { ...fields, guests }, updatedAt: new Date() })
+    .where(eq(pages.id, pageId));
+
+  // Update kernel guest count
+  await db.update(weddingKernels)
+    .set({ guestCount: guests.length, updatedAt: new Date() })
+    .where(eq(weddingKernels.tenantId, context.tenantId));
+
+  let message = `Synced ${responses.length} RSVP response${responses.length > 1 ? "s" : ""}:`;
+  if (added.length > 0) {
+    message += `\n• Added: ${added.join(", ")}`;
+  }
+  if (updated.length > 0) {
+    message += `\n• Updated: ${updated.join(", ")}`;
+  }
+  message += `\n\nTotal guests: ${guests.length}`;
+
+  return {
+    success: true,
+    message,
+    data: { added, updated, totalGuests: guests.length, pageId }
   };
 }
 

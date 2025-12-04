@@ -35,7 +35,8 @@ type PlannerAction =
   | { type: "ADD_PAGE"; page: Page }
   | { type: "SET_SAVING"; isSaving: boolean }
   | { type: "MARK_SAVED"; pageId: string }
-  | { type: "MARK_PENDING"; pageId: string };
+  | { type: "MARK_PENDING"; pageId: string }
+  | { type: "REFRESH_PAGE"; pageId: string; fields: Record<string, unknown> };
 
 interface PlannerContextType {
   state: PlannerState;
@@ -46,6 +47,7 @@ interface PlannerContextType {
   deletePage: (pageId: string) => Promise<void>;
   reorderPages: (pageIds: string[]) => Promise<void>;
   addPage: (page: Page) => void;
+  refreshFromServer: () => Promise<void>;
   // Computed
   selectedPage: Page | undefined;
   getSharedValue: (key: string) => unknown;
@@ -446,6 +448,28 @@ export function PlannerProvider({
     dispatch({ type: "ADD_PAGE", page });
   }, []);
 
+  // Refresh data from server (used after AI makes changes)
+  const refreshFromServer = useCallback(async () => {
+    try {
+      const response = await fetch("/api/planner/pages/refresh");
+      if (response.ok) {
+        const data = await response.json();
+        if (data.pages) {
+          // Only update if we don't have pending saves
+          if (pendingUpdatesRef.current.size === 0) {
+            dispatch({ type: "SET_PAGES", pages: data.pages });
+            // Restore selected page
+            if (state.selectedPageId) {
+              dispatch({ type: "SELECT_PAGE", pageId: state.selectedPageId });
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Failed to refresh from server:", error);
+    }
+  }, [state.selectedPageId]);
+
   const getSharedValue = useCallback(
     (key: string) => state.sharedData[key],
     [state.sharedData]
@@ -489,6 +513,7 @@ export function PlannerProvider({
     deletePage,
     reorderPages,
     addPage,
+    refreshFromServer,
     selectedPage,
     getSharedValue,
   };
