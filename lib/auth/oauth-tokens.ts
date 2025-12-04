@@ -19,7 +19,7 @@ export interface OAuthTokens {
   scope: string | null;
 }
 
-export interface TokenResult {
+export type TokenResult = {
   success: true;
   tokens: OAuthTokens;
 } | {
