@@ -19,29 +19,29 @@ import {
  */
 function WaveGlow() {
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-48 pointer-events-none z-[5] overflow-hidden">
+    <div className="fixed bottom-0 left-0 right-0 h-64 pointer-events-none z-[100] overflow-hidden">
       {/* Primary wave - rose tint */}
       <div 
         className="absolute inset-0 animate-wave-slow"
         style={{
-          background: 'radial-gradient(ellipse 100% 80% at 50% 120%, rgba(212,166,156,0.4) 0%, rgba(212,166,156,0.15) 40%, transparent 70%)',
-          filter: 'blur(40px)',
+          background: 'radial-gradient(ellipse 120% 100% at 50% 100%, rgba(212,166,156,0.5) 0%, rgba(212,166,156,0.2) 50%, transparent 80%)',
+          filter: 'blur(30px)',
         }}
       />
       {/* Secondary wave - offset timing */}
       <div 
         className="absolute inset-0 animate-wave-medium"
         style={{
-          background: 'radial-gradient(ellipse 80% 60% at 40% 110%, rgba(196,145,138,0.35) 0%, rgba(196,145,138,0.12) 50%, transparent 70%)',
-          filter: 'blur(35px)',
+          background: 'radial-gradient(ellipse 100% 80% at 30% 100%, rgba(196,145,138,0.45) 0%, rgba(196,145,138,0.15) 50%, transparent 75%)',
+          filter: 'blur(25px)',
         }}
       />
       {/* Tertiary wave - sage accent */}
       <div 
         className="absolute inset-0 animate-wave-fast"
         style={{
-          background: 'radial-gradient(ellipse 70% 50% at 60% 115%, rgba(168,184,160,0.3) 0%, rgba(168,184,160,0.1) 45%, transparent 65%)',
-          filter: 'blur(30px)',
+          background: 'radial-gradient(ellipse 90% 70% at 70% 100%, rgba(168,184,160,0.4) 0%, rgba(168,184,160,0.12) 50%, transparent 70%)',
+          filter: 'blur(20px)',
         }}
       />
     </div>
