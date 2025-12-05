@@ -73,39 +73,6 @@ function BreathingLogo({ size = 48 }: { size?: number }) {
   );
 }
 
-// Message avatar with depth
-function Avatar({ isUser }: { isUser: boolean }) {
-  if (isUser) {
-    return (
-      <div 
-        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:scale-110 hover:-translate-y-0.5"
-        style={{
-          background: 'linear-gradient(135deg, #A8B8A0 0%, #6B7F64 100%)',
-          boxShadow: '0 4px 12px -2px rgba(107, 127, 100, 0.4), 0 2px 4px -1px rgba(107, 127, 100, 0.2), inset 0 1px 0 rgba(255,255,255,0.2)',
-        }}
-      >
-        <svg className="w-4.5 h-4.5 text-white drop-shadow-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-        </svg>
-      </div>
-    );
-  }
-  return (
-    <div 
-      className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:scale-110 hover:-translate-y-0.5"
-      style={{
-        background: 'linear-gradient(135deg, #D4A69C 0%, #A67169 100%)',
-        boxShadow: '0 4px 12px -2px rgba(166, 113, 105, 0.4), 0 2px 4px -1px rgba(166, 113, 105, 0.2), inset 0 1px 0 rgba(255,255,255,0.2)',
-      }}
-    >
-      <svg viewBox="0 0 40 40" fill="none" className="w-5 h-5 drop-shadow-sm">
-        <path d="M 4 22 C 4 14, 8 12, 14 12 C 21 12, 24 15, 24 22 C 24 29, 20 32, 14 32 C 7 32, 4 28, 4 22" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" />
-        <path d="M 16 22 C 16 14, 20 12, 26 12 C 33 12, 36 15, 36 22 C 36 29, 32 32, 26 32 C 19 32, 16 28, 16 22" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" />
-      </svg>
-    </div>
-  );
-}
-
 // Typewriter hook for fast typing effect
 function useTypewriter(text: string, isTyping: boolean, speed: number = 8) {
   const [displayedText, setDisplayedText] = useState(isTyping ? "" : text);
@@ -182,7 +149,7 @@ function MessageBubble({
   };
   
   return (
-    <div className={`flex-1 ${isUser ? "flex justify-end" : ""}`}>
+    <div>
       <div 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -484,10 +451,9 @@ export default function ChatPage() {
           )}
           
           {/* Messages */}
-          <div className="space-y-5">
+          <div className="space-y-4">
             {messages.map((msg) => (
-              <div key={msg.id} className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
-                <Avatar isUser={msg.role === "user"} />
+              <div key={msg.id} className={`${msg.role === "user" ? "flex justify-end" : ""}`}>
                 <MessageBubble 
                   content={msg.content} 
                   isUser={msg.role === "user"} 
@@ -519,10 +485,9 @@ export default function ChatPage() {
           
           {/* Error */}
           {error && (
-            <div className="flex gap-3 mt-6">
-              <Avatar isUser={false} />
+            <div className="mt-6">
               <div 
-                className="px-4 py-3 rounded-2xl"
+                className="px-4 py-3 rounded-2xl inline-block"
                 style={{
                   background: 'linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%)',
                   boxShadow: '0 4px 12px -2px rgba(220, 38, 38, 0.15), 0 2px 4px -1px rgba(220, 38, 38, 0.1)',
