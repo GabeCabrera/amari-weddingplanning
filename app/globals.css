@@ -245,3 +245,43 @@ button:focus-visible {
   }
 }
 
+/* Wave glow animations */
+@keyframes wave-slow {
+  0%, 100% {
+    transform: translateX(-5%) translateY(0%);
+  }
+  50% {
+    transform: translateX(5%) translateY(-8%);
+  }
+}
+
+@keyframes wave-medium {
+  0%, 100% {
+    transform: translateX(3%) translateY(-3%);
+  }
+  50% {
+    transform: translateX(-4%) translateY(5%);
+  }
+}
+
+@keyframes wave-fast {
+  0%, 100% {
+    transform: translateX(-2%) translateY(5%);
+  }
+  50% {
+    transform: translateX(6%) translateY(-3%);
+  }
+}
+
+.animate-wave-slow {
+  animation: wave-slow 8s ease-in-out infinite;
+}
+
+.animate-wave-medium {
+  animation: wave-medium 6s ease-in-out infinite;
+}
+
+.animate-wave-fast {
+  animation: wave-fast 5s ease-in-out infinite;
+}
+

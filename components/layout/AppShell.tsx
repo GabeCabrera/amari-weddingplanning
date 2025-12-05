@@ -24,7 +24,7 @@ function WaveGlow() {
       <div 
         className="absolute inset-0 animate-wave-slow"
         style={{
-          background: 'radial-gradient(ellipse 100% 80% at 50% 120%, rgba(212,166,156,0.25) 0%, rgba(212,166,156,0.1) 40%, transparent 70%)',
+          background: 'radial-gradient(ellipse 100% 80% at 50% 120%, rgba(212,166,156,0.4) 0%, rgba(212,166,156,0.15) 40%, transparent 70%)',
           filter: 'blur(40px)',
         }}
       />
@@ -32,7 +32,7 @@ function WaveGlow() {
       <div 
         className="absolute inset-0 animate-wave-medium"
         style={{
-          background: 'radial-gradient(ellipse 80% 60% at 40% 110%, rgba(196,145,138,0.2) 0%, rgba(196,145,138,0.08) 50%, transparent 70%)',
+          background: 'radial-gradient(ellipse 80% 60% at 40% 110%, rgba(196,145,138,0.35) 0%, rgba(196,145,138,0.12) 50%, transparent 70%)',
           filter: 'blur(35px)',
         }}
       />
@@ -40,45 +40,10 @@ function WaveGlow() {
       <div 
         className="absolute inset-0 animate-wave-fast"
         style={{
-          background: 'radial-gradient(ellipse 70% 50% at 60% 115%, rgba(168,184,160,0.18) 0%, rgba(168,184,160,0.06) 45%, transparent 65%)',
+          background: 'radial-gradient(ellipse 70% 50% at 60% 115%, rgba(168,184,160,0.3) 0%, rgba(168,184,160,0.1) 45%, transparent 65%)',
           filter: 'blur(30px)',
         }}
       />
-      <style jsx>{`
-        @keyframes wave-slow {
-          0%, 100% {
-            transform: translateX(-5%) translateY(0%);
-          }
-          50% {
-            transform: translateX(5%) translateY(-8%);
-          }
-        }
-        @keyframes wave-medium {
-          0%, 100% {
-            transform: translateX(3%) translateY(-3%);
-          }
-          50% {
-            transform: translateX(-4%) translateY(5%);
-          }
-        }
-        @keyframes wave-fast {
-          0%, 100% {
-            transform: translateX(-2%) translateY(5%);
-          }
-          50% {
-            transform: translateX(6%) translateY(-3%);
-          }
-        }
-        .animate-wave-slow {
-          animation: wave-slow 8s ease-in-out infinite;
-        }
-        .animate-wave-medium {
-          animation: wave-medium 6s ease-in-out infinite;
-        }
-        .animate-wave-fast {
-          animation: wave-fast 5s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   );
 }
