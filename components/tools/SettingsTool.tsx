@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 
-export default function SettingsPage() {
+export default function SettingsTool() {
   const { data: session } = useSession();
 
   return (

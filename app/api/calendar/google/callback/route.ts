@@ -29,21 +29,21 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error("Google callback: OAuth error from Google", { error });
       return NextResponse.redirect(
-        new URL("/planner?error=google_auth_failed", baseUrl)
+        new URL("/?error=google_auth_failed", baseUrl)
       );
     }
 
     if (!code) {
       console.error("Google callback: Missing authorization code");
       return NextResponse.redirect(
-        new URL("/planner?error=missing_code", baseUrl)
+        new URL("/?error=missing_code", baseUrl)
       );
     }
 
     if (!state) {
       console.error("Google callback: Missing state parameter");
       return NextResponse.redirect(
-        new URL("/planner?error=missing_state", baseUrl)
+        new URL("/?error=missing_state", baseUrl)
       );
     }
 
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     } catch (parseError) {
       console.error("Google callback: Failed to parse state", parseError);
       return NextResponse.redirect(
-        new URL("/planner?error=invalid_state", baseUrl)
+        new URL("/?error=invalid_state", baseUrl)
       );
     }
 
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     if (Date.now() - stateData.timestamp > 3600000) {
       console.error("Google callback: State expired");
       return NextResponse.redirect(
-        new URL("/planner?error=state_expired", baseUrl)
+        new URL("/?error=state_expired", baseUrl)
       );
     }
 
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
     if (!session?.user?.tenantId) {
       console.error("Google callback: No session or tenantId");
       return NextResponse.redirect(
-        new URL("/planner?error=session_expired", baseUrl)
+        new URL("/?error=session_expired", baseUrl)
       );
     }
 
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
         stateTenantId: stateData.tenantId,
       });
       return NextResponse.redirect(
-        new URL("/planner?error=session_mismatch", baseUrl)
+        new URL("/?error=session_mismatch", baseUrl)
       );
     }
 
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
     if (existingConnection) {
       console.log("Google callback: Already connected", { tenantId: stateData.tenantId });
       return NextResponse.redirect(
-        new URL("/planner?message=already_connected", baseUrl)
+        new URL("/?message=already_connected", baseUrl)
       );
     }
 
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
     } catch (tokenError) {
       console.error("Google callback: Failed to exchange code for tokens", tokenError);
       return NextResponse.redirect(
-        new URL("/planner?error=token_exchange_failed", baseUrl)
+        new URL("/?error=token_exchange_failed", baseUrl)
       );
     }
 
@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
     } catch (calendarError) {
       console.error("Google callback: Failed to create calendar", calendarError);
       return NextResponse.redirect(
-        new URL("/planner?error=calendar_creation_failed", baseUrl)
+        new URL("/?error=calendar_creation_failed", baseUrl)
       );
     }
 
@@ -161,7 +161,7 @@ export async function GET(request: NextRequest) {
     } catch (dbError) {
       console.error("Google callback: Failed to save connection", dbError);
       return NextResponse.redirect(
-        new URL("/planner?error=save_connection_failed", baseUrl)
+        new URL("/?error=save_connection_failed", baseUrl)
       );
     }
 
@@ -169,12 +169,12 @@ export async function GET(request: NextRequest) {
 
     // Redirect back to planner with success message
     return NextResponse.redirect(
-      new URL("/planner?message=google_connected", baseUrl)
+      new URL("/?message=google_connected", baseUrl)
     );
   } catch (error) {
     console.error("Google callback: Unexpected error", error);
     return NextResponse.redirect(
-      new URL("/planner?error=connection_failed", baseUrl)
+      new URL("/?error=connection_failed", baseUrl)
     );
   }
 }

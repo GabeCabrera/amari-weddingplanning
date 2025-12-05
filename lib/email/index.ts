@@ -1,6 +1,17 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy-load Resend client to avoid build errors when API key is missing
+let resend: Resend | null = null;
+
+function getResendClient(): Resend | null {
+  if (!process.env.RESEND_API_KEY) {
+    return null;
+  }
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
 
 const FROM_EMAIL = "Aisle <hello@aisleboard.com>";
 const PERSONAL_FROM_EMAIL = "Gabe & Sarah <GabeandSarah@aisleboard.com>";
@@ -379,11 +390,6 @@ function getBroadcastEmail(name: string, unsubscribeToken: string, subject: stri
 // ============================================================================
 
 export async function sendEmail({ to, template, data }: SendEmailOptions) {
-  if (!process.env.RESEND_API_KEY) {
-    console.warn("RESEND_API_KEY not set, skipping email send");
-    return { success: false, error: "Email not configured" };
-  }
-
   let emailContent: { subject: string; html: string };
 
   switch (template) {
@@ -406,8 +412,14 @@ export async function sendEmail({ to, template, data }: SendEmailOptions) {
       return { success: false, error: "Unknown template" };
   }
 
+  const client = getResendClient();
+  if (!client) {
+    console.warn("RESEND_API_KEY not set, skipping email send");
+    return { success: false, error: "Email not configured" };
+  }
+
   try {
-    const result = await resend.emails.send({
+    const result = await client.emails.send({
       from: FROM_EMAIL,
       to,
       subject: emailContent.subject,
@@ -436,7 +448,8 @@ interface SendDirectEmailOptions {
 }
 
 export async function sendDirectEmail({ to, subject, content, replyTo }: SendDirectEmailOptions) {
-  if (!process.env.RESEND_API_KEY) {
+  const client = getResendClient();
+  if (!client) {
     console.warn("RESEND_API_KEY not set, skipping email send");
     return { success: false, error: "Email not configured" };
   }
@@ -485,7 +498,7 @@ export async function sendDirectEmail({ to, subject, content, replyTo }: SendDir
   `;
 
   try {
-    const result = await resend.emails.send({
+    const result = await client.emails.send({
       from: PERSONAL_FROM_EMAIL,
       to,
       subject,

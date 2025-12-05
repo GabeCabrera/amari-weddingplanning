@@ -135,28 +135,28 @@ function ModalContent({ toolId, onClose }: { toolId: string; onClose: () => void
         let mod;
         switch (toolId) {
           case "dashboard":
-            mod = await import("@/app/(chat)/dashboard/page");
+            mod = await import("@/components/tools/DashboardTool");
             break;
           case "budget":
-            mod = await import("@/app/(chat)/budget/page");
+            mod = await import("@/components/tools/BudgetTool");
             break;
           case "guests":
-            mod = await import("@/app/(chat)/guests/page");
+            mod = await import("@/components/tools/GuestsTool");
             break;
           case "vendors":
-            mod = await import("@/app/(chat)/vendors/page");
+            mod = await import("@/components/tools/VendorsTool");
             break;
           case "timeline":
-            mod = await import("@/app/(chat)/timeline/page");
+            mod = await import("@/components/tools/TimelineTool");
             break;
           case "checklist":
-            mod = await import("@/app/(chat)/checklist/page");
+            mod = await import("@/components/tools/ChecklistTool");
             break;
           case "inspo":
-            mod = await import("@/app/(chat)/inspo/page");
+            mod = await import("@/components/tools/InspoTool");
             break;
           case "settings":
-            mod = await import("@/app/(chat)/settings/page");
+            mod = await import("@/components/tools/SettingsTool");
             break;
         }
         if (mod?.default) {

@@ -35,7 +35,7 @@ function getCategoryStyle(category: string) {
   return { bg: "bg-stone-50", text: "text-stone-700" };
 }
 
-export default function BudgetPage() {
+export default function BudgetTool() {
   const { data, loading } = usePlannerData();
 
   if (loading) {

@@ -51,7 +51,7 @@ const categoryOrder = [
   "honeymoon",
 ];
 
-export default function ChecklistPage() {
+export default function ChecklistTool() {
   const [decisions, setDecisions] = useState<Decision[]>([]);
   const [progress, setProgress] = useState<DecisionProgress | null>(null);
   const [loading, setLoading] = useState(true);

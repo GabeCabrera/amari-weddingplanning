@@ -2,7 +2,7 @@
 
 import { usePlannerData, TimelineEvent } from "@/lib/hooks/usePlannerData";
 
-export default function TimelinePage() {
+export default function TimelineTool() {
   const { data, loading } = usePlannerData();
 
   if (loading) {

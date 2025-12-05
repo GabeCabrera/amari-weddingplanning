@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { usePlannerData, Guest } from "@/lib/hooks/usePlannerData";
 
-export default function GuestsPage() {
+export default function GuestsTool() {
   const { data, loading } = usePlannerData();
   const [filter, setFilter] = useState<"all" | "confirmed" | "pending" | "declined">("all");
   const [search, setSearch] = useState("");

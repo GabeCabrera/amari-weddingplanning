@@ -1,6 +1,6 @@
 "use client";
 
-export default function InspoPage() {
+export default function InspoTool() {
   return (
     <div className="h-full flex flex-col items-center justify-center p-8">
       {/* Placeholder illustration */}

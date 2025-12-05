@@ -43,7 +43,7 @@ function getCategoryConfig(category: string) {
   return { Icon: Pin, color: "bg-stone-50 text-stone-700" };
 }
 
-export default function VendorsPage() {
+export default function VendorsTool() {
   const { data, loading } = usePlannerData();
   const [filter, setFilter] = useState<"all" | "booked" | "researching">("all");
 
