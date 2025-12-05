@@ -362,10 +362,28 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col bg-canvas">
+    <div className="min-h-screen flex flex-col bg-stone-50">
+      {/* Subtle ambient glow */}
+      <div className="fixed bottom-0 left-0 right-0 h-80 pointer-events-none z-0 overflow-hidden">
+        <div 
+          className="absolute inset-0 animate-wave-slow"
+          style={{
+            background: 'radial-gradient(ellipse 100% 100% at 50% 100%, rgba(212,166,156,0.3) 0%, transparent 70%)',
+            filter: 'blur(40px)',
+          }}
+        />
+        <div 
+          className="absolute inset-0 animate-wave-medium"
+          style={{
+            background: 'radial-gradient(ellipse 80% 80% at 30% 100%, rgba(168,184,160,0.25) 0%, transparent 60%)',
+            filter: 'blur(30px)',
+          }}
+        />
+      </div>
+
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-4 py-6">
+      <div className="flex-1 overflow-y-auto pb-32 md:pb-24 relative z-10">
+        <div className="max-w-3xl mx-auto px-4 py-6 md:pt-8">
           {/* Empty state */}
           {messages.length === 0 && !isLoading && (
             <div className="flex flex-col items-center justify-center py-20">
@@ -446,9 +464,9 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Fixed input bar with proper centering */}
-      <div className="p-4 pb-6 bg-canvas">
-        <div className="max-w-3xl mx-auto">
+      {/* Fixed input bar */}
+      <div className="fixed bottom-16 md:bottom-0 inset-x-0 p-4 pb-4 md:pb-6 bg-gradient-to-t from-stone-50 via-stone-50/90 to-transparent z-20">
+        <div className="max-w-3xl mx-auto relative">
           <div 
             className={`
               relative bg-white rounded-full

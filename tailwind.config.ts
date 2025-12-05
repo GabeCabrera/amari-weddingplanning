@@ -206,6 +206,18 @@ const config: Config = {
           "20%, 80%": { opacity: "1", transform: "translateY(0)" },
           "100%": { opacity: "0", transform: "translateY(-4px)" },
         },
+        "wave-slow": {
+          "0%, 100%": { transform: "translateY(0) scaleY(1)", opacity: "0.5" },
+          "50%": { transform: "translateY(-8px) scaleY(1.1)", opacity: "0.7" },
+        },
+        "wave-medium": {
+          "0%, 100%": { transform: "translateX(0) scaleX(1)", opacity: "0.45" },
+          "50%": { transform: "translateX(10px) scaleX(1.05)", opacity: "0.6" },
+        },
+        "wave-fast": {
+          "0%, 100%": { transform: "translateY(0) translateX(0)", opacity: "0.4" },
+          "50%": { transform: "translateY(-5px) translateX(-10px)", opacity: "0.55" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -216,6 +228,13 @@ const config: Config = {
         "wiggle": "wiggle 1s ease-in-out infinite",
         "bounce-dot": "bounce-dot 0.6s ease-in-out infinite",
         "fade-in-out": "fade-in-out 2s ease-in-out",
+        "wave-slow": "wave-slow 8s ease-in-out infinite",
+        "wave-medium": "wave-medium 6s ease-in-out infinite",
+        "wave-fast": "wave-fast 4s ease-in-out infinite",
+      },
+      // Safe area insets for mobile
+      padding: {
+        'safe': 'env(safe-area-inset-bottom)',
       },
     },
   },
