@@ -248,37 +248,37 @@ button:focus-visible {
 /* Wave glow animations */
 @keyframes wave-slow {
   0%, 100% {
-    transform: translateX(-5%) translateY(0%);
+    transform: translateX(-15%) translateY(0%) scale(1);
   }
   50% {
-    transform: translateX(5%) translateY(-8%);
+    transform: translateX(15%) translateY(-20%) scale(1.1);
   }
 }
 
 @keyframes wave-medium {
   0%, 100% {
-    transform: translateX(3%) translateY(-3%);
+    transform: translateX(10%) translateY(-5%) scale(1.05);
   }
   50% {
-    transform: translateX(-4%) translateY(5%);
+    transform: translateX(-12%) translateY(10%) scale(0.95);
   }
 }
 
 @keyframes wave-fast {
   0%, 100% {
-    transform: translateX(-2%) translateY(5%);
+    transform: translateX(-8%) translateY(8%) scale(0.98);
   }
   50% {
-    transform: translateX(6%) translateY(-3%);
+    transform: translateX(12%) translateY(-10%) scale(1.08);
   }
 }
 
 .animate-wave-slow {
-  animation: wave-slow 8s ease-in-out infinite;
+  animation: wave-slow 10s ease-in-out infinite;
 }
 
 .animate-wave-medium {
-  animation: wave-medium 6s ease-in-out infinite;
+  animation: wave-medium 7s ease-in-out infinite;
 }
 
 .animate-wave-fast {

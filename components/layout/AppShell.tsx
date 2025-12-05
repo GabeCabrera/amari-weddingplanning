@@ -19,7 +19,7 @@ import {
  */
 function WaveGlow() {
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-64 pointer-events-none z-[100] overflow-hidden">
+    <div className="fixed bottom-0 left-0 right-0 h-64 pointer-events-none z-[1] overflow-hidden">
       {/* Primary wave - rose tint */}
       <div 
         className="absolute inset-0 animate-wave-slow"
