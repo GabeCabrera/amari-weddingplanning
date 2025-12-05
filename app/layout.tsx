@@ -98,6 +98,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Viewport with safe area support */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         {/* JSON-LD: Organization */}
         <script
           type="application/ld+json"
