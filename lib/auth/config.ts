@@ -122,13 +122,16 @@ export const authOptions: NextAuthOptions = {
 
       // For Google login
       if (account?.provider === "google" && user.email) {
+        console.log(`[AUTH] Attempting Google sign in for email: ${user.email}`);
         try {
-          // Check if user already exists
+          console.log("[AUTH] Checking for existing user...");
           const existingUser = await getUserByEmail(user.email);
 
           if (existingUser) {
+            console.log(`[AUTH] Existing user found: ${existingUser.id}`);
             // User exists - update their Google ID if not set
             if (!existingUser.googleId) {
+              console.log("[AUTH] Existing user has no Google ID. Updating now...");
               await db
                 .update(users)
                 .set({
@@ -137,24 +140,27 @@ export const authOptions: NextAuthOptions = {
                   updatedAt: new Date(),
                 })
                 .where(eq(users.id, existingUser.id));
+              console.log("[AUTH] User's Google ID updated.");
             }
 
-            // Save/update OAuth tokens
+            console.log("[AUTH] Saving OAuth tokens for existing user...");
             await saveOAuthTokens(
               existingUser.id,
               existingUser.tenantId,
               account,
               user
             );
-
+            console.log("[AUTH] Successfully processed existing user.");
             return true;
           }
 
           // New user - create account
+          console.log("[AUTH] No existing user found. Creating new tenant and user...");
           const slug = `wedding-${nanoid(8)}`;
           const unsubscribeToken = nanoid(32);
           const displayName = user.name || "";
 
+          console.log("[AUTH] Creating new tenant...");
           // Create tenant
           const [tenant] = await db
             .insert(tenants)
@@ -165,7 +171,9 @@ export const authOptions: NextAuthOptions = {
               onboardingComplete: false,
             })
             .returning();
+          console.log(`[AUTH] New tenant created: ${tenant.id}`);
 
+          console.log("[AUTH] Creating new user...");
           // Create user linked to tenant
           const [newUser] = await db
             .insert(users)
@@ -180,17 +188,20 @@ export const authOptions: NextAuthOptions = {
               unsubscribeToken,
             })
             .returning();
+          console.log(`[AUTH] New user created: ${newUser.id}`);
 
-          // Save OAuth tokens for the new user
+          console.log("[AUTH] Saving OAuth tokens for new user...");
           await saveOAuthTokens(newUser.id, tenant.id, account, user);
 
+          console.log("[AUTH] Successfully created new user and tenant.");
           return true;
         } catch (error) {
-          console.error("Error during Google sign in:", error);
+          console.error("[AUTH] Error during Google sign in:", error);
           return false;
         }
       }
 
+      console.log("[AUTH] signIn callback returning true by default.");
       return true;
     },
 
