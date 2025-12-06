@@ -281,7 +281,7 @@ export default function GuestsTool() {
           {/* Search and filters */}
            <Paper sx={{ p: 2, mb: 4 }}>
             <Grid container spacing={2} alignItems="center">
-              <Grid xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   fullWidth
                   variant="outlined"
@@ -290,7 +290,7 @@ export default function GuestsTool() {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </Grid>
-              <Grid xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <ToggleButtonGroup
                   value={filter}
                   exclusive

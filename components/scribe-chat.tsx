@@ -116,7 +116,7 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe" }: 
       const res = await fetch("/api/concierge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMessage, plannerName }),
+        body: JSON.stringify({ message: userMessage, aiName }),
       });
 
       const data = await res.json();
@@ -220,7 +220,7 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe" }: 
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="font-serif text-lg text-warm-800 leading-tight">{plannerName}</h2>
+              <h2 className="font-serif text-lg text-warm-800 leading-tight">{aiName}</h2>
               <p className="text-xs text-warm-500">Your wedding planner</p>
             </div>
           </div>
@@ -266,8 +266,7 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe" }: 
                   You've used your free messages
                 </h3>
                 <p className="text-warm-500 text-sm leading-relaxed mb-6 max-w-[280px]">
-                  Upgrade to Aisle to get unlimited access to {plannerName}, 
-                  plus all premium planning templates.
+                                     Upgrade to Aisle to get unlimited access to {aiName},                  plus all premium planning templates.
                 </p>
                 <Link href="/choose-plan" onClick={onClose}>
                   <Button className="bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white px-8 h-11 rounded-xl shadow-sm">
@@ -288,7 +287,7 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe" }: 
                   Hey{coupleNames ? `, ${coupleNames.split("&")[0]?.trim()}` : ""}!
                 </h3>
                 <p className="text-warm-500 text-sm leading-relaxed max-w-[300px]">
-                  I'm {plannerName}, your wedding planner. I can help you discover your wedding vibe, 
+                  I'm {aiName}, your wedding planner. I can help you discover your wedding vibe, 
                   answer planning questions, and find vendors that match your style.
                 </p>
                 {aiAccess && !aiAccess.hasFullAccess && (
@@ -366,8 +365,7 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe" }: 
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder={`Message ${plannerName}...`}
-                  className="w-full resize-none px-4 py-3 bg-warm-50 border border-warm-200 rounded-2xl text-sm leading-relaxed placeholder:text-warm-400 transition-shadow duration-200 focus:outline-none focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+                                     placeholder={`Message ${aiName}...`}                  className="w-full resize-none px-4 py-3 bg-warm-50 border border-warm-200 rounded-2xl text-sm leading-relaxed placeholder:text-warm-400 transition-shadow duration-200 focus:outline-none focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
                   rows={1}
                   disabled={isLoading}
                   style={{ minHeight: "48px" }}
@@ -399,7 +397,7 @@ export function ScribeTrigger({ onClick, aiName = "Scribe" }: { onClick: () => v
         <Sparkles className="w-5 h-5" />
         <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-400 rounded-full animate-pulse" />
       </div>
-      <span className="font-medium">Ask {plannerName}</span>
+      <span className="font-medium">Ask {aiName}</span>
     </button>
   );
 }

@@ -1,24 +1,13 @@
 "use client";
 
-import { ScribeChat } from "@/components/concierge-chat";
+import { ScribeChat } from "@/components/scribe-chat";
 import { useBrowser } from "@/components/layout/browser-context";
-import { Metadata, ResolvingMetadata } from 'next';
 
-export async function generateMetadata(
-  { params }: { params: { tool?: string } }, // Assuming the tool name might be passed as a param
-  parent: ResolvingMetadata
-): Promise<Metadata> {
-  const toolName = params.tool || "Dashboard";
-  const capitalizedToolName = toolName.charAt(0).toUpperCase() + toolName.slice(1);
-  
-  return {
-    title: `${capitalizedToolName} - Aisle`,
-    description: 'Your personal AI wedding planner',
-  };
-}
+
 
 export default function ChatPage() {
-  const { activeTab } = useBrowser();
+  const { tabs, activeTabId } = useBrowser();
+  const activeTab = tabs.find(tab => tab.id === activeTabId);
 
   const toolComponents: { [key: string]: React.ComponentType } = {
     Dashboard: require("@/components/tools/DashboardTool").default,
@@ -29,7 +18,7 @@ export default function ChatPage() {
     Inspiration: require("@/components/tools/InspoTool").default,
     Timeline: require("@/components/tools/TimelineTool").default,
     Settings: require("@/components/tools/SettingsTool").default,
-    Chat: ScribeChat,
+    Chat: require("@/components/tools/ScribeChatTool").default,
   };
 
   const ActiveTool = toolComponents[activeTab?.title || "Dashboard"];

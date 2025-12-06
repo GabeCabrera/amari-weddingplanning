@@ -19,7 +19,8 @@ import {
   MenuItem,
   InputLabel,
   Checkbox,
-  Alert
+  Alert,
+  Avatar
 } from "@mui/material";
 import { Heart, Check, Calendar, Mail } from "lucide-react";
 import { toast } from "sonner";
@@ -46,7 +47,7 @@ interface FormFields {
   notes: boolean;
 }
 
-export function RsvpFormClient({ form, coupleNames, weddingDate }: StemClientProps) {
+export function StemClient({ form, coupleNames, weddingDate }: StemClientProps) {
   const fields = form.fields as FormFields;
   const mealOptions = (form.mealOptions as string[]) || [];
   

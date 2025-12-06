@@ -361,7 +361,7 @@ export default function DashboardTool() {
                         <Typography variant="h5" component="h2" gutterBottom>
                             Vendors
                         </Typography>
-                        {vendors?.list.length > 0 ? (
+                        {vendors && vendors.list && vendors.list.length > 0 ? (
                              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                              {vendors.list.slice(0, 4).map((vendor) => {
                                const isBooked =

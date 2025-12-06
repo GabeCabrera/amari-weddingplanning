@@ -29,15 +29,15 @@ import {
   History as ClockIcon,
   Store as VendorsIcon,
   Home,
-  Utensils,
+  Restaurant,
   Camera,
-  Video,
+  Videocam,
   LocalFlorist,
   MusicNote,
   Cake,
   Favorite,
   ContentCut,
-  Sparkles,
+  AutoAwesome,
   Chair,
   DirectionsCar,
   Assignment,
@@ -49,11 +49,11 @@ import { formatDistanceToNow } from "date-fns";
 
 const categoryConfig: Record<string, { Icon: React.ElementType; color: string }> = {
     venue: { Icon: Home, color: "primary.main" },
-    catering: { Icon: Utensils, color: "secondary.main" },
+    catering: { Icon: Restaurant, color: "secondary.main" },
     photographer: { Icon: Camera, color: "info.main" },
     photography: { Icon: Camera, color: "info.main" },
-    videographer: { Icon: Video, color: "error.main" },
-    videography: { Icon: Video, color: "error.main" },
+    videographer: { Icon: Videocam, color: "error.main" },
+    videography: { Icon: Videocam, color: "error.main" },
     florist: { Icon: LocalFlorist, color: "success.main" },
     flowers: { Icon: LocalFlorist, color: "success.main" },
     dj: { Icon: MusicNote, color: "warning.main" },
@@ -63,8 +63,8 @@ const categoryConfig: Record<string, { Icon: React.ElementType; color: string }>
     bakery: { Icon: Cake, color: "primary.dark" },
     officiant: { Icon: Favorite, color: "error.light" },
     hair: { Icon: ContentCut, color: "secondary.light" },
-    makeup: { Icon: Sparkles, color: "secondary.dark" },
-    beauty: { Icon: Sparkles, color: "secondary.dark" },
+    makeup: { Icon: AutoAwesome, color: "secondary.dark" },
+    beauty: { Icon: AutoAwesome, color: "secondary.dark" },
     rentals: { Icon: Chair, color: "info.light" },
     transportation: { Icon: DirectionsCar, color: "info.dark" },
     planner: { Icon: Assignment, color: "success.dark" },
@@ -137,7 +137,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
         )}
         <Grid container spacing={1}>
           {vendor.phone && (
-            <Grid xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Phone fontSize="small" color="action" />
                 <Typography variant="body2">{vendor.phone}</Typography>
@@ -145,7 +145,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
             </Grid>
           )}
           {vendor.email && (
-            <Grid xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Email fontSize="small" color="action" />
                 <Typography variant="body2">{vendor.email}</Typography>
@@ -153,7 +153,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
             </Grid>
           )}
           {vendor.website && (
-            <Grid xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <LinkIcon fontSize="small" color="action" />
                 <Typography variant="body2" component="a" href={vendor.website} target="_blank" rel="noopener noreferrer">
@@ -348,7 +348,7 @@ export default function VendorsTool() {
               <Typography variant="h5" component="h2" sx={{ mb: 2 }}>{category}</Typography>
               <Grid container spacing={2}>
                 {categoryVendors.map((vendor) => (
-                  <Grid xs={12} md={6} key={vendor.id}>
+                  <Grid size={{ xs: 12, md: 6 }} key={vendor.id}>
                     <VendorCard vendor={vendor} />
                   </Grid>
                 ))}

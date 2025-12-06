@@ -36,7 +36,7 @@ export async function generateMetadata(
     
   const coupleNames = tenant?.displayName || "A Couple";
   const weddingDate = form.weddingDate?.toISOString() || tenant.weddingDate?.toISOString();
-  const title = `${coupleNames} are getting married!`;
+  const title = "Scribe & Stem";
   const description = `Join ${coupleNames} for their wedding celebration. Find all the details and RSVP here.`;
   const siteUrl = `https://scribeandstem.com/stem/${slug}`;
 
