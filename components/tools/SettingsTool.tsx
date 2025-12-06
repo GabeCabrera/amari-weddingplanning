@@ -1,70 +1,109 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import React from "react";
+import {
+  Box,
+  Typography,
+  Container,
+  Paper,
+  Button,
+  Avatar,
+  List,
+  ListItem,
+  ListItemText,
+} from "@mui/material";
 
 export default function SettingsTool() {
   const { data: session } = useSession();
 
+  const userInitial = session?.user?.name
+    ?.split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <div className="mb-8">
-        <h1 className="font-serif text-3xl text-ink mb-1">Settings</h1>
-        <p className="text-ink-soft">Manage your account and preferences</p>
-      </div>
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Settings
+        </Typography>
+        <Typography color="text.secondary">
+          Manage your account and preferences
+        </Typography>
+      </Box>
 
       {/* Account section */}
-      <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden mb-6">
-        <div className="px-6 py-4 bg-stone-50 border-b border-stone-100">
-          <h2 className="font-medium text-ink">Account</h2>
-        </div>
-        <div className="p-6">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-400 to-rose-500 flex items-center justify-center text-white text-xl font-medium">
-              {session?.user?.name?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "?"}
-            </div>
-            <div>
-              <p className="font-medium text-ink text-lg">{session?.user?.name || "Unknown"}</p>
-              <p className="text-ink-soft">{session?.user?.email || "No email"}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Paper elevation={1} sx={{ mb: 3 }}>
+        <Box sx={{ px: 3, py: 2, bgcolor: "grey.50", borderBottom: 1, borderColor: "divider" }}>
+          <Typography variant="h6" component="h2">
+            Account
+          </Typography>
+        </Box>
+        <Box sx={{ p: 3 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+            <Avatar sx={{ width: 56, height: 56, bgcolor: "primary.main" }}>
+              {userInitial || "?"}
+            </Avatar>
+            <Box>
+              <Typography variant="h6">{session?.user?.name || "Unknown"}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {session?.user?.email || "No email"}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      </Paper>
 
       {/* Plan section */}
-      <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden mb-6">
-        <div className="px-6 py-4 bg-stone-50 border-b border-stone-100">
-          <h2 className="font-medium text-ink">Plan</h2>
-        </div>
-        <div className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-ink">Free Plan</p>
-              <p className="text-sm text-ink-soft">Basic features included</p>
-            </div>
-            <button className="px-4 py-2 bg-rose-500 text-white rounded-xl hover:bg-rose-600 transition-colors text-sm font-medium">
+      <Paper elevation={1} sx={{ mb: 3 }}>
+        <Box sx={{ px: 3, py: 2, bgcolor: "grey.50", borderBottom: 1, borderColor: "divider" }}>
+          <Typography variant="h6" component="h2">
+            Plan
+          </Typography>
+        </Box>
+        <Box sx={{ p: 3 }}>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <Box>
+              <Typography variant="body1" sx={{ fontWeight: "medium" }}>
+                Free Plan
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Basic features included
+              </Typography>
+            </Box>
+            <Button variant="contained" color="primary" href="#" size="small">
               Upgrade
-            </button>
-          </div>
-        </div>
-      </div>
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
 
       {/* Danger zone */}
-      <div className="bg-white rounded-2xl border border-red-200 overflow-hidden">
-        <div className="px-6 py-4 bg-red-50 border-b border-red-100">
-          <h2 className="font-medium text-red-700">Danger Zone</h2>
-        </div>
-        <div className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-ink">Delete Account</p>
-              <p className="text-sm text-ink-soft">Permanently delete your account and all data</p>
-            </div>
-            <button className="px-4 py-2 border border-red-300 text-red-600 rounded-xl hover:bg-red-50 transition-colors text-sm font-medium">
+      <Paper elevation={1} sx={{ border: 1, borderColor: "error.light" }}>
+        <Box sx={{ px: 3, py: 2, bgcolor: "error.light", borderBottom: 1, borderColor: "error.light" }}>
+          <Typography variant="h6" component="h2" color="error.contrastText">
+            Danger Zone
+          </Typography>
+        </Box>
+        <Box sx={{ p: 3 }}>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <Box>
+              <Typography variant="body1" sx={{ fontWeight: "medium" }}>
+                Delete Account
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Permanently delete your account and all data
+              </Typography>
+            </Box>
+            <Button variant="outlined" color="error" size="small">
               Delete
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
+    </Container>
   );
 }

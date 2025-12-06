@@ -3,16 +3,89 @@
 import { useState, useEffect } from "react";
 import { usePlannerData, formatCurrency } from "@/lib/hooks/usePlannerData";
 import Link from "next/link";
-import { RefreshCw, Clock } from "lucide-react";
+import {
+  Box,
+  Typography,
+  Container,
+  CircularProgress,
+  Paper,
+  Button,
+  Grid,
+  Chip,
+  Alert,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Card,
+  CardContent,
+  LinearProgress,
+} from "@mui/material";
+import {
+  Refresh as RefreshIcon,
+  AccessTime as ClockIcon,
+  Warning as WarningIcon,
+  Info as InfoIcon,
+  CheckCircle as CheckCircleIcon,
+  ChatBubbleOutline as ChatIcon,
+  Checklist as ChecklistIcon,
+  Store as StoreIcon,
+  CalendarMonth as CalendarIcon,
+  AttachMoney as BudgetIcon,
+  People as PeopleIcon,
+  Cake as CakeIcon,
+  Favorite as FavoriteIcon,
+} from "@mui/icons-material";
+import { formatDistanceToNow } from "date-fns";
 
+// Helper to format time ago
 function formatTimeAgo(timestamp: number): string {
-  const seconds = Math.floor((Date.now() - timestamp) / 1000);
-  if (seconds < 10) return "just now";
-  if (seconds < 60) return `${seconds}s ago`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  return `${hours}h ago`;
+  if (timestamp === 0) return "never"; // Handle initial state
+  return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
+}
+
+interface QuickActionProps {
+  href: string;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}
+
+function QuickAction({ href, icon, title, description }: QuickActionProps) {
+  return (
+    <Card
+      component={Link}
+      href={href}
+      sx={{
+        textDecoration: "none",
+        "&:hover": { borderColor: "primary.main", boxShadow: 1 },
+      }}
+    >
+      <CardContent>
+        <Box
+          sx={{
+            width: 48,
+            height: 48,
+            borderRadius: "12px",
+            bgcolor: "primary.light",
+            color: "primary.main",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mb: 2,
+          }}
+        >
+          {icon}
+        </Box>
+        <Typography variant="h6" component="h3" sx={{ mb: 1 }}>
+          {title}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {description}
+        </Typography>
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function DashboardTool() {
@@ -20,7 +93,6 @@ export default function DashboardTool() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [timeAgo, setTimeAgo] = useState("just now");
 
-  // Update "time ago" display every 10 seconds
   useEffect(() => {
     const updateTimeAgo = () => setTimeAgo(formatTimeAgo(lastRefresh));
     updateTimeAgo();
@@ -28,15 +100,18 @@ export default function DashboardTool() {
     return () => clearInterval(interval);
   }, [lastRefresh]);
 
-  // Refresh when tab becomes visible
   useEffect(() => {
     const handleVisibility = () => {
-      if (document.visibilityState === "visible" && Date.now() - lastRefresh > 30000) {
+      if (
+        document.visibilityState === "visible" &&
+        Date.now() - lastRefresh > 30000
+      ) {
         refetch();
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
-    return () => document.removeEventListener("visibilitychange", handleVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibility);
   }, [lastRefresh, refetch]);
 
   const handleRefresh = async () => {
@@ -47,13 +122,9 @@ export default function DashboardTool() {
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="flex items-center gap-2 text-ink-soft">
-          <div className="w-2 h-2 rounded-full bg-rose-400 animate-bounce" />
-          <div className="w-2 h-2 rounded-full bg-rose-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-          <div className="w-2 h-2 rounded-full bg-rose-400 animate-bounce" style={{ animationDelay: "300ms" }} />
-        </div>
-      </div>
+      <Box sx={{ display: "flex", justifyContent: "center", p: 6 }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
@@ -64,353 +135,398 @@ export default function DashboardTool() {
   const decisions = data?.decisions;
   const kernel = data?.kernel;
 
+  const alerts: Array<{
+    type: "warning" | "info" | "success";
+    message: string;
+    link?: string;
+  }> = [];
+
   // Calculate alerts/priorities
-  const alerts: Array<{ type: "warning" | "info" | "success"; message: string; link?: string }> = [];
-  
   // Budget alerts
   if (budget && budget.total > 0 && budget.percentUsed > 100) {
-    alerts.push({ 
-      type: "warning", 
-      message: `You're over budget by ${formatCurrency(budget.spent - budget.total)}`,
-      link: "/"
+    alerts.push({
+      type: "warning",
+      message: `You're over budget by ${formatCurrency(
+        budget.spent - budget.total
+      )}`,
+      link: "/budget", // Assuming a route exists
     });
   } else if (budget && budget.total > 0 && budget.percentUsed > 90) {
-    alerts.push({ 
-      type: "warning", 
+    alerts.push({
+      type: "warning",
       message: `Budget is ${budget.percentUsed}% allocated`,
-      link: "/"
+      link: "/budget",
     });
   }
 
   // Vendor alerts
   const essentialVendors = ["venue", "photographer", "catering", "officiant"];
-  const bookedCategories = vendors?.list
-    .filter(v => v.status === "booked" || v.status === "confirmed" || v.status === "paid")
-    .map(v => v.category.toLowerCase()) || [];
-  
-  const missingEssentials = essentialVendors.filter(v => !bookedCategories.some(b => b.includes(v)));
+  const bookedCategories =
+    vendors?.list
+      .filter(
+        (v) =>
+          v.status === "booked" || v.status === "confirmed" || v.status === "paid"
+      )
+      .map((v) => v.category.toLowerCase()) || [];
+
+  const missingEssentials = essentialVendors.filter(
+    (v) => !bookedCategories.some((b) => b.includes(v))
+  );
   if (missingEssentials.length > 0 && summary?.daysUntil && summary.daysUntil < 180) {
-    alerts.push({ 
-      type: "warning", 
+    alerts.push({
+      type: "warning",
       message: `Still need to book: ${missingEssentials.join(", ")}`,
-      link: "/"
+      link: "/vendors",
     });
   }
 
   // Guest alerts
-  if (guests && guests.stats.total > 0 && guests.stats.pending > 0 && summary?.daysUntil && summary.daysUntil < 60) {
-    alerts.push({ 
-      type: "info", 
+  if (
+    guests &&
+    guests.stats.total > 0 &&
+    guests.stats.pending > 0 &&
+    summary?.daysUntil &&
+    summary.daysUntil < 60
+  ) {
+    alerts.push({
+      type: "info",
       message: `${guests.stats.pending} guests haven't RSVP'd yet`,
-      link: "/"
+      link: "/guests",
     });
   }
 
   // Success alerts
   if (vendors && vendors.stats.booked >= 3) {
-    alerts.push({ 
-      type: "success", 
+    alerts.push({
+      type: "success",
       message: `${vendors.stats.booked} vendors booked!`,
-      link: "/"
+      link: "/vendors",
     });
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header */}
-      <div className="mb-8 flex items-start justify-between">
-        <div>
-          <h1 className="font-serif text-3xl text-ink mb-2">
+      <Box
+        sx={{
+          mb: 4,
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+        }}
+      >
+        <Box>
+          <Typography variant="h4" component="h1" gutterBottom>
             {summary?.coupleNames || "Your Wedding"}
-          </h1>
+          </Typography>
           {summary?.weddingDate && (
-            <p className="text-ink-soft">
+            <Typography color="text.secondary">
               {(() => {
-                // Handle both "YYYY-MM-DD" and full ISO strings
                 const dateStr = summary.weddingDate;
-                const date = dateStr.includes('T') 
-                  ? new Date(dateStr) 
-                  : new Date(dateStr + 'T12:00:00');
-                return date.toLocaleDateString("en-US", { 
-                  weekday: "long", 
-                  year: "numeric", 
-                  month: "long", 
-                  day: "numeric" 
+                const date = dateStr.includes("T")
+                  ? new Date(dateStr)
+                  : new Date(dateStr + "T12:00:00");
+                const formattedDate = date.toLocaleDateString("en-US", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
                 });
+                return formattedDate;
               })()}
-            </p>
+            </Typography>
           )}
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-xs text-ink-faint">
-            <Clock className="w-3.5 h-3.5" />
-            <span>Updated {timeAgo}</span>
-          </div>
-          <button
+        </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+          >
+            <ClockIcon sx={{ fontSize: "1rem" }} />
+            Updated {timeAgo}
+          </Typography>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon className={isRefreshing ? "animate-spin" : ""} />}
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-ink-soft hover:text-ink hover:bg-stone-100 transition-all disabled:opacity-50"
-            title="Refresh data"
           >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </button>
-        </div>
-      </div>
+            Refresh
+          </Button>
+        </Box>
+      </Box>
 
       {/* Alerts */}
       {alerts.length > 0 && (
-        <div className="space-y-2 mb-6">
-          {alerts.map((alert, i) => (
-            <Link 
-              key={i} 
-              href={alert.link || "#"}
-              className={`block p-4 rounded-xl border transition-colors ${
-                alert.type === "warning" 
-                  ? "bg-amber-50 border-amber-200 hover:border-amber-300" 
-                  : alert.type === "success"
-                    ? "bg-green-50 border-green-200 hover:border-green-300"
-                    : "bg-blue-50 border-blue-200 hover:border-blue-300"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                {alert.type === "warning" && (
-                  <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                  </svg>
-                )}
-                {alert.type === "success" && (
-                  <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                )}
-                {alert.type === "info" && (
-                  <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-                  </svg>
-                )}
-                <span className={`text-sm font-medium ${
-                  alert.type === "warning" ? "text-amber-800" 
-                    : alert.type === "success" ? "text-green-800"
-                    : "text-blue-800"
-                }`}>
+        <Box sx={{ mb: 4 }}>
+          <List disablePadding>
+            {alerts.map((alert, i) => (
+              <ListItem
+                key={i}
+                component={Link}
+                href={alert.link || "#"}
+                sx={{
+                  mb: 1,
+                  borderRadius: 1,
+                  "&:last-child": { mb: 0 },
+                  textDecoration: "none",
+                }}
+                disablePadding
+              >
+                <Alert
+                  severity={alert.type}
+                  iconMapping={{
+                    warning: <WarningIcon />,
+                    info: <InfoIcon />,
+                    success: <CheckCircleIcon />,
+                  }}
+                  sx={{ width: "100%" }}
+                >
                   {alert.message}
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
+                </Alert>
+              </ListItem>
+            ))}
+          </List>
+        </Box>
       )}
 
       {/* Stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {/* Countdown */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-6">
-          <p className="text-sm text-ink-soft mb-1">Days to go</p>
-          {summary?.daysUntil !== null ? (
-            <p className="text-4xl font-serif text-ink">{summary?.daysUntil}</p>
-          ) : (
-            <p className="text-xl text-ink-faint">Set a date</p>
-          )}
-        </div>
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>
+                Days to go
+              </Typography>
+              {summary?.daysUntil !== null ? (
+                <Typography variant="h4" component="p">
+                  {summary?.daysUntil}
+                </Typography>
+              ) : (
+                <Typography variant="h6" color="text.secondary">
+                  Set a date
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
 
-        {/* Progress */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-6">
-          <p className="text-sm text-ink-soft mb-1">Planning progress</p>
-          {decisions?.progress ? (
-            <>
-              <p className="text-4xl font-serif text-ink">{decisions.progress.percentComplete}%</p>
-              <div className="mt-2 h-2 bg-stone-100 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-rose-400 to-rose-500 rounded-full"
-                  style={{ width: `${decisions.progress.percentComplete}%` }}
-                />
-              </div>
-              <p className="text-xs text-ink-faint mt-2">
-                {decisions.progress.decided} of {decisions.progress.total} decisions
-              </p>
-            </>
-          ) : (
-            <p className="text-xl text-ink-faint">Start planning</p>
-          )}
-        </div>
+        <Grid xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>
+                Planning progress
+              </Typography>
+              {decisions?.progress ? (
+                <>
+                  <Typography variant="h4" component="p">
+                    {decisions.progress.percentComplete}%
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={decisions.progress.percentComplete}
+                    sx={{ mt: 1, height: 8, borderRadius: 5 }}
+                  />
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    {decisions.progress.decided} of {decisions.progress.total} decisions
+                  </Typography>
+                </>
+              ) : (
+                <Typography variant="h6" color="text.secondary">
+                  Start planning
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
 
-        {/* Budget */}
-        <Link href="/" className="bg-white rounded-2xl border border-stone-200 p-6 hover:border-rose-300 transition-colors">
-          <p className="text-sm text-ink-soft mb-1">Budget</p>
-          {budget && budget.total > 0 ? (
-            <>
-              <p className="text-4xl font-serif text-ink">
-                {formatCurrency(budget.total)}
-              </p>
-              <p className="text-xs text-ink-faint mt-2">
-                {formatCurrency(budget.spent)} allocated ({budget.percentUsed}%)
-              </p>
-            </>
-          ) : budget && budget.spent > 0 ? (
-            <>
-              <p className="text-4xl font-serif text-ink">
-                {formatCurrency(budget.spent)}
-              </p>
-              <p className="text-xs text-ink-faint mt-2">allocated so far</p>
-            </>
-          ) : (
-            <p className="text-xl text-ink-faint">Not set</p>
-          )}
-        </Link>
+        <Grid xs={12} sm={6} md={3}>
+          <Card component={Link} href="/budget" sx={{ textDecoration: "none", height: "100%" }}>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>
+                Budget
+              </Typography>
+              {budget && budget.total > 0 ? (
+                <>
+                  <Typography variant="h4" component="p">
+                    {formatCurrency(budget.total)}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    {formatCurrency(budget.spent)} allocated ({budget.percentUsed}%)
+                  </Typography>
+                </>
+              ) : budget && budget.spent > 0 ? (
+                <>
+                  <Typography variant="h4" component="p">
+                    {formatCurrency(budget.spent)}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    allocated so far
+                  </Typography>
+                </>
+              ) : (
+                <Typography variant="h6" color="text.secondary">
+                  Not set
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
 
-        {/* Guests */}
-        <Link href="/" className="bg-white rounded-2xl border border-stone-200 p-6 hover:border-rose-300 transition-colors">
-          <p className="text-sm text-ink-soft mb-1">Guests</p>
-          {guests && guests.stats.total > 0 ? (
-            <>
-              <p className="text-4xl font-serif text-ink">{guests.stats.total}</p>
-              <p className="text-xs text-ink-faint mt-2">
-                {guests.stats.confirmed} confirmed, {guests.stats.pending} pending
-              </p>
-            </>
-          ) : kernel?.guestCount ? (
-            <>
-              <p className="text-4xl font-serif text-ink">~{kernel.guestCount}</p>
-              <p className="text-xs text-ink-faint mt-2">estimated</p>
-            </>
-          ) : (
-            <p className="text-xl text-ink-faint">Not set</p>
-          )}
-        </Link>
-      </div>
+        <Grid xs={12} sm={6} md={3}>
+          <Card component={Link} href="/guests" sx={{ textDecoration: "none", height: "100%" }}>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>
+                Guests
+              </Typography>
+              {guests && guests.stats.total > 0 ? (
+                <>
+                  <Typography variant="h4" component="p">
+                    {guests.stats.total}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    {guests.stats.confirmed} confirmed, {guests.stats.pending} pending
+                  </Typography>
+                </>
+              ) : kernel?.guestCount ? (
+                <>
+                  <Typography variant="h4" component="p">
+                    ~{kernel.guestCount}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    estimated
+                  </Typography>
+                </>
+              ) : (
+                <Typography variant="h6" color="text.secondary">
+                  Not set
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
       {/* Quick actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        <QuickAction 
-          href="/"
-          icon={
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
-            </svg>
-          }
-          title="Chat with Aisle"
-          description="Get help with anything"
-        />
-        <QuickAction 
-          href="/"
-          icon={
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          }
-          title="View checklist"
-          description={decisions?.progress 
-            ? `${decisions.progress.notStarted} items to do`
-            : "See what's next"
-          }
-        />
-        <QuickAction 
-          href="/"
-          icon={
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
-            </svg>
-          }
-          title="Track vendors"
-          description={vendors?.stats.booked 
-            ? `${vendors.stats.booked} booked`
-            : "Manage your team"
-          }
-        />
-      </div>
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid xs={12} md={4}>
+          <QuickAction
+            href="/"
+            icon={<ChatIcon />}
+            title="Chat with Aisle"
+            description="Get help with anything"
+          />
+        </Grid>
+        <Grid xs={12} md={4}>
+          <QuickAction
+            href="/checklist"
+            icon={<ChecklistIcon />}
+            title="View checklist"
+            description={
+              decisions?.progress
+                ? `${decisions.progress.notStarted} items to do`
+                : "See what's next"
+            }
+          />
+        </Grid>
+        <Grid xs={12} md={4}>
+          <QuickAction
+            href="/vendors"
+            icon={<StoreIcon />}
+            title="Track vendors"
+            description={
+              vendors?.stats.booked
+                ? `${vendors.stats.booked} booked`
+                : "Manage your team"
+            }
+          />
+        </Grid>
+      </Grid>
 
       {/* Vendors booked */}
       {vendors && vendors.list.length > 0 && (
-        <div className="bg-white rounded-2xl border border-stone-200 p-6 mb-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-medium text-ink">Your Vendors</h3>
-            <Link href="/" className="text-sm text-rose-600 hover:text-rose-700">
+        <Paper sx={{ p: 3, mb: 4 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mb: 2,
+            }}
+          >
+            <Typography variant="h6" component="h3">
+              Your Vendors
+            </Typography>
+            <Button component={Link} href="/vendors" size="small">
               View all →
-            </Link>
-          </div>
-          <div className="flex flex-wrap gap-2">
+            </Button>
+          </Box>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
             {vendors.list.slice(0, 8).map((vendor) => {
-              const isBooked = vendor.status === "booked" || vendor.status === "confirmed" || vendor.status === "paid";
+              const isBooked =
+                vendor.status === "booked" ||
+                vendor.status === "confirmed" ||
+                vendor.status === "paid";
               return (
-                <span 
+                <Chip
                   key={vendor.id}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium ${
-                    isBooked 
-                      ? "bg-green-50 text-green-700" 
-                      : "bg-stone-100 text-stone-600"
-                  }`}
-                >
-                  {isBooked && <><svg className="w-3 h-3 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg></>}{vendor.name}
-                </span>
+                  label={vendor.name}
+                  icon={isBooked ? <CheckCircleIcon /> : undefined}
+                  color={isBooked ? "success" : "default"}
+                  variant={isBooked ? "filled" : "outlined"}
+                  size="small"
+                />
               );
             })}
             {vendors.list.length > 8 && (
-              <span className="px-3 py-1.5 text-sm text-ink-faint">
-                +{vendors.list.length - 8} more
-              </span>
+              <Chip
+                label={`+${vendors.list.length - 8} more`}
+                variant="outlined"
+                size="small"
+              />
             )}
-          </div>
-        </div>
+          </Box>
+        </Paper>
       )}
 
       {/* Vibe */}
       {summary?.vibe && summary.vibe.length > 0 && (
-        <div className="bg-white rounded-2xl border border-stone-200 p-6">
-          <h3 className="font-medium text-ink mb-4">Your Vibe</h3>
-          <div className="flex flex-wrap gap-2">
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h6" component="h3" sx={{ mb: 2 }}>
+            Your Vibe
+          </Typography>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
             {summary.vibe.map((v, i) => (
-              <span 
-                key={i}
-                className="px-3 py-1.5 bg-rose-50 text-rose-700 rounded-full text-sm"
-              >
-                {v}
-              </span>
+              <Chip key={i} label={v} color="primary" variant="outlined" />
             ))}
-          </div>
-        </div>
+          </Box>
+        </Paper>
       )}
 
       {/* Empty state prompt */}
       {!summary?.weddingDate && !budget?.spent && !guests?.stats.total && (
-        <div className="mt-8 p-6 bg-rose-50 rounded-2xl text-center">
-          <h3 className="font-medium text-ink mb-2">Let&apos;s get started!</h3>
-          <p className="text-ink-soft mb-4">
-            Head to chat and tell me about your wedding plans. I&apos;ll help you organize everything.
-          </p>
-          <Link 
-            href="/" 
-            className="inline-flex items-center gap-2 px-6 py-3 bg-rose-500 text-white rounded-xl hover:bg-rose-600 transition-colors"
-          >
+        <Paper
+          sx={{
+            mt: 4,
+            p: 3,
+            bgcolor: "primary.light",
+            textAlign: "center",
+            borderRadius: 2,
+          }}
+        >
+          <Typography variant="h6" component="h3" sx={{ mb: 2 }}>
+            Let&apos;s get started!
+          </Typography>
+          <Typography color="text.secondary" sx={{ mb: 3 }}>
+            Head to chat and tell me about your wedding plans. I&apos;ll help you organize
+            everything.
+          </Typography>
+          <Button component={Link} href="/" variant="contained">
             Start chatting
-          </Link>
-        </div>
+          </Button>
+        </Paper>
       )}
-    </div>
-  );
-}
-
-function QuickAction({ 
-  href, 
-  icon, 
-  title, 
-  description 
-}: { 
-  href: string; 
-  icon: React.ReactNode; 
-  title: string; 
-  description: string;
-}) {
-  return (
-    <Link 
-      href={href}
-      className="bg-white rounded-2xl border border-stone-200 p-6 hover:border-rose-300 hover:shadow-soft transition-all group"
-    >
-      <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center mb-4 group-hover:bg-rose-100 transition-colors">
-        {icon}
-      </div>
-      <h3 className="font-medium text-ink mb-1">{title}</h3>
-      <p className="text-sm text-ink-soft">{description}</p>
-    </Link>
+    </Container>
   );
 }

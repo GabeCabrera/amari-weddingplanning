@@ -1,51 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { usePlannerData, formatCurrency, BudgetItem } from "@/lib/hooks/usePlannerData";
-import { RefreshCw, Clock } from "lucide-react";
-
-// Category colors for visual distinction
-const categoryColors: Record<string, { bg: string; text: string }> = {
-  venue: { bg: "bg-blue-50", text: "text-blue-700" },
-  catering: { bg: "bg-orange-50", text: "text-orange-700" },
-  photography: { bg: "bg-purple-50", text: "text-purple-700" },
-  videography: { bg: "bg-pink-50", text: "text-pink-700" },
-  florist: { bg: "bg-green-50", text: "text-green-700" },
-  music: { bg: "bg-yellow-50", text: "text-yellow-700" },
-  dj: { bg: "bg-yellow-50", text: "text-yellow-700" },
-  band: { bg: "bg-yellow-50", text: "text-yellow-700" },
-  attire: { bg: "bg-rose-50", text: "text-rose-700" },
-  dress: { bg: "bg-rose-50", text: "text-rose-700" },
-  suit: { bg: "bg-slate-50", text: "text-slate-700" },
-  cake: { bg: "bg-amber-50", text: "text-amber-700" },
-  invitations: { bg: "bg-teal-50", text: "text-teal-700" },
-  stationery: { bg: "bg-teal-50", text: "text-teal-700" },
-  transportation: { bg: "bg-indigo-50", text: "text-indigo-700" },
-  decor: { bg: "bg-fuchsia-50", text: "text-fuchsia-700" },
-  officiant: { bg: "bg-sky-50", text: "text-sky-700" },
-  hair: { bg: "bg-red-50", text: "text-red-700" },
-  makeup: { bg: "bg-red-50", text: "text-red-700" },
-  rentals: { bg: "bg-cyan-50", text: "text-cyan-700" },
-  favors: { bg: "bg-lime-50", text: "text-lime-700" },
-};
-
-function getCategoryStyle(category: string) {
-  const key = category.toLowerCase();
-  for (const [k, v] of Object.entries(categoryColors)) {
-    if (key.includes(k)) return v;
-  }
-  return { bg: "bg-stone-50", text: "text-stone-700" };
-}
-
-function formatTimeAgo(timestamp: number): string {
-  const seconds = Math.floor((Date.now() - timestamp) / 1000);
-  if (seconds < 10) return "just now";
-  if (seconds < 60) return `${seconds}s ago`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  return `${hours}h ago`;
-}
+import { 
+  Box, 
+  Typography, 
+  Button, 
+  Grid, 
+  Card, 
+  CardContent, 
+  CircularProgress, 
+  LinearProgress,
+  Chip,
+  Paper,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
+  Container,
+  Alert
+} from "@mui/material";
+import { Refresh as RefreshIcon, History as ClockIcon, AccountBalanceWallet as BudgetIcon } from '@mui/icons-material';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function BudgetTool() {
   const { data, loading, refetch, lastRefresh } = usePlannerData();
@@ -54,7 +30,7 @@ export default function BudgetTool() {
 
   // Update "time ago" display every 10 seconds
   useEffect(() => {
-    const updateTimeAgo = () => setTimeAgo(formatTimeAgo(lastRefresh));
+    const updateTimeAgo = () => setTimeAgo(formatDistanceToNow(new Date(lastRefresh), { addSuffix: true }));
     updateTimeAgo();
     const interval = setInterval(updateTimeAgo, 10000);
     return () => clearInterval(interval);
@@ -83,13 +59,9 @@ export default function BudgetTool() {
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="flex items-center gap-2 text-ink-soft">
-          <div className="w-2 h-2 rounded-full bg-rose-400 animate-bounce" />
-          <div className="w-2 h-2 rounded-full bg-rose-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-          <div className="w-2 h-2 rounded-full bg-rose-400 animate-bounce" style={{ animationDelay: "300ms" }} />
-        </div>
-      </div>
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
@@ -108,215 +80,211 @@ export default function BudgetTool() {
   }, {} as Record<string, { total: number; paid: number; items: BudgetItem[] }>);
 
   const categories = Object.entries(byCategory).sort((a, b) => b[1].total - a[1].total);
-
+  
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header */}
-      <div className="mb-6 flex items-start justify-between">
-        <div>
-          <h1 className="font-serif text-3xl text-ink mb-1">Budget</h1>
-          <p className="text-ink-soft">Track your wedding expenses</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* Last updated indicator */}
-          <div className="flex items-center gap-1.5 text-xs text-ink-faint">
-            <Clock className="w-3.5 h-3.5" />
-            <span>Updated {timeAgo}</span>
-          </div>
-          
-          <button
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 4 }}>
+        <Box>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Budget
+          </Typography>
+          <Typography color="text.secondary">
+            Track your wedding expenses
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <ClockIcon sx={{ fontSize: '1rem' }} />
+            Updated {timeAgo}
+          </Typography>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon className={isRefreshing ? 'animate-spin' : ''} />}
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-ink-soft hover:text-ink hover:bg-stone-100 transition-all disabled:opacity-50"
-            title="Refresh data"
           >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </button>
-        </div>
-      </div>
+            Refresh
+          </Button>
+        </Box>
+      </Box>
 
       {!hasData ? (
         /* Empty state */
-        <div className="bg-white rounded-2xl border border-stone-200 p-12 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-rose-50 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h2 className="font-medium text-ink text-xl mb-2">No budget items yet</h2>
-          <p className="text-ink-soft mb-6">
-            Tell me about your wedding expenses in chat and I&apos;ll track them here.
-          </p>
-          <a 
-            href="/" 
-            className="inline-flex items-center gap-2 px-6 py-3 bg-rose-500 text-white rounded-xl hover:bg-rose-600 transition-colors"
-          >
+        <Paper elevation={0} sx={{ textAlign: 'center', p: 4, bgcolor: 'grey.50', borderRadius: 2 }}>
+           <Box sx={{
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              bgcolor: 'primary.light',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 2,
+            }}>
+            <BudgetIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+          </Box>
+          <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
+            No budget items yet
+          </Typography>
+          <Typography color="text.secondary" sx={{ mb: 3 }}>
+            Tell me about your wedding expenses in chat and I'll track them here.
+          </Typography>
+          <Button variant="contained" href="/">
             Go to chat
-          </a>
-        </div>
+          </Button>
+        </Paper>
       ) : (
         <>
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            {/* Total Budget */}
-            <div className="bg-white rounded-2xl border border-stone-200 p-5">
-              <p className="text-sm text-ink-soft mb-1">Total Budget</p>
-              <p className="text-2xl font-serif text-ink">
-                {budget.total > 0 ? formatCurrency(budget.total) : "Not set"}
-              </p>
-            </div>
-
-            {/* Allocated */}
-            <div className={`rounded-2xl border p-5 ${isOverBudget ? "bg-red-50 border-red-200" : "bg-white border-stone-200"}`}>
-              <p className={`text-sm mb-1 ${isOverBudget ? "text-red-600" : "text-ink-soft"}`}>Allocated</p>
-              <p className={`text-2xl font-serif ${isOverBudget ? "text-red-700" : "text-ink"}`}>
-                {formatCurrency(budget.spent)}
-              </p>
-              {budget.total > 0 && (
-                <p className={`text-xs mt-1 ${isOverBudget ? "text-red-600" : "text-ink-faint"}`}>
-                  {budget.percentUsed}% of budget
-                </p>
-              )}
-            </div>
-
-            {/* Paid */}
-            <div className="bg-white rounded-2xl border border-stone-200 p-5">
-              <p className="text-sm text-ink-soft mb-1">Paid So Far</p>
-              <p className="text-2xl font-serif text-green-600">
-                {formatCurrency(budget.paid)}
-              </p>
-            </div>
-
-            {/* Remaining */}
-            <div className="bg-white rounded-2xl border border-stone-200 p-5">
-              <p className="text-sm text-ink-soft mb-1">Still Owed</p>
-              <p className="text-2xl font-serif text-ink">
-                {formatCurrency(budget.remaining)}
-              </p>
-            </div>
-          </div>
+          <Grid container spacing={2} sx={{ mb: 4 }}>
+            <Grid xs={12} sm={6} md={3}>
+              <Card>
+                <CardContent>
+                  <Typography color="text.secondary" gutterBottom>Total Budget</Typography>
+                  <Typography variant="h5" component="div">
+                    {budget.total > 0 ? formatCurrency(budget.total) : "Not set"}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid xs={12} sm={6} md={3}>
+              <Card sx={{ bgcolor: isOverBudget ? 'error.light' : 'background.paper' }}>
+                <CardContent>
+                  <Typography color={isOverBudget ? 'error.contrastText' : 'text.secondary'} gutterBottom>Allocated</Typography>
+                  <Typography variant="h5" component="div" color={isOverBudget ? 'error.contrastText' : 'text.primary'}>
+                    {formatCurrency(budget.spent)}
+                  </Typography>
+                  {budget.total > 0 && (
+                     <Typography color={isOverBudget ? 'error.contrastText' : 'text.secondary'} sx={{mt: 1}}>
+                      {budget.percentUsed}% of budget
+                    </Typography>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid xs={12} sm={6} md={3}>
+              <Card>
+                <CardContent>
+                  <Typography color="text.secondary" gutterBottom>Paid So Far</Typography>
+                  <Typography variant="h5" component="div" sx={{ color: 'success.main' }}>
+                    {formatCurrency(budget.paid)}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid xs={12} sm={6} md={3}>
+              <Card>
+                <CardContent>
+                  <Typography color="text.secondary" gutterBottom>Still Owed</Typography>
+                  <Typography variant="h5" component="div">
+                    {formatCurrency(budget.remaining)}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
 
           {/* Progress Bar */}
           {budget.total > 0 && (
-            <div className="bg-white rounded-2xl border border-stone-200 p-5 mb-6">
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-ink-soft">Budget used</span>
-                <span className={isOverBudget ? "text-red-600 font-medium" : "text-ink-soft"}>
-                  {budget.percentUsed}%
-                </span>
-              </div>
-              <div className="h-3 bg-stone-100 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    isOverBudget 
-                      ? "bg-red-500" 
-                      : budget.percentUsed > 90 
-                        ? "bg-amber-500" 
-                        : "bg-gradient-to-r from-rose-400 to-rose-500"
-                  }`}
-                  style={{ width: `${Math.min(budget.percentUsed, 100)}%` }}
+            <Card sx={{ mb: 4 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography color="text.secondary">Budget used</Typography>
+                  <Typography color={isOverBudget ? 'error' : 'text.secondary'}>
+                    {budget.percentUsed}%
+                  </Typography>
+                </Box>
+                <LinearProgress
+                  variant="determinate"
+                  value={Math.min(budget.percentUsed, 100)}
+                  color={isOverBudget ? "error" : budget.percentUsed > 90 ? "warning" : "primary"}
                 />
-              </div>
-              {isOverBudget && (
-                <p className="text-sm text-red-600 mt-2">
-                  Over budget by {formatCurrency(budget.spent - budget.total)}
-                </p>
-              )}
-            </div>
+                {isOverBudget && (
+                  <Alert severity="error" sx={{ mt: 2 }}>
+                    Over budget by {formatCurrency(budget.spent - budget.total)}
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
           )}
 
           {/* Category Breakdown */}
-          <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden mb-6">
-            <div className="px-6 py-4 border-b border-stone-100">
-              <h2 className="font-medium text-ink">By Category</h2>
-            </div>
-            <div className="divide-y divide-stone-100">
-              {categories.map(([category, data]) => {
-                const style = getCategoryStyle(category);
+          <Paper sx={{ mb: 4 }}>
+            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+              <Typography variant="h6">By Category</Typography>
+            </Box>
+            <List>
+              {categories.map(([category, data], index) => {
                 const percentage = budget.spent > 0 
                   ? Math.round((data.total / budget.spent) * 100) 
                   : 0;
                 
                 return (
-                  <div key={category} className="px-6 py-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${style.bg} ${style.text}`}>
-                          {category}
-                        </span>
-                        <span className="text-xs text-ink-faint">
+                  <React.Fragment key={category}>
+                    <ListItem>
+                      <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 2 }}>
+                        <Chip label={category} size="small" />
+                        <Typography variant="body2" color="text.secondary">
                           {data.items.length} item{data.items.length !== 1 ? "s" : ""}
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium text-ink">{formatCurrency(data.total)}</p>
-                        <p className="text-xs text-ink-faint">{percentage}% of total</p>
-                      </div>
-                    </div>
-                    <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full ${style.bg.replace("50", "400")}`}
-                        style={{ 
-                          width: `${percentage}%`,
-                          backgroundColor: style.text.replace("text-", "").replace("700", "400")
-                        }}
-                      />
-                    </div>
-                  </div>
+                        </Typography>
+                        <Box sx={{ flexGrow: 1, textAlign: 'right' }}>
+                          <Typography>{formatCurrency(data.total)}</Typography>
+                          <Typography variant="body2" color="text.secondary">{percentage}% of total</Typography>
+                        </Box>
+                      </Box>
+                    </ListItem>
+                    {index < categories.length -1 && <Divider component="li" />}
+                  </React.Fragment>
                 );
               })}
-            </div>
-          </div>
+            </List>
+          </Paper>
 
           {/* All Items */}
-          <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-stone-100">
-              <h2 className="font-medium text-ink">All Items</h2>
-            </div>
-            <div className="divide-y divide-stone-100">
-              {budget.items.map((item) => {
-                const style = getCategoryStyle(item.category);
+          <Paper>
+            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+              <Typography variant="h6">All Items</Typography>
+            </Box>
+            <List>
+              {budget.items.map((item, index) => {
                 const isPaidInFull = item.amountPaid >= item.totalCost;
                 
                 return (
-                  <div key={item.id} className="px-6 py-4 flex items-center gap-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${style.bg} ${style.text}`}>
-                      {item.category}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-ink truncate">
-                        {item.vendor || item.category}
-                      </p>
-                      {item.notes && (
-                        <p className="text-xs text-ink-faint truncate">{item.notes}</p>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-ink">{formatCurrency(item.totalCost)}</p>
-                      {item.amountPaid > 0 && (
-                        <p className={`text-xs ${isPaidInFull ? "text-green-600" : "text-ink-faint"}`}>
-                          {isPaidInFull ? "Paid in full" : `${formatCurrency(item.amountPaid)} paid`}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+                  <React.Fragment key={item.id}>
+                    <ListItem>
+                      <ListItemText
+                        primary={item.vendor || item.category}
+                        secondary={item.notes || `Category: ${item.category}`}
+                      />
+                      <Box sx={{ textAlign: 'right' }}>
+                        <Typography>{formatCurrency(item.totalCost)}</Typography>
+                        {item.amountPaid > 0 && (
+                          <Typography variant="body2" color={isPaidInFull ? 'success.main' : 'text.secondary'}>
+                            {isPaidInFull ? "Paid in full" : `${formatCurrency(item.amountPaid)} paid`}
+                          </Typography>
+                        )}
+                      </Box>
+                    </ListItem>
+                    {index < budget.items.length -1 && <Divider component="li" />}
+                  </React.Fragment>
                 );
               })}
-            </div>
-          </div>
+            </List>
+          </Paper>
 
           {/* Help prompt */}
-          <div className="mt-6 p-4 bg-stone-50 rounded-xl text-center">
-            <p className="text-sm text-ink-soft">
+          <Paper elevation={0} sx={{ mt: 4, p: 2, bgcolor: 'grey.50', textAlign: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
               Need to add or update something?{" "}
-              <a href="/" className="text-rose-600 hover:text-rose-700 font-medium">
+              <a href="/" style={{ color: 'primary.main' }}>
                 Tell me in chat
               </a>
-            </p>
-          </div>
+            </Typography>
+          </Paper>
         </>
       )}
-    </div>
+    </Container>
   );
 }
