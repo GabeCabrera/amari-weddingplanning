@@ -432,7 +432,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Concierge error:", error);
+    console.error("Scribe error:", error);
     return NextResponse.json(
       { error: "Failed to get response" },
       { status: 500 }

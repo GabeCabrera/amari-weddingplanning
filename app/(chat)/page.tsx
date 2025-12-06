@@ -1,6 +1,6 @@
 "use client";
 
-import { ConciergeChat } from "@/components/concierge-chat";
+import { ScribeChat } from "@/components/concierge-chat";
 import { useBrowser } from "@/components/layout/browser-context";
 import { Metadata, ResolvingMetadata } from 'next';
 
@@ -29,7 +29,7 @@ export default function ChatPage() {
     Inspiration: require("@/components/tools/InspoTool").default,
     Timeline: require("@/components/tools/TimelineTool").default,
     Settings: require("@/components/tools/SettingsTool").default,
-    Chat: ConciergeChat,
+    Chat: ScribeChat,
   };
 
   const ActiveTool = toolComponents[activeTab?.title || "Dashboard"];

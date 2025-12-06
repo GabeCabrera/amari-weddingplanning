@@ -19,14 +19,15 @@ interface AIAccess {
   limit: number;
 }
 
-interface ConciergeChatProps {
+interface ScribeChatProps {
   isOpen: boolean;
   onClose: () => void;
   coupleNames?: string;
-  plannerName?: string;
+  aiName?: string;
 }
 
-export function ConciergeChat({ isOpen, onClose, coupleNames, plannerName = "Planner" }: ConciergeChatProps) {
+// The main chat component
+export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe" }: ScribeChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -388,7 +389,7 @@ export function ConciergeChat({ isOpen, onClose, coupleNames, plannerName = "Pla
 }
 
 // Floating trigger button
-export function ConciergeTrigger({ onClick, plannerName = "Planner" }: { onClick: () => void; plannerName?: string }) {
+export function ScribeTrigger({ onClick, aiName = "Scribe" }: { onClick: () => void; aiName?: string }) {
   return (
     <button
       onClick={onClick}

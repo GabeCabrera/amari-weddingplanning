@@ -699,8 +699,8 @@ export const conciergeConversationsRelations = relations(conciergeConversations,
   }),
 }));
 
-export type ConciergeConversation = typeof conciergeConversations.$inferSelect;
-export type NewConciergeConversation = typeof conciergeConversations.$inferInsert;
+export type ScribeConversation = typeof conciergeConversations.$inferSelect;
+export type NewScribeConversation = typeof conciergeConversations.$inferInsert;
 
 // ============================================================================
 // WEDDING KERNELS - Compressed state for AI context
