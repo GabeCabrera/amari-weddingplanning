@@ -3,12 +3,18 @@
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Logo } from "@/components/logo";
+import {
+  Box,
+  Typography,
+  Container,
+  Paper,
+  TextField,
+  Button,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
+import { ArrowBack as ArrowBackIcon, CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -18,41 +24,29 @@ function ResetPasswordForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!token) {
     return (
-      <div className="text-center">
-        <div className="flex justify-center mb-6">
-          <Logo size="lg" href="/" />
-        </div>
-        <div className="w-12 h-px bg-warm-300 mx-auto mb-6" />
-        <p className="text-sm text-warm-500 mb-8">
-          Invalid reset link. Please request a new one.
-        </p>
-        <Link
-          href="/forgot-password"
-          className="text-xs tracking-wider uppercase text-warm-600 hover:text-warm-700 transition-colors"
-        >
-          Request New Link
-        </Link>
-      </div>
+      <Alert severity="error">
+        Invalid or expired password reset link. Please request a new one.
+      </Alert>
     );
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error("Passwords do not match.");
       return;
     }
-
     if (password.length < 8) {
-      toast.error("Password must be at least 8 characters");
+      toast.error("Password must be at least 8 characters long.");
       return;
     }
 
     setIsLoading(true);
+    setError(null);
 
     try {
       const response = await fetch("/api/auth/reset-password", {
@@ -60,16 +54,13 @@ function ResetPasswordForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, password }),
       });
-
       const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || "Failed to reset password");
+        throw new Error(data.error || "Failed to reset password.");
       }
-
       setIsSuccess(true);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Something went wrong");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
       setIsLoading(false);
     }
@@ -77,110 +68,86 @@ function ResetPasswordForm() {
 
   if (isSuccess) {
     return (
-      <div className="text-center">
-        <div className="flex justify-center mb-6">
-          <Logo size="lg" href="/" />
-        </div>
-        <div className="w-12 h-px bg-warm-300 mx-auto mb-6" />
-        <h1 className="text-xl font-serif font-light tracking-wide mb-4">
+      <Box sx={{ textAlign: 'center' }}>
+        <CheckCircleIcon color="success" sx={{ fontSize: 48, mb: 2 }} />
+        <Typography variant="h5" component="h1" gutterBottom>
           Password Reset
-        </h1>
-        <p className="text-sm text-warm-500 mb-8">
+        </Typography>
+        <Typography color="text.secondary" sx={{ mb: 3 }}>
           Your password has been successfully reset.
-        </p>
-        <div className="w-12 h-px bg-warm-300 mx-auto mb-8" />
-        <Link href="/login">
-          <Button className="bg-warm-600 hover:bg-warm-700 text-white">Sign In</Button>
-        </Link>
-      </div>
+        </Typography>
+        <Button variant="contained" component={Link} href="/login">
+          Sign In
+        </Button>
+      </Box>
     );
   }
 
   return (
     <>
-      <div className="text-center mb-8">
-        <div className="flex justify-center mb-4">
-          <Logo size="lg" href="/" />
-        </div>
-        <p className="text-xs tracking-[0.25em] uppercase text-warm-500">
-          Set New Password
-        </p>
-        <div className="w-12 h-px bg-warm-300 mx-auto mt-4" />
-      </div>
+      <Box sx={{ mb: 3, textAlign: 'center' }}>
+        <Typography variant="h5" component="h1" gutterBottom>
+          Set a New Password
+        </Typography>
+        <Typography color="text.secondary">
+          Enter your new password below.
+        </Typography>
+      </Box>
 
-      <p className="text-sm text-warm-500 text-center mb-6">
-        Enter your new password below.
-      </p>
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="password">New Password</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            required
-            minLength={8}
-            disabled={isLoading}
-          />
-          <p className="text-xs text-warm-500">At least 8 characters</p>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm Password</Label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="••••••••"
-            required
-            minLength={8}
-            disabled={isLoading}
-          />
-        </div>
-
+      <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <TextField
+          id="password"
+          type="password"
+          label="New Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          disabled={isLoading}
+          helperText="At least 8 characters"
+        />
+        <TextField
+          id="confirmPassword"
+          type="password"
+          label="Confirm New Password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+          disabled={isLoading}
+        />
         <Button
           type="submit"
-          className="w-full bg-warm-600 hover:bg-warm-700 text-white"
+          variant="contained"
+          fullWidth
           disabled={isLoading}
+          sx={{ py: 1.5, mt: 1 }}
         >
-          {isLoading ? "Resetting..." : "Reset Password"}
+          {isLoading ? <CircularProgress size={24} /> : "Reset Password"}
         </Button>
-      </form>
-
-      <div className="mt-8 text-center">
-        <Link
-          href="/login"
-          className="text-xs tracking-wider uppercase text-warm-500 hover:text-warm-600 transition-colors"
-        >
-          Back to Sign In
-        </Link>
-      </div>
+      </Box>
     </>
   );
 }
 
 export default function ResetPasswordPage() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-warm-50">
-      <div className="absolute top-6 left-6">
-        <Link 
-          href="/"
-          className="inline-flex items-center gap-2 text-warm-500 hover:text-warm-700 transition-colors text-sm"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Home</span>
-        </Link>
-      </div>
-
-      <div className="w-full max-w-sm bg-white p-8 rounded-lg shadow-sm border border-warm-200">
-        <Suspense fallback={<div className="text-center text-warm-500">Loading...</div>}>
-          <ResetPasswordForm />
-        </Suspense>
-      </div>
-    </main>
+    <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
+      <Button
+        component={Link}
+        href="/login"
+        startIcon={<ArrowBackIcon />}
+        sx={{ position: 'absolute', top: 24, left: 24, color: 'text.secondary' }}
+      >
+        Back to Login
+      </Button>
+      <Container maxWidth="xs">
+        <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+          <Suspense fallback={<CircularProgress />}>
+            <ResetPasswordForm />
+          </Suspense>
+        </Paper>
+      </Container>
+    </Box>
   );
 }
