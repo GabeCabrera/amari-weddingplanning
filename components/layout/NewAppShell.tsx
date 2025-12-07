@@ -39,6 +39,8 @@ import {
   getToolById,
 } from "./browser-context";
 
+import { ScribeChat, ScribeTrigger } from "../scribe-chat"; // Import ScribeChat and ScribeTrigger
+
 const DRAWER_WIDTH = 240;
 
 function MainContent({ children }: { children: React.ReactNode }) {
@@ -46,6 +48,7 @@ function MainContent({ children }: { children: React.ReactNode }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [isFloatingChatOpen, setIsFloatingChatOpen] = React.useState(false); // State for floating chat
   
   const browser = useBrowser();
 
@@ -99,6 +102,9 @@ function MainContent({ children }: { children: React.ReactNode }) {
       </List>
     </div>
   );
+
+  // Determine if the floating chat should be shown
+  const shouldShowFloatingChat = browser.activeTabId !== 'chat' && browser.activeTabId !== 'settings';
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -168,6 +174,14 @@ function MainContent({ children }: { children: React.ReactNode }) {
       >
         <Toolbar />
         {children}
+
+        {/* Floating Chat UI */}
+        {shouldShowFloatingChat && (
+          <>
+            <ScribeChat isOpen={isFloatingChatOpen} onClose={() => setIsFloatingChatOpen(false)} />
+            {!isFloatingChatOpen && <ScribeTrigger onClick={() => setIsFloatingChatOpen(true)} />}
+          </>
+        )}
       </Box>
     </Box>
   );
