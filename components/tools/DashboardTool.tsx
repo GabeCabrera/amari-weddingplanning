@@ -3,6 +3,42 @@
 import { useState, useEffect } from "react";
 import { usePlannerData, formatCurrency } from "@/lib/hooks/usePlannerData";
 import { useBrowser } from "@/components/layout/browser-context";
+import {
+  Box,
+  Typography,
+  Container,
+  CircularProgress,
+  Paper,
+  Button,
+  Grid,
+  Chip,
+  Alert,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Card,
+  CardContent,
+  CardActionArea,
+  LinearProgress,
+  ListItemButton,
+} from "@mui/material";
+import {
+  Refresh as RefreshIcon,
+  AccessTime as ClockIcon,
+  Warning as WarningIcon,
+  Info as InfoIcon,
+  CheckCircle as CheckCircleIcon,
+  ChatBubbleOutline as ChatIcon,
+  Checklist as ChecklistIcon,
+  Store as StoreIcon,
+  CalendarMonth as CalendarIcon,
+  AttachMoney as BudgetIcon,
+  People as PeopleIcon,
+  Cake as CakeIcon,
+  Favorite as FavoriteIcon,
+} from "@mui/icons-material";
+import { formatDistanceToNow } from "date-fns";
 
 // Helper to format time ago
 function formatTimeAgo(timestamp: number): string {
@@ -188,16 +224,14 @@ export default function DashboardTool() {
         <Box sx={{ mb: 4 }}>
           <List disablePadding>
             {alerts.map((alert, i) => (
-              <ListItem
+              <ListItemButton
                 key={i}
-                button
                 onClick={() => handleToolClick(alert.toolId || "dashboard")}
                 sx={{
                   mb: 1,
                   borderRadius: 1,
                   "&:last-child": { mb: 0 },
                 }}
-                disablePadding
               >
                 <Alert
                   severity={alert.type}
@@ -210,8 +244,7 @@ export default function DashboardTool() {
                 >
                   {alert.message}
                 </Alert>
-              </ListItem>
-            ))}
+                             </ListItemButton>            ))}
           </List>
         </Box>
       )}
