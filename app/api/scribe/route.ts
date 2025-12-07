@@ -268,7 +268,7 @@ async function getOrCreateConversation(tenantId: string) {
 }
 
 function extractNames(text: string): string | null {
-  const match = text.match(/\\\[NAMES:\\s*(.+?)\\\]/);
+  const match = text.match(/\[NAMES:\s*(.+?)\]/);
   if (match) {
     return match[1].trim();
   }
@@ -276,7 +276,7 @@ function extractNames(text: string): string | null {
 }
 
 function stripNameTag(text: string): string {
-  return text.replace(/\\n\\\\[NAMES:\\s*.+?\\\]/g, "").trim();
+  return text.replace(/\n?\[NAMES:\s*.+?\]/g, "").trim();
 }
 
 // ============================================================================ 
