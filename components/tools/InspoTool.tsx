@@ -191,9 +191,6 @@ export default function InspoTool() {
       if (response.ok) {
         const data = await response.json();
         setPalettes(data);
-        if (data.length === 0) {
-          setOpenNewPaletteDialog(true);
-        }
       }
     } catch (error) {
       console.error("Failed to fetch palettes", error);
