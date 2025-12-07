@@ -8,7 +8,7 @@ export default async function ChatLayout({ children }: { children: ReactNode }) 
   const session = await getServerSession(authOptions);
   
   if (!session) {
-    redirect("/sign-in");
+    redirect("/login");
   }
   
   return <NewAppShell>{children}</NewAppShell>;
