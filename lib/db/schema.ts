@@ -610,6 +610,8 @@ export const sparks = pgTable("sparks", {
   imageWidth: integer("image_width"),
   imageHeight: integer("image_height"),
   
+  tags: jsonb("tags").default([]),
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

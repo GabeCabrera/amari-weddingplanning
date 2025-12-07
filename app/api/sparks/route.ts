@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { paletteId, imageUrl, title, description, sourceUrl } = await req.json();
+    const { paletteId, imageUrl, title, description, sourceUrl, tags } = await req.json();
 
     if (!paletteId || !imageUrl) {
       return new Response("paletteId and imageUrl are required", { status: 400 });
@@ -37,6 +37,7 @@ export async function POST(req: Request) {
         title,
         description,
         sourceUrl,
+        tags: tags || [],
       })
       .returning();
 
