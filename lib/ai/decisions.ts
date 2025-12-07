@@ -157,6 +157,7 @@ interface UpdateDecisionParams {
   contractSigned?: boolean;
   contractSignedAt?: Date;
   isSkipped?: boolean;
+  force?: boolean;
 }
 
 export async function updateDecision(
@@ -171,10 +172,10 @@ export async function updateDecision(
   }
 
   // Check if locked
-  if (decision.status === "locked") {
+  if (decision.status === "locked" && !updates.force) {
     return { 
       success: false, 
-      message: `This decision is locked: ${decision.lockDetails || decision.lockReason}. Cannot modify.`,
+      message: `This decision is locked: ${decision.lockDetails || decision.lockReason}. User must confirm to unlock/overwrite.`,
       wasLocked: true
     };
   }

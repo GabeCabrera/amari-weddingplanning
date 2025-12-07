@@ -1855,6 +1855,7 @@ async function handleUpdateDecision(
       choiceName: params.choiceName as string | undefined,
       choiceAmount: params.choiceAmount ? (params.choiceAmount as number) * 100 : undefined,
       choiceNotes: params.notes as string | undefined,
+      force: params.force as boolean | undefined,
     }
   );
 

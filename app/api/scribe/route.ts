@@ -407,6 +407,7 @@ export async function POST(request: NextRequest) {
               contractSigned: { type: "boolean", description: "Whether a contract has been signed." },
               contractSignedAt: { type: "string", format: "date-time", description: "Timestamp when contract was signed." },
               isSkipped: { type: "boolean", description: "Whether this required decision is being skipped." },
+              force: { type: "boolean", description: "Set to true to force update a locked decision after user confirmation." },
             },
             required: ["decisionName"],
           },
