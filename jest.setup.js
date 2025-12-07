@@ -1,5 +1,8 @@
 // jest.setup.js
 import '@testing-library/jest-dom';
+import fetchMock from 'jest-fetch-mock'; // Explicitly import fetchMock
+
+fetchMock.enableMocks();
 
 // Suppress specific MUI Grid warnings
 const originalConsoleWarn = console.warn;

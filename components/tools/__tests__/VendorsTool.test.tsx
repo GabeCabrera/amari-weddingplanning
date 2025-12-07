@@ -1,15 +1,16 @@
 
 import React from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, act } from '@testing-library/react';
 import VendorsTool from '../VendorsTool';
 import * as PlannerData from '@/lib/hooks/usePlannerData';
+import { BrowserProvider } from '../../../components/layout/browser-context';
 
 // Mock the usePlannerData hook
 jest.mock('@/lib/hooks/usePlannerData');
 const mockedUsePlannerData = PlannerData.usePlannerData as jest.Mock;
 
 describe('VendorsTool', () => {
-  it('renders the empty state when there is no data', () => {
+  it('renders the empty state when there is no data', async () => {
     mockedUsePlannerData.mockReturnValue({
       data: { vendors: { list: [] } },
       loading: false,
@@ -17,13 +18,15 @@ describe('VendorsTool', () => {
       lastRefresh: Date.now(),
     });
 
-    render(<VendorsTool />);
+    await act(async () => {
+        render(<BrowserProvider><VendorsTool /></BrowserProvider>);
+    });
 
     expect(screen.getByText('No vendors yet')).toBeInTheDocument();
     expect(screen.getByText("Tell me about your vendors in chat and I'll track them here.")).toBeInTheDocument();
   });
 
-  it('renders the vendor data when available', () => {
+  it('renders the vendor data when available', async () => {
     const mockData = {
       vendors: {
         stats: {
@@ -47,7 +50,9 @@ describe('VendorsTool', () => {
       lastRefresh: Date.now(),
     });
 
-    render(<VendorsTool />);
+    await act(async () => {
+        render(<BrowserProvider><VendorsTool /></BrowserProvider>);
+    });
 
     // Check for summary cards
     expect(screen.getByText('Total Vendors')).toBeInTheDocument();

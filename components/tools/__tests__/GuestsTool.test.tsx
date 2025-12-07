@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import GuestsTool from '../GuestsTool';
 import * as PlannerData from '@/lib/hooks/usePlannerData';
+import { BrowserProvider } from '../../../components/layout/browser-context';
 
 // Mock the usePlannerData hook
 jest.mock('@/lib/hooks/usePlannerData');
@@ -16,7 +17,7 @@ describe('GuestsTool', () => {
       lastRefresh: Date.now(),
     });
 
-    render(<GuestsTool />);
+    render(<BrowserProvider><GuestsTool /></BrowserProvider>);
 
     expect(screen.getByText('No guests yet')).toBeInTheDocument();
     expect(screen.getByText("Tell me about your guests in chat and I'll add them to your list.")).toBeInTheDocument();
@@ -49,7 +50,7 @@ describe('GuestsTool', () => {
       lastRefresh: Date.now(),
     });
 
-    render(<GuestsTool />);
+    render(<BrowserProvider><GuestsTool /></BrowserProvider>);
 
     // Check for summary cards
     expect(screen.getByText('Total Guests')).toBeInTheDocument();

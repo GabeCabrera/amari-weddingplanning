@@ -1,9 +1,11 @@
 
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import TimelineTool from '../TimelineTool';
 import * as PlannerData from '@/lib/hooks/usePlannerData';
 import { formatTime } from '../TimelineEventCard'; // Import formatTime directly
+import { BrowserProvider } from '../../../components/layout/browser-context';
+
 // We don't need to import TimelineEventCard directly in the test file if we're mocking its default export.
 
 // Mock the usePlannerData hook
@@ -80,14 +82,16 @@ describe('TimelineTool', () => {
     (formatTime as jest.Mock).mockClear(); // Clear mock usage for formatTime
   });
 
-  it('renders loading state initially', () => {
+  it('renders loading state initially', async () => {
     mockedUsePlannerData.mockReturnValue({
       data: null,
       loading: true,
       refetch: jest.fn(),
       lastRefresh: 0,
     });
-    render(<TimelineTool />);
+    await act(async () => {
+        render(<BrowserProvider><TimelineTool /></BrowserProvider>);
+    });
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
 
@@ -101,12 +105,14 @@ describe('TimelineTool', () => {
       refetch: jest.fn(),
       lastRefresh: Date.now(),
     });
-    render(<TimelineTool />);
+    await act(async () => {
+        render(<BrowserProvider><TimelineTool /></BrowserProvider>);
+    });
 
     await waitFor(() => {
       expect(screen.getByText('No timeline events yet')).toBeInTheDocument();
       expect(screen.getByText("Tell me about your wedding day schedule in chat and I'll build your timeline.")).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: /Go to chat/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Go to chat/i })).toBeInTheDocument();
     });
   });
 
@@ -128,7 +134,9 @@ describe('TimelineTool', () => {
       refetch: jest.fn(),
       lastRefresh: Date.now(),
     });
-    render(<TimelineTool />);
+    await act(async () => {
+        render(<BrowserProvider><TimelineTool /></BrowserProvider>);
+    });
 
     await waitFor(() => {
       expect(screen.getByText('Wedding Day Timeline')).toBeInTheDocument();
@@ -169,7 +177,9 @@ describe('TimelineTool', () => {
       refetch: jest.fn(),
       lastRefresh: Date.now(),
     });
-    render(<TimelineTool />);
+    await act(async () => {
+        render(<BrowserProvider><TimelineTool /></BrowserProvider>);
+    });
 
     await waitFor(() => {
       expect(screen.getByText('8:30 AM')).toBeInTheDocument();

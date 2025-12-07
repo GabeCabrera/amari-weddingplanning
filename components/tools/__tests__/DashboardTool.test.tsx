@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act, within } from '@testing-library/react';
 import DashboardTool from '../DashboardTool';
 import * as PlannerData from '@/lib/hooks/usePlannerData';
+import { BrowserProvider } from '../../../components/layout/browser-context';
 
 // Mock the usePlannerData hook and formatCurrency function
 jest.mock('@/lib/hooks/usePlannerData');
@@ -46,7 +47,7 @@ describe('DashboardTool', () => {
       refetch: jest.fn(),
       lastRefresh: 0,
     });
-    render(<DashboardTool />);
+    render(<BrowserProvider><DashboardTool /></BrowserProvider>);
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
 
@@ -89,7 +90,7 @@ describe('DashboardTool', () => {
       lastRefresh: Date.now(),
     });
 
-    render(<DashboardTool />);
+    render(<BrowserProvider><DashboardTool /></BrowserProvider>);
 
     await waitFor(() => {
       // Header
@@ -102,8 +103,11 @@ describe('DashboardTool', () => {
       expect(screen.getByText('5 of 10 decisions')).toBeInTheDocument();
 
       expect(screen.getByRole('heading', { name: 'Budget' })).toBeInTheDocument();
+      const budgetCard = screen.getByRole('heading', { name: 'Budget' }).closest('div.MuiCard-root');
       expect(screen.getByText('$20000')).toBeInTheDocument();
-      expect(screen.getByText('$15000 allocated (75%)')).toBeInTheDocument();
+      expect(within(budgetCard as HTMLElement).getByText(/\$15000\s+allocated\s+\(/i)).toBeInTheDocument(); // For "$15000 allocated ("
+      expect(within(budgetCard as HTMLElement).getByText(/\s*75\s*/)).toBeInTheDocument(); // For "75"
+      expect(within(budgetCard as HTMLElement).getByText(/%\)/i)).toBeInTheDocument(); // For ")%"
 
       expect(screen.getByRole('heading', { name: 'Guests' })).toBeInTheDocument();
       expect(screen.getByText('100')).toBeInTheDocument();
@@ -134,7 +138,7 @@ describe('DashboardTool', () => {
       refetch: mockRefetch,
       lastRefresh: Date.now(),
     });
-    render(<DashboardTool />);
+    render(<BrowserProvider><DashboardTool /></BrowserProvider>);
 
     const refreshButton = screen.getByRole('button', { name: /Refresh/i });
     

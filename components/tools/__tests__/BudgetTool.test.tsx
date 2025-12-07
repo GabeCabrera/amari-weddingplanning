@@ -1,15 +1,16 @@
 
 import React from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, act } from '@testing-library/react';
 import BudgetTool from '../BudgetTool';
 import * as PlannerData from '@/lib/hooks/usePlannerData';
+import { BrowserProvider } from '../../../components/layout/browser-context';
 
 // Mock the usePlannerData hook
 jest.mock('@/lib/hooks/usePlannerData');
 const mockedUsePlannerData = PlannerData.usePlannerData as jest.Mock;
 
 describe('BudgetTool', () => {
-  it('renders the empty state when there is no data', () => {
+  it('renders the empty state when there is no data', async () => {
     mockedUsePlannerData.mockReturnValue({
       data: { budget: { items: [] } },
       loading: false,
@@ -17,13 +18,15 @@ describe('BudgetTool', () => {
       lastRefresh: Date.now(),
     });
 
-    render(<BudgetTool />);
+    await act(async () => {
+        render(<BrowserProvider><BudgetTool /></BrowserProvider>);
+    });
 
     expect(screen.getByText('No budget items yet')).toBeInTheDocument();
     expect(screen.getByText("Tell me about your wedding expenses in chat and I'll track them here.")).toBeInTheDocument();
   });
 
-  it('renders the budget data when available', () => {
+  it('renders the budget data when available', async () => {
     const mockData = {
       budget: {
         total: 20000,
@@ -51,7 +54,9 @@ describe('BudgetTool', () => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
     });
 
-    render(<BudgetTool />);
+    await act(async () => {
+        render(<BrowserProvider><BudgetTool /></BrowserProvider>);
+    });
 
     // Check for summary cards
     const totalBudgetCard = screen.getByText('Total Budget').closest('div.MuiCard-root');

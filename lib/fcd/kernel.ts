@@ -71,6 +71,8 @@ export function extractKernelDelta(
   return [];
 }
 
+import { formatDate } from "../utils";
+
 // Decompress kernel into natural language context for the AI
 export function decompressKernel(kernel: WeddingKernel): string {
   const lines: string[] = [];
@@ -81,7 +83,7 @@ export function decompressKernel(kernel: WeddingKernel): string {
     const date = new Date(kernel.weddingDate);
     const now = new Date();
     const months = Math.round((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30));
-    lines.push(`Their wedding is ${date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}, about ${months} months away.`);
+    lines.push(`Their wedding is ${formatDate(date, "en-US")}, about ${months} months away.`);
   }
   
   if (kernel.guestCount) {
