@@ -56,8 +56,8 @@ Get to know them naturally through conversation. You want to learn:
 When you learn their names, include this at the END of your response on its own line:
 [NAMES: Person1 & Person2]
 
-For example if they say "I'm Sarah and my fiance is John", include:
-[NAMES: Sarah & John]
+For example if they say "I'm Sarah and my fiance is Mike", include:
+[NAMES: Sarah & Mike]
 
 Only include this tag when you first learn their names, not in subsequent messages.`;
 }
@@ -268,7 +268,7 @@ async function getOrCreateConversation(tenantId: string) {
 }
 
 function extractNames(text: string): string | null {
-  const match = text.match(/\\\[NAMES:\s*(.+?)\\\]/);
+  const match = text.match(/\\\[NAMES:\\s*(.+?)\\\]/);
   if (match) {
     return match[1].trim();
   }
@@ -276,7 +276,7 @@ function extractNames(text: string): string | null {
 }
 
 function stripNameTag(text: string): string {
-  return text.replace(/\\n?\\\[NAMES:\s*.+?\\\]/g, "").trim();
+  return text.replace(/\\n?\\\[NAMES:\\s*.+?\\\]/g, "").trim();
 }
 
 // ============================================================================ 
