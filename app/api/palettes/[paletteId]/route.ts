@@ -6,23 +6,24 @@ import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 // Update a palette
-export async function PUT(req: Request, { params }: { params: { paletteId: string } }) {
+export async function PATCH(req: Request, { params }: { params: { paletteId: string } }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.tenantId) {
     return new Response("Unauthorized", { status: 401 });
   }
 
   try {
-    const { name, description } = await req.json();
+    const { name, description, isPublic } = await req.json();
     const { paletteId } = params;
-
-    if (!name) {
-      return new Response("Name is required", { status: 400 });
-    }
 
     const [updatedPalette] = await db
       .update(palettes)
-      .set({ name, description, updatedAt: new Date() })
+      .set({
+        ...(name !== undefined && { name }),
+        ...(description !== undefined && { description }),
+        ...(isPublic !== undefined && { isPublic }),
+        updatedAt: new Date()
+      })
       .where(and(eq(palettes.id, paletteId), eq(palettes.tenantId, session.user.tenantId)))
       .returning();
 

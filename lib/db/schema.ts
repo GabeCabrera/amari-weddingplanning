@@ -577,6 +577,11 @@ export const palettes = pgTable("palettes", {
   name: text("name").notNull(),
   description: text("description"),
   position: integer("position").notNull().default(0),
+  
+  // Social features
+  isPublic: boolean("is_public").default(false).notNull(),
+  viewCount: integer("view_count").default(0).notNull(),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -611,6 +616,11 @@ export const sparks = pgTable("sparks", {
   imageHeight: integer("image_height"),
   
   tags: jsonb("tags").default([]),
+  
+  // Social features
+  originalSparkId: uuid("original_spark_id"), // If copied from another spark
+  viewCount: integer("view_count").default(0).notNull(),
+  saveCount: integer("save_count").default(0).notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

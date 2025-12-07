@@ -24,6 +24,11 @@ import {
   Chip,
   Stack,
   InputAdornment,
+  Switch,
+  FormControlLabel,
+  Grid,
+  Tooltip,
+  Avatar,
 } from '@mui/material';
 import Masonry from '@mui/lab/Masonry';
 import Add from '@mui/icons-material/Add';
@@ -33,12 +38,21 @@ import Edit from '@mui/icons-material/Edit';
 import Share from '@mui/icons-material/Share';
 import OpenInNew from '@mui/icons-material/OpenInNew';
 import Label from '@mui/icons-material/Label';
+import Public from '@mui/icons-material/Public';
+import Lock from '@mui/icons-material/Lock';
+import ArrowBack from '@mui/icons-material/ArrowBack';
+import PushPin from '@mui/icons-material/PushPin';
 import type { Palette, Spark } from '@/lib/db/schema';
 import { toast } from "sonner";
 
 // --- Types ---
 interface SparkWithTags extends Spark {
   tags: string[];
+}
+
+interface PaletteWithMeta extends Palette {
+  tenantName?: string;
+  coverImage?: string;
 }
 
 // --- Components ---
@@ -106,7 +120,66 @@ function AddSparkDialog({ open, onClose, paletteId, onSparkAdded }: { open: bool
     );
 }
 
-function SparkDetailDialog({ spark, open, onClose, onDelete, onEdit }: { spark: SparkWithTags | null, open: boolean, onClose: () => void, onDelete: (id: string) => void, onEdit: (spark: SparkWithTags) => void }) {
+function SaveSparkDialog({ open, onClose, spark, myPalettes, onSaved }: { open: boolean, onClose: () => void, spark: SparkWithTags | null, myPalettes: Palette[], onSaved: () => void }) {
+    const [selectedPaletteId, setSelectedPaletteId] = useState("");
+
+    useEffect(() => {
+        if (myPalettes.length > 0 && !selectedPaletteId) {
+            setSelectedPaletteId(myPalettes[0].id);
+        }
+    }, [myPalettes, selectedPaletteId]);
+
+    const handleSave = async () => {
+        if (!spark || !selectedPaletteId) return;
+
+        try {
+            const response = await fetch('/api/sparks/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ originalSparkId: spark.id, targetPaletteId: selectedPaletteId }),
+            });
+
+            if (response.ok) {
+                toast.success("Spark saved to your palette!");
+                onSaved();
+                onClose();
+            } else {
+                toast.error("Failed to save spark.");
+            }
+        } catch (error) {
+            toast.error("Failed to save spark.");
+        }
+    };
+
+    return (
+        <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+            <DialogTitle>Save to Palette</DialogTitle>
+            <DialogContent>
+                <TextField
+                    select
+                    label="Select Palette"
+                    fullWidth
+                    margin="dense"
+                    value={selectedPaletteId}
+                    onChange={(e) => setSelectedPaletteId(e.target.value)}
+                    variant="outlined"
+                >
+                    {myPalettes.map((option) => (
+                        <MenuItem key={option.id} value={option.id}>
+                            {option.name}
+                        </MenuItem>
+                    ))}
+                </TextField>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose}>Cancel</Button>
+                <Button onClick={handleSave} variant="contained" startIcon={<PushPin />}>Save</Button>
+            </DialogActions>
+        </Dialog>
+    );
+}
+
+function SparkDetailDialog({ spark, open, onClose, onDelete, onEdit, isOwner, onSave }: { spark: SparkWithTags | null, open: boolean, onClose: () => void, onDelete: (id: string) => void, onEdit: (spark: SparkWithTags) => void, isOwner: boolean, onSave?: (spark: SparkWithTags) => void }) {
     if (!spark) return null;
 
     return (
@@ -125,8 +198,22 @@ function SparkDetailDialog({ spark, open, onClose, onDelete, onEdit }: { spark: 
                             {spark.title || "Untitled Spark"}
                         </Typography>
                         <Box>
-                            <IconButton onClick={() => onEdit(spark)} size="small"><Edit /></IconButton>
-                            <IconButton onClick={() => { onDelete(spark.id); onClose(); }} size="small" color="error"><Delete /></IconButton>
+                            {isOwner ? (
+                                <>
+                                    <IconButton onClick={() => onEdit(spark)} size="small"><Edit /></IconButton>
+                                    <IconButton onClick={() => { onDelete(spark.id); onClose(); }} size="small" color="error"><Delete /></IconButton>
+                                </>
+                            ) : (
+                                <Button 
+                                    variant="contained" 
+                                    color="primary" 
+                                    startIcon={<PushPin />} 
+                                    onClick={() => onSave && onSave(spark)}
+                                    size="small"
+                                >
+                                    Save
+                                </Button>
+                            )}
                         </Box>
                     </Box>
 
@@ -171,7 +258,7 @@ function SparkDetailDialog({ spark, open, onClose, onDelete, onEdit }: { spark: 
     );
 }
 
-function SparkCard({ spark, onClick }: { spark: SparkWithTags, onClick: (spark: SparkWithTags) => void }) {
+function SparkCard({ spark, onClick, isOwner, onSave }: { spark: SparkWithTags, onClick: (spark: SparkWithTags) => void, isOwner: boolean, onSave?: (spark: SparkWithTags) => void }) {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
@@ -210,17 +297,35 @@ function SparkCard({ spark, onClick }: { spark: SparkWithTags, onClick: (spark: 
                 transition: 'opacity 0.2s',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'flex-end',
+                justifyContent: 'space-between',
                 p: 2
             }}>
-                <Typography variant="subtitle1" color="white" fontWeight="bold" noWrap>
-                    {spark.title}
-                </Typography>
-                {spark.tags && spark.tags.length > 0 && (
-                   <Typography variant="caption" color="white" noWrap>
-                       {spark.tags.slice(0, 3).join(", ")}
-                   </Typography>
-                )}
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    {!isOwner && onSave && (
+                        <Button 
+                            variant="contained" 
+                            color="error" 
+                            size="small" 
+                            startIcon={<PushPin />}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onSave(spark);
+                            }}
+                        >
+                            Save
+                        </Button>
+                    )}
+                </Box>
+                <Box>
+                    <Typography variant="subtitle1" color="white" fontWeight="bold" noWrap>
+                        {spark.title}
+                    </Typography>
+                    {spark.tags && spark.tags.length > 0 && (
+                    <Typography variant="caption" color="white" noWrap>
+                        {spark.tags.slice(0, 3).join(", ")}
+                    </Typography>
+                    )}
+                </Box>
             </Box>
         </Card>
     );
@@ -279,7 +384,7 @@ function EditSparkDialog({ open, onClose, spark, onUpdate }: { open: boolean, on
     );
 }
 
-function SparkList({ palette }: { palette: Palette }) {
+function SparkList({ palette, isOwner, myPalettes }: { palette: Palette, isOwner: boolean, myPalettes: Palette[] }) {
     const [sparks, setSparks] = useState<SparkWithTags[]>([]);
     const [loading, setLoading] = useState(true);
     const [openAddSparkDialog, setOpenAddSparkDialog] = useState(false);
@@ -291,6 +396,10 @@ function SparkList({ palette }: { palette: Palette }) {
     // Edit View
     const [editingSpark, setEditingSpark] = useState<SparkWithTags | null>(null);
     const [openEditDialog, setOpenEditDialog] = useState(false);
+
+    // Save View
+    const [savingSpark, setSavingSpark] = useState<SparkWithTags | null>(null);
+    const [openSaveDialog, setOpenSaveDialog] = useState(false);
 
     const fetchSparks = useCallback(async () => {
         if (!palette?.id) return;
@@ -342,7 +451,13 @@ function SparkList({ palette }: { palette: Palette }) {
         } catch (e) {
             toast.error("Failed to delete spark");
         }
-    }
+    };
+
+    const handleSaveClick = (spark: SparkWithTags) => {
+        setSavingSpark(spark);
+        setOpenSaveDialog(true);
+        setOpenDetailDialog(false);
+    };
 
 
     if (loading) {
@@ -364,6 +479,8 @@ function SparkList({ palette }: { palette: Palette }) {
                 onClose={() => setOpenDetailDialog(false)}
                 onDelete={handleDeleteSpark}
                 onEdit={handleEditClick}
+                isOwner={isOwner}
+                onSave={handleSaveClick}
             />
 
             <EditSparkDialog 
@@ -373,56 +490,137 @@ function SparkList({ palette }: { palette: Palette }) {
                 onUpdate={fetchSparks} 
             />
 
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
-                 <Button variant="contained" startIcon={<Add />} onClick={() => setOpenAddSparkDialog(true)}>
-                    Add Spark
-                </Button>
-            </Box>
+            <SaveSparkDialog 
+                open={openSaveDialog} 
+                onClose={() => setOpenSaveDialog(false)} 
+                spark={savingSpark} 
+                myPalettes={myPalettes} 
+                onSaved={() => {}} // No update needed here unless we want to switch tabs
+            />
+
+            {isOwner && (
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
+                    <Button variant="contained" startIcon={<Add />} onClick={() => setOpenAddSparkDialog(true)}>
+                        Add Spark
+                    </Button>
+                </Box>
+            )}
             
             {sparks.length > 0 ? (
                 <Box sx={{ width: '100%', minHeight: 200 }}>
                     <Masonry columns={{ xs: 2, sm: 3, md: 4 }} spacing={2}>
                         {sparks.map((spark) => (
-                            <SparkCard key={spark.id} spark={spark} onClick={handleSparkClick} />
+                            <SparkCard 
+                                key={spark.id} 
+                                spark={spark} 
+                                onClick={handleSparkClick} 
+                                isOwner={isOwner}
+                                onSave={handleSaveClick}
+                            />
                         ))}
                     </Masonry>
                 </Box>
             ) : (
                 <Paper elevation={0} sx={{ textAlign: 'center', p: 8, bgcolor: 'grey.50', borderRadius: 4, borderStyle: 'dashed', borderWidth: 2, borderColor: 'divider' }}>
-                    <Typography variant="h6" component="h2" sx={{ mb: 1 }}>Start your collection</Typography>
-                    <Typography color="text.secondary" sx={{ mb: 3 }}>Add your first Spark to this palette.</Typography>
-                    <Button variant="outlined" startIcon={<Add />} onClick={() => setOpenAddSparkDialog(true)}>
-                        Add Spark
-                    </Button>
+                    <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
+                        {isOwner ? "Start your collection" : "Empty Palette"}
+                    </Typography>
+                    <Typography color="text.secondary" sx={{ mb: 3 }}>
+                        {isOwner ? "Add your first Spark to this palette." : "This palette has no sparks yet."}
+                    </Typography>
+                    {isOwner && (
+                        <Button variant="outlined" startIcon={<Add />} onClick={() => setOpenAddSparkDialog(true)}>
+                            Add Spark
+                        </Button>
+                    )}
                 </Paper>
             )}
         </>
     );
 }
 
+function PublicPaletteCard({ palette, onClick }: { palette: PaletteWithMeta, onClick: (p: PaletteWithMeta) => void }) {
+    return (
+        <Card 
+            sx={{ cursor: 'pointer', borderRadius: 3, height: '100%', '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 }, transition: 'all 0.2s' }}
+            onClick={() => onClick(palette)}
+        >
+            <Box sx={{ height: 200, bgcolor: 'grey.200', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                {palette.coverImage ? (
+                    <img src={`${palette.coverImage}?w=400&auto=format`} alt={palette.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                    <Public sx={{ fontSize: 60, color: 'grey.400' }} />
+                )}
+            </Box>
+            <CardContent>
+                <Typography variant="h6" noWrap>{palette.name}</Typography>
+                {palette.tenantName && (
+                    <Typography variant="caption" color="text.secondary">
+                        by {palette.tenantName}
+                    </Typography>
+                )}
+                {palette.description && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                        {palette.description}
+                    </Typography>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
 export default function InspoTool() {
-  const [palettes, setPalettes] = useState<Palette[]>([]);
-  const [activePaletteIndex, setActivePaletteIndex] = useState(0);
+  // State
+  const [viewMode, setViewMode] = useState<'mine' | 'explore'>('mine');
   const [loading, setLoading] = useState(true);
   
+  // My Palettes Data
+  const [myPalettes, setMyPalettes] = useState<Palette[]>([]);
+  const [activePaletteIndex, setActivePaletteIndex] = useState(0);
+  
+  // Explore Data
+  const [explorePalettes, setExplorePalettes] = useState<PaletteWithMeta[]>([]);
+  const [selectedPublicPalette, setSelectedPublicPalette] = useState<PaletteWithMeta | null>(null);
+
+  // Dialogs
   const [openNewPaletteDialog, setOpenNewPaletteDialog] = useState(false);
   const [newPaletteName, setNewPaletteName] = useState("");
 
   useEffect(() => {
-    fetchPalettes();
-  }, []);
+    if (viewMode === 'mine') {
+        fetchMyPalettes();
+    } else {
+        fetchExplorePalettes();
+    }
+  }, [viewMode]);
 
-  const fetchPalettes = async () => {
+  const fetchMyPalettes = async () => {
+    setLoading(true);
     try {
       const response = await fetch('/api/palettes');
       if (response.ok) {
         const data = await response.json();
-        setPalettes(data);
+        setMyPalettes(data);
       }
     } catch (error) {
       console.error("Failed to fetch palettes", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchExplorePalettes = async () => {
+    setLoading(true);
+    try {
+        const response = await fetch('/api/palettes/explore');
+        if (response.ok) {
+            const data = await response.json();
+            setExplorePalettes(data);
+        }
+    } catch (error) {
+        console.error("Failed to fetch explore palettes", error);
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -441,10 +639,10 @@ export default function InspoTool() {
       });
       if (response.ok) {
         toast.success("Palette created!");
-        await fetchPalettes(); // Re-fetch to get the new list
+        await fetchMyPalettes(); 
         setNewPaletteName("");
         setOpenNewPaletteDialog(false);
-        setActivePaletteIndex(palettes.length); // Switch to the new palette
+        setActivePaletteIndex(myPalettes.length); 
       } else {
         toast.error("Failed to create palette.");
       }
@@ -453,8 +651,25 @@ export default function InspoTool() {
       toast.error("Failed to create palette.");
     }
   };
+
+  const handleTogglePublic = async (palette: Palette) => {
+      try {
+          const response = await fetch(`/api/palettes/${palette.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ isPublic: !palette.isPublic }),
+          });
+          if (response.ok) {
+              const updated = await response.json();
+              setMyPalettes(prev => prev.map(p => p.id === updated.id ? updated : p));
+              toast.success(updated.isPublic ? "Palette is now public" : "Palette is now private");
+          }
+      } catch (error) {
+          toast.error("Failed to update palette");
+      }
+  };
   
-  if (loading) {
+  if (loading && myPalettes.length === 0 && explorePalettes.length === 0) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
         <CircularProgress />
@@ -464,6 +679,7 @@ export default function InspoTool() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
+      {/* New Palette Dialog */}
       <Dialog open={openNewPaletteDialog} onClose={() => setOpenNewPaletteDialog(false)}>
         <DialogTitle>Create a New Palette</DialogTitle>
         <DialogContent>
@@ -484,50 +700,122 @@ export default function InspoTool() {
         </DialogActions>
       </Dialog>
     
+      {/* Header with Mode Switch */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
         <Box>
-          <Typography variant="h4" component="h1" fontWeight="bold">
+          <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
             Inspiration
           </Typography>
-          <Typography color="text.secondary">
-            Collect and organize your wedding ideas.
-          </Typography>
+          <Stack direction="row" spacing={1}>
+              <Button 
+                onClick={() => { setViewMode('mine'); setSelectedPublicPalette(null); }} 
+                variant={viewMode === 'mine' && !selectedPublicPalette ? 'contained' : 'outlined'}
+                color="primary"
+                sx={{ borderRadius: 5 }}
+              >
+                  My Boards
+              </Button>
+              <Button 
+                onClick={() => { setViewMode('explore'); setSelectedPublicPalette(null); }} 
+                variant={viewMode === 'explore' || selectedPublicPalette ? 'contained' : 'outlined'}
+                color="secondary"
+                sx={{ borderRadius: 5 }}
+                startIcon={<Public />}
+              >
+                  Explore
+              </Button>
+          </Stack>
         </Box>
-        <Button variant="contained" startIcon={<Add />} onClick={() => setOpenNewPaletteDialog(true)}>
-          New Palette
-        </Button>
+        
+        {viewMode === 'mine' && (
+            <Button variant="contained" startIcon={<Add />} onClick={() => setOpenNewPaletteDialog(true)}>
+            New Palette
+            </Button>
+        )}
       </Box>
 
-      {palettes.length > 0 ? (
-        <>
-          <Box sx={{ mb: 4, borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs 
-                value={activePaletteIndex} 
-                onChange={handlePaletteChange} 
-                variant="scrollable" 
-                scrollButtons="auto"
-                sx={{ '& .MuiTab-root': { textTransform: 'none', fontSize: '1rem' } }}
-            >
-              {palettes.map((palette) => (
-                <Tab label={palette.name} key={palette.id} />
-              ))}
-            </Tabs>
+      {/* View: Explore - Detailed Public Palette */}
+      {selectedPublicPalette ? (
+          <Box>
+              <Button startIcon={<ArrowBack />} onClick={() => setSelectedPublicPalette(null)} sx={{ mb: 2 }}>
+                  Back to Explore
+              </Button>
+              <Paper sx={{ p: 3, mb: 4, bgcolor: 'grey.50' }}>
+                  <Typography variant="h4">{selectedPublicPalette.name}</Typography>
+                  <Typography variant="subtitle1" color="text.secondary">by {selectedPublicPalette.tenantName}</Typography>
+                  <Typography variant="body1" sx={{ mt: 1 }}>{selectedPublicPalette.description}</Typography>
+              </Paper>
+              <SparkList palette={selectedPublicPalette} isOwner={false} myPalettes={myPalettes} />
           </Box>
-          
-          <SparkList palette={palettes[activePaletteIndex]} />
-        </>
+      ) : viewMode === 'explore' ? (
+          /* View: Explore - List */
+          <Box>
+              {explorePalettes.length > 0 ? (
+                  <Grid container spacing={3}>
+                      {explorePalettes.map(palette => (
+                          <Grid item xs={12} sm={6} md={4} lg={3} key={palette.id}>
+                              <PublicPaletteCard palette={palette} onClick={setSelectedPublicPalette} />
+                          </Grid>
+                      ))}
+                  </Grid>
+              ) : (
+                  <Paper sx={{ p: 5, textAlign: 'center' }}>
+                      <Typography color="text.secondary">No public palettes found yet. Be the first to share yours!</Typography>
+                  </Paper>
+              )}
+          </Box>
       ) : (
-        <Paper elevation={0} sx={{ textAlign: 'center', p: 10, bgcolor: 'grey.50', borderRadius: 4 }}>
-            <Typography variant="h5" component="h2" sx={{ mb: 2 }} fontWeight="bold">
-                Create your first Palette
-            </Typography>
-            <Typography color="text.secondary" sx={{ mb: 4, maxWidth: 500, mx: 'auto' }}>
-                Palettes are boards where you can save and organize your ideas. Create one for your Venue, Dress, Cake, or anything else!
-            </Typography>
-            <Button variant="contained" size="large" onClick={() => setOpenNewPaletteDialog(true)}>
-                Create Palette
-            </Button>
-        </Paper>
+          /* View: My Palettes */
+          <>
+            {myPalettes.length > 0 ? (
+                <>
+                <Box sx={{ mb: 4, borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Tabs 
+                        value={activePaletteIndex} 
+                        onChange={handlePaletteChange} 
+                        variant="scrollable" 
+                        scrollButtons="auto"
+                        sx={{ '& .MuiTab-root': { textTransform: 'none', fontSize: '1rem' } }}
+                    >
+                    {myPalettes.map((palette) => (
+                        <Tab label={palette.name} key={palette.id} />
+                    ))}
+                    </Tabs>
+                    
+                    <Box sx={{ px: 2 }}>
+                        <FormControlLabel
+                            control={
+                                <Switch 
+                                    checked={myPalettes[activePaletteIndex]?.isPublic || false} 
+                                    onChange={() => handleTogglePublic(myPalettes[activePaletteIndex])}
+                                />
+                            }
+                            label={
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    {myPalettes[activePaletteIndex]?.isPublic ? <Public fontSize="small" /> : <Lock fontSize="small" />}
+                                    <Typography variant="body2">{myPalettes[activePaletteIndex]?.isPublic ? "Public" : "Private"}</Typography>
+                                </Box>
+                            }
+                        />
+                    </Box>
+                </Box>
+                
+                <SparkList palette={myPalettes[activePaletteIndex]} isOwner={true} myPalettes={myPalettes} />
+                </>
+            ) : (
+                <Paper elevation={0} sx={{ textAlign: 'center', p: 10, bgcolor: 'grey.50', borderRadius: 4 }}>
+                    <Typography variant="h5" component="h2" sx={{ mb: 2 }} fontWeight="bold">
+                        Create your first Palette
+                    </Typography>
+                    <Typography color="text.secondary" sx={{ mb: 4, maxWidth: 500, mx: 'auto' }}>
+                        Palettes are boards where you can save and organize your ideas. Create one for your Venue, Dress, Cake, or anything else!
+                    </Typography>
+                    <Button variant="contained" size="large" onClick={() => setOpenNewPaletteDialog(true)}>
+                        Create Palette
+                    </Button>
+                </Paper>
+            )}
+          </>
       )}
     </Container>
   );
