@@ -616,6 +616,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // If message is still empty but we did something, give a fallback
+    if (!assistantMessage.trim()) {
+        assistantMessage = shouldRefreshPlannerData ? "Done! I've updated your plan." : "I'm not sure how to help with that.";
+    }
+
     // Update conversation with new messages
     const updatedMessages: Message[] = [
       ...existingMessages,
@@ -646,8 +651,11 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Scribe error:", error);
+    if (error instanceof Error) {
+        console.error("Error stack:", error.stack);
+    }
     return NextResponse.json(
-      { error: "Failed to get response" },
+      { error: "Failed to get response", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
