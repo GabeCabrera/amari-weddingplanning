@@ -174,7 +174,10 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
   );
 }
 
+import { useBrowser } from "../layout/browser-context";
+
 export default function VendorsTool() {
+  const browser = useBrowser();
   const { data, loading, refetch, lastRefresh } = usePlannerData();
   const [filter, setFilter] = useState<"all" | "booked" | "researching">("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -287,7 +290,7 @@ export default function VendorsTool() {
           <Typography color="text.secondary" sx={{ mb: 3 }}>
             Tell me about your vendors in chat and I'll track them here.
           </Typography>
-          <Button variant="contained" href="/">
+          <Button variant="contained" onClick={() => browser.goHome()}>
             Go to chat
           </Button>
         </Paper>
@@ -367,7 +370,7 @@ export default function VendorsTool() {
           <Paper elevation={0} sx={{ mt: 4, p: 2, bgcolor: 'grey.50', textAlign: 'center' }}>
             <Typography variant="body2" color="text.secondary">
               Need to add or update a vendor?{" "}
-              <a href="/" style={{ color: 'primary.main' }}>
+              <a onClick={() => browser.goHome()} style={{ color: 'primary.main', cursor: 'pointer' }}>
                 Tell me in chat
               </a>
             </Typography>

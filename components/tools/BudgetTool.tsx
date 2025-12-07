@@ -23,7 +23,10 @@ import {
 import { Refresh as RefreshIcon, History as ClockIcon, AccountBalanceWallet as BudgetIcon } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
 
+import { useBrowser } from "../layout/browser-context";
+
 export default function BudgetTool() {
+  const browser = useBrowser();
   const { data, loading, refetch, lastRefresh } = usePlannerData();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [timeAgo, setTimeAgo] = useState("just now");
@@ -131,7 +134,7 @@ export default function BudgetTool() {
           <Typography color="text.secondary" sx={{ mb: 3 }}>
             Tell me about your wedding expenses in chat and I'll track them here.
           </Typography>
-          <Button variant="contained" href="/">
+          <Button variant="contained" onClick={() => browser.goHome()}>
             Go to chat
           </Button>
         </Paper>
@@ -278,7 +281,7 @@ export default function BudgetTool() {
           <Paper elevation={0} sx={{ mt: 4, p: 2, bgcolor: 'grey.50', textAlign: 'center' }}>
             <Typography variant="body2" color="text.secondary">
               Need to add or update something?{" "}
-              <a href="/" style={{ color: 'primary.main' }}>
+              <a onClick={() => browser.goHome()} style={{ color: 'primary.main', cursor: 'pointer' }}>
                 Tell me in chat
               </a>
             </Typography>

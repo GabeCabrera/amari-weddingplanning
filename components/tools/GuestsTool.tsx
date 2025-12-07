@@ -90,7 +90,10 @@ function GuestRow({ guest }: { guest: Guest }) {
   );
 }
 
+import { useBrowser } from "../layout/browser-context";
+
 export default function GuestsTool() {
+  const browser = useBrowser();
   const { data, loading, refetch, lastRefresh } = usePlannerData();
   const [filter, setFilter] = useState<"all" | "confirmed" | "pending" | "declined">("all");
   const [search, setSearch] = useState("");
@@ -225,7 +228,7 @@ export default function GuestsTool() {
           <Typography color="text.secondary" sx={{ mb: 3 }}>
             Tell me about your guests in chat and I'll add them to your list.
           </Typography>
-          <Button variant="contained" href="/">
+          <Button variant="contained" onClick={() => browser.goHome()}>
             Go to chat
           </Button>
         </Paper>
@@ -350,7 +353,7 @@ export default function GuestsTool() {
           <Paper elevation={0} sx={{ mt: 4, p: 2, bgcolor: 'grey.50', textAlign: 'center' }}>
             <Typography variant="body2" color="text.secondary">
               Need to add or update guests?{" "}
-              <a href="/" style={{ color: 'primary.main' }}>
+              <a onClick={() => browser.goHome()} style={{ color: 'primary.main', cursor: 'pointer' }}>
                 Tell me in chat
               </a>
             </Typography>
