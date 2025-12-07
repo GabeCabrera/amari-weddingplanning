@@ -388,188 +388,19 @@ export async function POST(request: NextRequest) {
       system: systemPrompt,
       messages: claudeMessages,
       tools: [ // Define tools available to Claude
-        // Decision tools
         {
           name: "update_decision",
-          description: "Update the status or details of a specific wedding decision on the checklist.",
+          description: "Update the status of a specific wedding decision on the checklist.",
           input_schema: {
             type: "object",
             properties: {
-              decisionName: { type: "string", description: "The internal name of the decision (e.g., 'ceremony_venue', 'photographer', 'guest_count')." },
-              status: { type: "string", enum: ["not_started", "researching", "decided", "locked"], description: "The new status of the decision." },
-              choiceName: { type: "string", description: "The name of the chosen option (e.g., 'Alpine Arts Center', 'John Smith Photography')." },
-              choiceAmount: { type: "number", description: "The monetary amount associated with the choice, in USD." },
-              choiceNotes: { type: "string", description: "Any specific notes about the choice." },
-              estimatedCost: { type: "number", description: "The estimated cost for this decision, in USD." },
-              depositAmount: { type: "number", description: "The amount of deposit paid, in USD." },
-              depositPaidAt: { type: "string", format: "date-time", description: "Timestamp when deposit was paid." },
-              contractSigned: { type: "boolean", description: "Whether a contract has been signed." },
-              contractSignedAt: { type: "string", format: "date-time", description: "Timestamp when contract was signed." },
-              isSkipped: { type: "boolean", description: "Whether this required decision is being skipped." },
+              decisionName: { type: "string", description: "The internal name of the decision (e.g., 'ceremony_venue', 'photographer')." },
+              status: { type: "string", enum: ["decided", "researching"], description: "The new status of the decision." },
             },
-            required: ["decisionName"],
-          },
-        },
-        {
-          name: "lock_decision",
-          description: "Locks a decision, preventing further changes. Use when a decision is final, like a signed contract or paid deposit.",
-          input_schema: {
-            type: "object",
-            properties: {
-              decisionName: { type: "string", description: "The internal name of the decision to lock." },
-              reason: { type: "string", enum: ["deposit_paid", "contract_signed", "full_payment", "date_passed", "user_confirmed"], description: "The reason for locking the decision." },
-              details: { type: "string", description: "Optional: additional details about why the decision was locked." },
-            },
-            required: ["decisionName", "reason"],
-          },
-        },
-        {
-          name: "add_budget_item",
-          description: "Adds a new item to the budget, e.g., a vendor service or a specific expense.",
-          input_schema: {
-            type: "object",
-            properties: {
-              category: { type: "string", description: "The category of the budget item (e.g., 'Venue', 'Photography', 'Flowers')." },
-              vendor: { type: "string", description: "The name of the vendor (if applicable)." },
-              estimatedCost: { type: "number", description: "The estimated total cost of this item, in USD." },
-              amountPaid: { type: "number", description: "The amount paid towards this item so far, in USD." },
-              notes: { type: "string", description: "Any specific notes about this budget item." },
-            },
-            required: ["category", "estimatedCost"],
-          },
-        },
-        {
-          name: "update_budget_item",
-          description: "Updates an existing budget item. Can modify cost, paid amount, vendor, or notes.",
-          input_schema: {
-            type: "object",
-            properties: {
-              itemId: { type: "string", description: "The unique ID of the budget item to update. Prefer this if available." },
-              category: { type: "string", description: "The category of the budget item (e.g., 'Venue'). Can be used with vendor to identify." },
-              vendor: { type: "string", description: "The name of the vendor. Can be used with category to identify if ID not available." },
-              estimatedCost: { type: "number", description: "The new estimated total cost of this item, in USD." },
-              amountPaid: { type: "number", description: "The new amount paid towards this item, in USD." },
-              notes: { type: "string", description: "New specific notes about this budget item." },
-            },
-            anyOf: [{ required: ["itemId"] }, { required: ["category", "vendor"] }],
-          },
-        },
-        {
-          name: "add_vendor",
-          description: "Adds a new vendor to the vendor contact list. Use when a couple mentions a new vendor they are considering or have booked.",
-          input_schema: {
-            type: "object",
-            properties: {
-              category: { type: "string", description: "The category of the vendor (e.g., 'Venue', 'Photographer', 'Caterer')." },
-              name: { type: "string", description: "The name of the vendor (e.g., 'Alpine Arts Center', 'John Smith Photography')." },
-              contactName: { type: "string", description: "The primary contact person at the vendor." },
-              email: { type: "string", format: "email", description: "The vendor's email address." },
-              phone: { type: "string", description: "The vendor's phone number." },
-              website: { type: "string", format: "url", description: "The vendor's website URL." },
-              status: { type: "string", enum: ["researching", "contacted", "booked", "confirmed", "paid"], description: "The current status with this vendor." },
-              price: { type: "number", description: "The total price quoted by the vendor, in USD." },
-              notes: { type: "string", description: "Any specific notes about this vendor." },
-            },
-            required: ["category", "name"],
-          },
-        },
-        {
-          name: "update_vendor_status",
-          description: "Updates the status or details of an existing vendor.",
-          input_schema: {
-            type: "object",
-            properties: {
-              vendorId: { type: "string", description: "The unique ID of the vendor to update. Prefer this if available." },
-              vendorName: { type: "string", description: "The name of the vendor (e.g., 'Alpine Arts Center'). Can be used with category if ID not available." },
-              category: { type: "string", description: "The category of the vendor (e.g., 'Venue'). Can be used with vendorName if ID not available." },
-              status: { type: "string", enum: ["researching", "contacted", "booked", "confirmed", "paid"], description: "The new status of the vendor." },
-              depositPaid: { type: "boolean", description: "Whether a deposit has been paid." },
-              contractSigned: { type: "boolean", description: "Whether a contract has been signed." },
-            },
-            anyOf: [{ required: ["vendorId"] }, { required: ["vendorName", "category"] }],
-            required: ["status"], // Status is always required when updating vendor status
-          },
-        },
-        {
-          name: "add_guest",
-          description: "Adds a single guest to the guest list.",
-          input_schema: {
-            type: "object",
-            properties: {
-              name: { type: "string", description: "The full name of the guest." },
-              email: { type: "string", format: "email", description: "The guest's email address." },
-              side: { type: "string", enum: ["bride", "groom", "both"], description: "Which partner's side the guest is on." },
-              group: { type: "string", description: "The guest's group (e.g., 'Family', 'Friends', 'Work')." },
-              rsvp: { type: "string", enum: ["pending", "confirmed", "declined"], description: "The guest's RSVP status." },
-              plusOne: { type: "boolean", description: "Whether the guest is invited with a plus-one." },
-              notes: { type: "string", description: "Any special notes for this guest." },
-            },
-            required: ["name"],
-          },
-        },
-        {
-          name: "add_guest_group",
-          description: "Adds multiple guests to the guest list, often belonging to the same group or side.",
-          input_schema: {
-            type: "object",
-            properties: {
-              guests: { type: "array", items: { type: "string" }, description: "An array of guest names (e.g., ['John Doe', 'Jane Smith'])." },
-              side: { type: "string", enum: ["bride", "groom", "both"], description: "Which partner's side the guests are on." },
-              group: { type: "string", description: "The group these guests belong to (e.g., 'Family', 'Friends', 'Work')." },
-              plusOnes: { type: "boolean", description: "Whether these guests are invited with plus-ones." },
-            },
-            required: ["guests"],
-          },
-        },
-        {
-          name: "add_event",
-          description: "Adds a general event to the wedding planning calendar.",
-          input_schema: {
-            type: "object",
-            properties: {
-              title: { type: "string", description: "The title of the event (e.g., 'Cake Tasting', 'Dress Fitting')." },
-              date: { type: "string", format: "date", description: "The date of the event (YYYY-MM-DD)." },
-              time: { type: "string", format: "time", description: "The time of the event (HH:MM)." },
-              location: { type: "string", description: "The location of the event." },
-              category: { type: "string", description: "The category of the event (e.g., 'vendor', 'appointment', 'milestone')." },
-              notes: { type: "string", description: "Any notes for the event." },
-            },
-            required: ["title", "date"],
-          },
-        },
-        {
-          name: "add_day_of_event",
-          description: "Adds an event to the detailed day-of wedding timeline.",
-          input_schema: {
-            type: "object",
-            properties: {
-              event: { type: "string", description: "The name of the event (e.g., 'Ceremony Starts', 'First Dance')." },
-              time: { type: "string", format: "time", description: "The time of the event (HH:MM)." },
-              duration: { type: "number", description: "The duration of the event in minutes." },
-              location: { type: "string", description: "The location for this specific timeline event." },
-              notes: { type: "string", description: "Any specific notes or instructions for this event." },
-            },
-            required: ["event", "time"],
-          },
-        },
-        {
-          name: "update_wedding_details",
-          description: "Updates core wedding details such as wedding date, guest count, or venue information.",
-          input_schema: {
-            type: "object",
-            properties: {
-              weddingDate: { type: "string", format: "date", description: "The new wedding date (YYYY-MM-DD)." },
-              guestCount: { type: "number", description: "The estimated number of guests." },
-              venueName: { type: "string", description: "The name of the chosen ceremony/reception venue." },
-              venueAddress: { type: "string", description: "The address of the chosen venue." },
-              venueCost: { type: "number", description: "The estimated cost of the venue, in USD." },
-              ceremonyTime: { type: "string", format: "time", description: "The time the ceremony starts (HH:MM)." },
-              receptionTime: { type: "string", format: "time", description: "The time the reception starts (HH:MM)." },
-            },
+            required: ["decisionName", "status"],
           },
         },
       ],
-    });
 
     let assistantMessage = "";
     let shouldRefreshPlannerData = false; // Flag to indicate if planner data might have changed
