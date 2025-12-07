@@ -205,6 +205,7 @@ export const tenantsRelations = relations(tenants, ({ many, one }) => ({
   users: many(users),
   planner: one(planners),
   rsvpForms: many(rsvpForms),
+  palettes: many(palettes),
 }));
 
 // ============================================================================
@@ -564,6 +565,63 @@ export type NewGoogleCalendarConnection = typeof googleCalendarConnections.$infe
 
 export type CalendarSyncLog = typeof calendarSyncLog.$inferSelect;
 export type NewCalendarSyncLog = typeof calendarSyncLog.$inferInsert;
+
+// ============================================================================
+// INSPIRATION PALETTES - "Boards" for collecting "Sparks"
+// ============================================================================
+export const palettes = pgTable("palettes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id")
+    .notNull()
+    .references(() => tenants.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const palettesRelations = relations(palettes, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [palettes.tenantId],
+    references: [tenants.id],
+  }),
+  sparks: many(sparks),
+}));
+
+export type Palette = typeof palettes.$inferSelect;
+export type NewPalette = typeof palettes.$inferInsert;
+
+// ============================================================================
+// INSPIRATION SPARKS - Individual inspiration "pins"
+// ============================================================================
+export const sparks = pgTable("sparks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  paletteId: uuid("palette_id")
+    .notNull()
+    .references(() => palettes.id, { onDelete: "cascade" }),
+  
+  title: text("title"),
+  description: text("description"),
+  imageUrl: text("image_url").notNull(),
+  sourceUrl: text("source_url"), // Optional URL of the original inspiration
+  
+  // For uploaded images, we might store metadata
+  imageWidth: integer("image_width"),
+  imageHeight: integer("image_height"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const sparksRelations = relations(sparks, ({ one }) => ({
+  palette: one(palettes, {
+    fields: [sparks.paletteId],
+    references: [palettes.id],
+  }),
+}));
+
+export type Spark = typeof sparks.$inferSelect;
+export type NewSpark = typeof sparks.$inferInsert;
 
 // ============================================================================
 // PROMO CODES - Discount codes and free membership grants
