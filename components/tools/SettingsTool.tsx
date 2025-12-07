@@ -74,7 +74,7 @@ export default function SettingsTool() {
                 Basic features included
               </Typography>
             </Box>
-            <Button variant="contained" color="primary" href="#" size="small">
+            <Button variant="contained" color="primary" href="/choose-plan" size="small">
               Upgrade
             </Button>
           </Box>

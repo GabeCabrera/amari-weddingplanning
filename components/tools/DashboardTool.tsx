@@ -130,7 +130,7 @@ export default function DashboardTool() {
         (v) =>
           v.status === "booked" || v.status === "confirmed" || v.status === "paid"
       )
-      .map((v) => v.category.toLowerCase()) || [];
+      .map((v) => (v.category || "").toLowerCase()) || [];
 
   const missingEssentials = essentialVendors.filter(
     (v) => !bookedCategories.some((b) => b.includes(v))

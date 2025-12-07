@@ -83,6 +83,7 @@ const categoryConfig: Record<string, { Icon: React.ElementType; color: string }>
 
 function VendorCard({ vendor }: { vendor: Vendor }) {
   const config = getCategoryConfig(vendor.category);
+  const IconComponent = config.Icon;
 
   const statusStyle = () => {
     switch (vendor.status) {
@@ -119,7 +120,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
       <CardHeader
         avatar={
           <Avatar sx={{ bgcolor: config.color }}>
-            <config.Icon />
+            <IconComponent />
           </Avatar>
         }
         title={vendor.name}

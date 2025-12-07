@@ -32,6 +32,8 @@ import {
   Home as PrepIcon,
 } from "@mui/icons-material";
 
+import { useBrowser } from "@/components/layout/browser-context";
+
 const getCategoryIcon = (category: string) => {
   switch (category.toLowerCase()) {
     case "prep":
@@ -54,6 +56,7 @@ import TimelineEventCard, { formatTime } from './TimelineEventCard';
 
 export default function TimelineTool() {
   const { data, loading } = usePlannerData();
+  const browser = useBrowser();
 
   if (loading) {
     return (
@@ -126,7 +129,7 @@ export default function TimelineTool() {
           <Typography color="text.secondary" sx={{ mb: 3 }}>
             Tell me about your wedding day schedule in chat and I&apos;ll build your timeline.
           </Typography>
-          <Button variant="contained" href="/">
+          <Button variant="contained" onClick={() => browser.goHome()}>
             Go to chat
           </Button>
 
@@ -177,7 +180,7 @@ export default function TimelineTool() {
       <Paper elevation={0} sx={{ mt: 4, p: 2, bgcolor: 'grey.50', textAlign: 'center' }}>
         <Typography variant="body2" color="text.secondary">
           Need to add or adjust your timeline?{" "}
-          <Button component="a" href="/" sx={{ textTransform: 'none', p: 0, minWidth: 0 }}>
+          <Button component="a" onClick={() => browser.goHome()} sx={{ textTransform: 'none', p: 0, minWidth: 0 }}>
             Tell me in chat
           </Button>
         </Typography>
