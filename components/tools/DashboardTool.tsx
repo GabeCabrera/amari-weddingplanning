@@ -23,21 +23,19 @@ import {
   LinearProgress,
   ListItemButton,
 } from "@mui/material";
-import {
-  Refresh as RefreshIcon,
-  AccessTime as ClockIcon,
-  Warning as WarningIcon,
-  Info as InfoIcon,
-  CheckCircle as CheckCircleIcon,
-  ChatBubbleOutline as ChatIcon,
-  Checklist as ChecklistIcon,
-  Store as StoreIcon,
-  CalendarMonth as CalendarIcon,
-  AttachMoney as BudgetIcon,
-  People as PeopleIcon,
-  Cake as CakeIcon,
-  Favorite as FavoriteIcon,
-} from "@mui/icons-material";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import ClockIcon from "@mui/icons-material/AccessTime";
+import WarningIcon from "@mui/icons-material/Warning";
+import InfoIcon from "@mui/icons-material/Info";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ChatIcon from "@mui/icons-material/ChatBubbleOutline";
+import ChecklistIcon from "@mui/icons-material/Checklist";
+import StoreIcon from "@mui/icons-material/Store";
+import CalendarIcon from "@mui/icons-material/CalendarMonth";
+import BudgetIcon from "@mui/icons-material/AttachMoney";
+import PeopleIcon from "@mui/icons-material/People";
+import CakeIcon from "@mui/icons-material/Cake";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import { formatDistanceToNow } from "date-fns";
 
 // Helper to format time ago

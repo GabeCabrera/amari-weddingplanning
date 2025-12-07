@@ -20,17 +20,15 @@ import {
   TimelineContent,
   TimelineDot,
 } from "@mui/lab";
-import {
-  AccessTime as TimeIcon,
-  Event as EventIcon,
-  LocationOn as LocationIcon,
-  Person as PersonIcon,
-  Cake as ReceptionIcon,
-  Favorite as CeremonyIcon,
-  LocalBar as CocktailIcon,
-  Star as OtherIcon,
-  Home as PrepIcon,
-} from "@mui/icons-material";
+import TimeIcon from "@mui/icons-material/AccessTime";
+import EventIcon from "@mui/icons-material/Event";
+import LocationIcon from "@mui/icons-material/LocationOn";
+import PersonIcon from "@mui/icons-material/Person";
+import ReceptionIcon from "@mui/icons-material/Cake";
+import CeremonyIcon from "@mui/icons-material/Favorite";
+import CocktailIcon from "@mui/icons-material/LocalBar";
+import OtherIcon from "@mui/icons-material/Star";
+import PrepIcon from "@mui/icons-material/Home";
 import { useBrowser } from "@/components/layout/browser-context";
 import TimelineEventCard, { formatTime } from './TimelineEventCard';
 

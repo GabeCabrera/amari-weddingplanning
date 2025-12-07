@@ -27,7 +27,7 @@ import MoreVert from '@mui/icons-material/MoreVert';
 import FavoriteBorder from '@mui/icons-material/FavoriteBorder';
 import Favorite from '@mui/icons-material/Favorite';
 import Delete from '@mui/icons-material/Delete';
-import { Palette, Spark } from '@/lib/db/schema';
+import type { Palette, Spark } from '@/lib/db/schema';
 import { toast } from "sonner";
 
 function AddSparkDialog({ open, onClose, paletteId, onSparkAdded }: { open: boolean, onClose: () => void, paletteId: string, onSparkAdded: () => void }) {
