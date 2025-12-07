@@ -46,6 +46,7 @@ import {
   Link as LinkIcon,
 } from "@mui/icons-material";
 import { formatDistanceToNow } from "date-fns";
+import { useBrowser } from "../layout/browser-context";
 
 const categoryConfig: Record<string, { Icon: React.ElementType; color: string }> = {
     venue: { Icon: Home, color: "primary.main" },
@@ -174,7 +175,6 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
   );
 }
 
-import { useBrowser } from "../layout/browser-context";
 
 export default function VendorsTool() {
   const browser = useBrowser();

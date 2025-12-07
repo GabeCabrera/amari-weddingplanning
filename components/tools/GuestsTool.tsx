@@ -29,6 +29,7 @@ import {
   People as GuestsIcon,
 } from "@mui/icons-material";
 import { formatDistanceToNow } from "date-fns";
+import { useBrowser } from "../layout/browser-context";
 
 function GuestRow({ guest }: { guest: Guest }) {
   const rsvpStyle = () => {
@@ -90,7 +91,6 @@ function GuestRow({ guest }: { guest: Guest }) {
   );
 }
 
-import { useBrowser } from "../layout/browser-context";
 
 export default function GuestsTool() {
   const browser = useBrowser();

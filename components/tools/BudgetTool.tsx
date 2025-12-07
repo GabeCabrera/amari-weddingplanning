@@ -22,7 +22,6 @@ import {
 } from "@mui/material";
 import { Refresh as RefreshIcon, History as ClockIcon, AccountBalanceWallet as BudgetIcon } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
-
 import { useBrowser } from "../layout/browser-context";
 
 export default function BudgetTool() {
