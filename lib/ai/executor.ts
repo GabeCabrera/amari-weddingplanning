@@ -2184,13 +2184,51 @@ async function webSearch(
   context: ToolContext
 ): Promise<ToolResult> {
   const query = params.query as string;
-  console.log(`Searching web for: ${query}`);
+  const apiKey = process.env.GOOGLE_SEARCH_API_KEY;
+  const cx = process.env.GOOGLE_SEARCH_ENGINE_ID;
 
-  // TODO: Integrate a real search provider like Serper, Google Custom Search, or Tavily.
-  // For now, since we don't have an API key in the env, we'll return a placeholder.
-  
-  return {
-    success: false, 
-    message: "Web search is not yet configured. Please add a valid search API key (e.g. GOOGLE_SEARCH_KEY) to your environment variables."
-  };
+  if (!apiKey || !cx) {
+    console.warn("Google Search API key or Engine ID missing.");
+    // Fallback message that explains the situation without exposing internal config details to the end user (too much)
+    // But allows the developer (you) to know what's wrong if you see this response in dev.
+    return { 
+      success: false, 
+      message: "I cannot browse the web right now because the search function hasn't been fully configured yet." 
+    };
+  }
+
+  try {
+    const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(query)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Google Search API error:", data);
+      return { success: false, message: "I encountered a problem while trying to search the web." };
+    }
+
+    if (!data.items || data.items.length === 0) {
+      return { success: true, message: `I searched for "${query}" but didn't find any relevant results.` };
+    }
+
+    // Format results for the AI
+    const results = data.items.slice(0, 5).map((item: any) => ({
+      title: item.title,
+      link: item.link,
+      snippet: item.snippet
+    }));
+
+    const formattedResults = results.map((r: any) => 
+      `Title: ${r.title}\nLink: ${r.link}\nSummary: ${r.snippet}`
+    ).join("\n\n");
+
+    return { 
+      success: true, 
+      message: `Here are the search results for "${query}":\n\n${formattedResults}` 
+    };
+
+  } catch (error) {
+    console.error("Web search exception:", error);
+    return { success: false, message: "I encountered an error while searching the web." };
+  }
 }
