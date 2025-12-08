@@ -193,7 +193,7 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe" }: 
       <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
         <button
           onClick={handleRestore}
-          className="flex items-center gap-3 px-5 py-3 bg-warm-800 text-white rounded-full shadow-lg hover:bg-warm-700 hover:shadow-xl hover:scale-[1.02] transition-all duration-200"
+          className="flex items-center gap-3 px-5 py-3 bg-primary text-primary-foreground rounded-full shadow-lg hover:bg-primary/90 hover:shadow-xl hover:scale-[1.02] transition-all duration-200"
         >
           <Sparkles className="w-5 h-5" />
           <span className="font-medium">Continue chatting</span>
