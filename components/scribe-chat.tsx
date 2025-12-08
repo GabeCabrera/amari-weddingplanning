@@ -207,14 +207,6 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe" }: 
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-end p-4 sm:p-6 pointer-events-none">
-      {/* Backdrop */}
-      <div 
-        className={`absolute inset-0 bg-black/20 backdrop-blur-[2px] pointer-events-auto transition-opacity duration-300 ${
-          isAnimating ? "opacity-0" : "opacity-100"
-        }`}
-        onClick={handleMinimize}
-      />
-      
       {/* Chat Window */}
       <div 
         className={`relative w-full max-w-[420px] h-[600px] max-h-[85vh] bg-white rounded-2xl shadow-2xl border border-warm-200/60 flex flex-col pointer-events-auto transition-all duration-300 ease-out ${
