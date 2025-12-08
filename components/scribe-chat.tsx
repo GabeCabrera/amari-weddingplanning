@@ -406,7 +406,7 @@ export function ScribeTrigger({ onClick, aiName = "Scribe" }: { onClick: () => v
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-6 right-6 z-40 flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-warm-800 to-warm-900 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200 group"
+      className="fixed bottom-6 right-6 z-40 flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-full shadow-lg hover:from-primary/90 hover:to-primary hover:shadow-xl hover:scale-[1.02] transition-all duration-200 group"
     >
       <div className="relative">
         <Sparkles className="w-5 h-5" />
