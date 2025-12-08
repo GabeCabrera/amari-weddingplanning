@@ -142,7 +142,7 @@ export async function GET() {
     };
 
     // Calculate vendor stats
-    const vendors = vendorData.vendors as Array<{
+    const vendors = (vendorData.vendors as Array<{
       id: string;
       name: string;
       category: string;
@@ -153,7 +153,17 @@ export async function GET() {
       email?: string;
       website?: string;
       notes?: string;
-    }>;
+    }>).filter(v => {
+      // Filter out corrupted entries
+      const isCorrupt = 
+        !v ||
+        !v.id || 
+        v.id === "undefined" || 
+        !v.name || 
+        v.name === "undefined" ||
+        (v.name === "0" && v.category === "Other");
+      return !isCorrupt;
+    });
 
     const vendorStats = {
       total: vendors.length,

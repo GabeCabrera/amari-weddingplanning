@@ -110,7 +110,7 @@ export default function VendorCard({ vendor }: { vendor: Vendor }) {
         </span>
       </CardHeader>
       <CardContent className="p-4 flex-1">
-        {vendor.cost && (
+        {vendor.cost > 0 && (
           <div className="mb-3">
             <p className="text-sm text-muted-foreground">Total Cost</p>
             <p className="font-sans text-lg font-medium text-foreground">{formatCurrency(vendor.cost)}</p>
