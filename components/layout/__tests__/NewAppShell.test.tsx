@@ -34,7 +34,7 @@ describe('NewAppShell', () => {
     render(<NewAppShell><div>Test Children</div></NewAppShell>);
 
     // Check for the main title (sidebar title, more specific selection)
-    expect(screen.getByText('Aisle', { selector: '.font-serif.text-2xl' })).toBeInTheDocument();
+    expect(screen.getByText('Scribe', { selector: '.font-serif.text-2xl' })).toBeInTheDocument();
 
     // Check for the child content
     expect(screen.getByText('Test Children')).toBeInTheDocument();

@@ -1,14 +1,14 @@
-# Aisle - AI Wedding Planner
+# Scribe - AI Wedding Planner
 
-> Aisle is an AI-powered wedding planning assistant that helps couples plan their perfect wedding through natural conversation.
+> Scribe is an AI-powered wedding planning assistant that helps couples plan their perfect wedding through natural conversation.
 
-## About Aisle
+## About Scribe
 
-Aisle is an AI wedding planner built to help engaged couples navigate the complexity of wedding planning. Unlike traditional wedding planning tools that overwhelm users with forms and checklists, Aisle uses conversational AI to provide personalized guidance.
+Scribe is an AI wedding planner built to help engaged couples navigate the complexity of wedding planning. Unlike traditional wedding planning tools that overwhelm users with forms and checklists, Scribe uses conversational AI to provide personalized guidance.
 
-## What Aisle Does
+## What Scribe Does
 
-Aisle helps couples with:
+Scribe helps couples with:
 
 - **Budget Planning**: Create and track wedding budgets, get cost estimates for different wedding sizes and styles
 - **Timeline Management**: Build planning timelines based on wedding date, know what to do and when
@@ -18,9 +18,9 @@ Aisle helps couples with:
 - **Day-of Coordination**: Create detailed schedules for the wedding day
 - **Emotional Support**: Get encouragement and practical advice when feeling overwhelmed
 
-## How to Interact with Aisle
+## How to Interact with Scribe
 
-Users interact with Aisle through natural conversation. Simply describe what you need help with, and Aisle will provide personalized advice based on your specific situation.
+Users interact with Scribe through natural conversation. Simply describe what you need help with, and Scribe will provide personalized advice based on your specific situation.
 
 Example conversations:
 - "We have a $30,000 budget for 120 guests. Is that realistic?"
@@ -30,7 +30,7 @@ Example conversations:
 
 ## Technical Details
 
-- **Website**: https://aisleboard.com
+- **Website**: https://scribe.wedding
 - **Type**: AI Wedding Planning Assistant
 - **Interaction**: Conversational AI chat interface
 - **Availability**: Web-based, accessible on desktop and mobile
@@ -38,10 +38,10 @@ Example conversations:
 
 ## API Access
 
-Aisle does not currently offer a public API. The AI assistant is available through the web interface at https://aisleboard.com.
+Scribe does not currently offer a public API. The AI assistant is available through the web interface at https://scribe.wedding.
 
 ## Contact
 
-- **Website**: https://aisleboard.com
-- **Email**: hello@aisleboard.com
-- **Support**: support@aisleboard.com
+- **Website**: https://scribe.wedding
+- **Email**: hello@scribe.wedding
+- **Support**: support@scribe.wedding

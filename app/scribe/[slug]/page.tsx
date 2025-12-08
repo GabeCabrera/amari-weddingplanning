@@ -2,16 +2,16 @@ import { db } from "@/lib/db";
 import { rsvpForms, tenants } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { StemClient } from "./stem-client";
+import { ScribeClient } from "./scribe-client";
 import type { Metadata, ResolvingMetadata } from 'next';
 
-interface StemPageProps {
+interface ScribePageProps {
   params: { slug: string };
 }
 
 // Generate dynamic metadata for each wedding website
 export async function generateMetadata(
-  { params }: StemPageProps,
+  { params }: ScribePageProps,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const { slug } = params;
@@ -36,9 +36,9 @@ export async function generateMetadata(
     
   const coupleNames = tenant?.displayName || "A Couple";
   const weddingDate = form.weddingDate?.toISOString() || tenant.weddingDate?.toISOString();
-  const title = "Scribe & Stem";
+  const title = "Scribe";
   const description = `Join ${coupleNames} for their wedding celebration. Find all the details and RSVP here.`;
-  const siteUrl = `https://scribeandstem.com/stem/${slug}`;
+  const siteUrl = `https://scribe.wedding/scribe/${slug}`;
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -56,7 +56,7 @@ export async function generateMetadata(
       },
     },
     image: [
-      'https://scribeandstem.com/og-image-wedding.png'
+      'https://scribe.wedding/og-image-wedding.png'
      ],
     description,
     performer: {
@@ -65,8 +65,8 @@ export async function generateMetadata(
     },
     organizer: {
         '@type': 'Organization',
-        name: 'Scribe & Stem',
-        url: 'https://scribeandstem.com'
+        name: 'Scribe',
+        url: 'https://scribe.wedding'
     }
   };
 
@@ -102,7 +102,7 @@ export async function generateMetadata(
   };
 }
 
-export default async function StemPage({ params }: StemPageProps) {
+export default async function ScribePage({ params }: ScribePageProps) {
   const { slug } = params;
 
   // Get the RSVP form
@@ -146,7 +146,7 @@ export default async function StemPage({ params }: StemPageProps) {
       },
     },
     image: [
-      'https://scribeandstem.com/og-image-wedding.png'
+      'https://scribe.wedding/og-image-wedding.png'
      ],
     description: `Join ${coupleNames} for their wedding celebration. Find all the details and RSVP here.`,
     performer: {
@@ -155,8 +155,8 @@ export default async function StemPage({ params }: StemPageProps) {
     },
     organizer: {
         '@type': 'Organization',
-        name: 'Scribe & Stem',
-        url: 'https://scribeandstem.com'
+        name: 'Scribe',
+        url: 'https://scribe.wedding'
     }
   };
 
@@ -166,7 +166,7 @@ export default async function StemPage({ params }: StemPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <StemClient
+      <ScribeClient
         form={form}
         coupleNames={tenant.displayName}
         weddingDate={form.weddingDate?.toISOString() || tenant.weddingDate?.toISOString()}

@@ -13,7 +13,7 @@ import { tenants, users, planners, pages } from "../lib/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
-const DEMO_EMAIL = "demo@aisleboard.com";
+const DEMO_EMAIL = "demo@scribe.wedding";
 const DEMO_PASSWORD = "demo1234";
 const DEMO_SLUG = "emma-james-demo";
 
@@ -144,24 +144,24 @@ async function seedDemo() {
       title: "Budget Tracker",
       position: 2,
       fields: {
-        totalBudget: 45000,
+        totalBudget: 4500000, // $45,000.00
         items: [
-          { category: "Venue", vendor: "Vineyard Estate", totalCost: 12000, amountPaid: 6000, notes: "Includes ceremony & reception" },
-          { category: "Catering", vendor: "Farm to Table Catering", totalCost: 8500, amountPaid: 4250, notes: "120 guests @ $70/person" },
-          { category: "Photography", vendor: "Capture the Moment", totalCost: 4500, amountPaid: 2250, notes: "8 hours + engagement shoot" },
-          { category: "Videography", vendor: "Cinematic Weddings", totalCost: 3000, amountPaid: 1500, notes: "Full day + highlight reel" },
-          { category: "Florist", vendor: "Blooming Beautiful", totalCost: 3500, amountPaid: 1750, notes: "Bouquets, centerpieces, arch" },
-          { category: "Music / DJ", vendor: "DJ Mike", totalCost: 1800, amountPaid: 900, notes: "Ceremony + 5hr reception" },
-          { category: "Wedding Attire", vendor: "Bella Bridal", totalCost: 2800, amountPaid: 2800, notes: "Dress + alterations" },
-          { category: "Hair & Makeup", vendor: "Glam Squad", totalCost: 800, amountPaid: 400, notes: "Bride + 4 bridesmaids" },
-          { category: "Invitations & Stationery", vendor: "Paper & Ink Co", totalCost: 600, amountPaid: 600, notes: "Save the dates, invites, programs" },
-          { category: "Wedding Cake", vendor: "Sweet Celebrations", totalCost: 700, amountPaid: 350, notes: "3-tier vanilla with buttercream" },
-          { category: "Decorations", vendor: "Various", totalCost: 1500, amountPaid: 800, notes: "Lighting, linens, signage" },
-          { category: "Transportation", vendor: "Luxury Limos", totalCost: 800, amountPaid: 400, notes: "Vintage car for couple" },
-          { category: "Officiant", vendor: "Rev. Johnson", totalCost: 500, amountPaid: 250, notes: "Includes rehearsal" },
-          { category: "Wedding Rings", vendor: "Forever Diamonds", totalCost: 2500, amountPaid: 2500, notes: "Both bands" },
-          { category: "Favors & Gifts", vendor: "Local Winery", totalCost: 400, amountPaid: 400, notes: "Mini wine bottles" },
-          { category: "Honeymoon", vendor: "Travel Agency", totalCost: 6000, amountPaid: 3000, notes: "Bali - 10 nights" },
+          { category: "Venue", vendor: "Vineyard Estate", totalCost: 1200000, amountPaid: 600000, notes: "Includes ceremony & reception" },
+          { category: "Catering", vendor: "Farm to Table Catering", totalCost: 850000, amountPaid: 425000, notes: "120 guests @ $70/person" },
+          { category: "Photography", vendor: "Capture the Moment", totalCost: 450000, amountPaid: 225000, notes: "8 hours + engagement shoot" },
+          { category: "Videography", vendor: "Cinematic Weddings", totalCost: 300000, amountPaid: 150000, notes: "Full day + highlight reel" },
+          { category: "Florist", vendor: "Blooming Beautiful", totalCost: 350000, amountPaid: 175000, notes: "Bouquets, centerpieces, arch" },
+          { category: "Music / DJ", vendor: "DJ Mike", totalCost: 180000, amountPaid: 90000, notes: "Ceremony + 5hr reception" },
+          { category: "Wedding Attire", vendor: "Bella Bridal", totalCost: 280000, amountPaid: 280000, notes: "Dress + alterations" },
+          { category: "Hair & Makeup", vendor: "Glam Squad", totalCost: 80000, amountPaid: 40000, notes: "Bride + 4 bridesmaids" },
+          { category: "Invitations & Stationery", vendor: "Paper & Ink Co", totalCost: 60000, amountPaid: 60000, notes: "Save the dates, invites, programs" },
+          { category: "Wedding Cake", vendor: "Sweet Celebrations", totalCost: 70000, amountPaid: 35000, notes: "3-tier vanilla with buttercream" },
+          { category: "Decorations", vendor: "Various", totalCost: 150000, amountPaid: 80000, notes: "Lighting, linens, signage" },
+          { category: "Transportation", vendor: "Luxury Limos", totalCost: 80000, amountPaid: 40000, notes: "Vintage car for couple" },
+          { category: "Officiant", vendor: "Rev. Johnson", totalCost: 50000, amountPaid: 25000, notes: "Includes rehearsal" },
+          { category: "Wedding Rings", vendor: "Forever Diamonds", totalCost: 250000, amountPaid: 250000, notes: "Both bands" },
+          { category: "Favors & Gifts", vendor: "Local Winery", totalCost: 40000, amountPaid: 40000, notes: "Mini wine bottles" },
+          { category: "Honeymoon", vendor: "Travel Agency", totalCost: 600000, amountPaid: 300000, notes: "Bali - 10 nights" },
         ],
       },
     },

@@ -26,7 +26,7 @@ import { Heart, Check, Calendar, Mail } from "lucide-react";
 import { toast } from "sonner";
 import type { RsvpForm } from "@/lib/db/schema";
 
-interface StemClientProps {
+interface ScribeClientProps {
   form: RsvpForm;
   coupleNames: string;
   weddingDate?: string;
@@ -47,7 +47,7 @@ interface FormFields {
   notes: boolean;
 }
 
-export function StemClient({ form, coupleNames, weddingDate }: StemClientProps) {
+export function ScribeClient({ form, coupleNames, weddingDate }: ScribeClientProps) {
   const fields = form.fields as FormFields;
   const mealOptions = (form.mealOptions as string[]) || [];
   
@@ -264,7 +264,7 @@ export function StemClient({ form, coupleNames, weddingDate }: StemClientProps) 
           </Box>
         </Paper>
         <Typography variant="caption" display="block" color="text.secondary" textAlign="center" sx={{ mt: 2 }}>
-            Created with Scribe & Stem
+            Created with Scribe
         </Typography>
       </Container>
     </main>

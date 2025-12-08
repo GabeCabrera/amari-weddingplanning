@@ -2,8 +2,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata = {
-  title: "Privacy Policy | Stem",
-  description: "Privacy policy for Stem wedding planning platform",
+  title: "Privacy Policy | Scribe",
+  description: "Privacy policy for Scribe wedding planning platform",
 };
 
 export default function PrivacyPage() {
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
               Introduction
             </h2>
             <p className="text-warm-600 leading-relaxed mb-4">
-              At Stem (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;), we respect your privacy and are committed to protecting your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our wedding planning platform at scribeandstem.com.
+              At Scribe (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;), we respect your privacy and are committed to protecting your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our wedding planning platform at scribe.wedding.
             </p>
           </section>
 
@@ -90,7 +90,7 @@ export default function PrivacyPage() {
               If you choose to connect your Google Calendar, we request access to create and manage a dedicated wedding calendar. We only access calendar data necessary to sync your wedding events. We do not access your other calendars or personal events unless explicitly shared with your wedding calendar.
             </p>
             <p className="text-warm-600 leading-relaxed mb-4">
-              Stem's use and transfer to any other app of information received from Google APIs will adhere to <a href="https://developers.google.com/terms/api-services-user-data-policy#additional_requirements_for_specific_api_scopes" target="_blank" rel="noopener noreferrer" className="text-warm-800 underline">Google API Services User Data Policy</a>, including the Limited Use requirements.
+              Scribe&apos;s use and transfer to any other app of information received from Google APIs will adhere to <a href="https://developers.google.com/terms/api-services-user-data-policy#additional_requirements_for_specific_api_scopes" target="_blank" rel="noopener noreferrer" className="text-warm-800 underline">Google API Services User Data Policy</a>, including the Limited Use requirements.
             </p>
           </section>
 
@@ -176,10 +176,10 @@ export default function PrivacyPage() {
             <p className="text-warm-600 leading-relaxed">
               If you have any questions about this Privacy Policy, please contact us at{" "}
               <a 
-                href="mailto:hello@scribeandstem.com" 
+                href="mailto:hello@scribe.wedding" 
                 className="text-warm-700 underline hover:text-warm-900"
               >
-                hello@scribeandstem.com
+                hello@scribe.wedding
               </a>
             </p>
           </section>
@@ -190,10 +190,10 @@ export default function PrivacyPage() {
       <footer className="py-8 px-8 bg-warm-100 border-t border-warm-200">
         <div className="max-w-3xl mx-auto text-center">
           <p className="font-serif tracking-widest uppercase text-warm-700 mb-2">
-            Stem
+            Scribe
           </p>
           <p className="text-xs text-warm-500">
-            © {new Date().getFullYear()} Stem. All rights reserved.
+            © {new Date().getFullYear()} Scribe. All rights reserved.
           </p>
         </div>
       </footer>

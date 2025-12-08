@@ -2,8 +2,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata = {
-  title: "Terms of Service | Stem",
-  description: "Terms of service for Stem wedding planning platform",
+  title: "Terms of Service | Scribe",
+  description: "Terms of service for Scribe wedding planning platform",
 };
 
 export default function TermsPage() {
@@ -36,7 +36,7 @@ export default function TermsPage() {
               Agreement to Terms
             </h2>
             <p className="text-warm-600 leading-relaxed mb-4">
-              By accessing or using Stem (&quot;the Service&quot;), operated by Stem (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) at scribeandstem.com, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our Service.
+              By accessing or using Scribe (&quot;the Service&quot;), operated by Scribe (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) at scribe.wedding, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our Service.
             </p>
           </section>
 
@@ -45,7 +45,7 @@ export default function TermsPage() {
               Description of Service
             </h2>
             <p className="text-warm-600 leading-relaxed mb-4">
-              Stem is a wedding planning platform that provides tools for couples to organize their wedding, including but not limited to:
+              Scribe is a wedding planning platform that provides tools for couples to organize their wedding, including but not limited to:
             </p>
             <ul className="list-disc list-inside text-warm-600 space-y-2">
               <li>Budget tracking and management</li>
@@ -79,7 +79,7 @@ export default function TermsPage() {
               Pricing and Payments
             </h2>
             <p className="text-warm-600 leading-relaxed mb-4">
-              Stem offers both free and paid plans. For paid plans:
+              Scribe offers both free and paid plans. For paid plans:
             </p>
             <ul className="list-disc list-inside text-warm-600 space-y-2">
               <li>The Complete plan is a one-time payment of $29</li>
@@ -133,7 +133,7 @@ export default function TermsPage() {
               Intellectual Property
             </h2>
             <p className="text-warm-600 leading-relaxed mb-4">
-              The Service and its original content (excluding Your Content), features, and functionality are owned by Stem and are protected by copyright, trademark, and other intellectual property laws. You may not copy, modify, distribute, or create derivative works without our express permission.
+              The Service and its original content (excluding Your Content), features, and functionality are owned by Scribe and are protected by copyright, trademark, and other intellectual property laws. You may not copy, modify, distribute, or create derivative works without our express permission.
             </p>
           </section>
 
@@ -151,7 +151,7 @@ export default function TermsPage() {
               Limitation of Liability
             </h2>
             <p className="text-warm-600 leading-relaxed mb-4">
-              TO THE MAXIMUM EXTENT PERMITTED BY LAW, STEM SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY.
+              TO THE MAXIMUM EXTENT PERMITTED BY LAW, SCRIBE SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY.
             </p>
             <p className="text-warm-600 leading-relaxed mb-4">
               OUR TOTAL LIABILITY FOR ANY CLAIM ARISING FROM THESE TERMS OR THE SERVICE SHALL NOT EXCEED THE AMOUNT YOU PAID US IN THE TWELVE MONTHS PRECEDING THE CLAIM.
@@ -175,7 +175,7 @@ export default function TermsPage() {
               Indemnification
             </h2>
             <p className="text-warm-600 leading-relaxed mb-4">
-              You agree to indemnify and hold harmless Stem and its officers, directors, employees, and agents from any claims, damages, losses, or expenses arising from your use of the Service or violation of these Terms.
+              You agree to indemnify and hold harmless Scribe and its officers, directors, employees, and agents from any claims, damages, losses, or expenses arising from your use of the Service or violation of these Terms.
             </p>
           </section>
 
@@ -213,10 +213,10 @@ export default function TermsPage() {
             <p className="text-warm-600 leading-relaxed">
               If you have any questions about these Terms of Service, please contact us at{" "}
               <a 
-                href="mailto:hello@scribeandstem.com" 
+                href="mailto:hello@scribe.wedding" 
                 className="text-warm-700 underline hover:text-warm-900"
               >
-                hello@scribeandstem.com
+                hello@scribe.wedding
               </a>
             </p>
           </section>
@@ -227,10 +227,10 @@ export default function TermsPage() {
       <footer className="py-8 px-8 bg-warm-100 border-t border-warm-200">
         <div className="max-w-3xl mx-auto text-center">
           <p className="font-serif tracking-widest uppercase text-warm-700 mb-2">
-            Stem
+            Scribe
           </p>
           <p className="text-xs text-warm-500">
-            © {new Date().getFullYear()} Stem. All rights reserved.
+            © {new Date().getFullYear()} Scribe. All rights reserved.
           </p>
         </div>
       </footer>

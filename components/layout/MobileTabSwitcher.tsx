@@ -1,6 +1,6 @@
 "use client";
 
-import { useBrowser, getToolById, StemLogo } from "./browser-context";
+import { useBrowser, getToolById, ScribeLogo } from "./browser-context";
 import { X, Plus, Code } from "lucide-react";
 
 // =============================================================================
@@ -63,7 +63,7 @@ function TabCard({ tab, isActive, onSelect, onClose }: TabCardProps) {
                     : "linear-gradient(135deg, #F5F5F4 0%, #E7E5E4 100%)",
           }}
         >
-          {tab.type === "chat" && <StemLogo size={14} className="text-rose-500" />}
+          {tab.type === "chat" && <ScribeLogo size={14} className="text-rose-500" />}
           {tab.type === "tool" && tool && <tool.icon className="w-3.5 h-3.5 text-white" />}
           {tab.type === "artifact" && <Code className="w-3.5 h-3.5 text-emerald-600" />}
           <span
@@ -79,7 +79,7 @@ function TabCard({ tab, isActive, onSelect, onClose }: TabCardProps) {
         <div className="flex-1 p-3 flex items-center justify-center">
           {tab.type === "chat" && (
             <div className="text-center">
-              <StemLogo size={32} className="text-rose-300 mx-auto mb-2" />
+              <ScribeLogo size={32} className="text-rose-300 mx-auto mb-2" />
               <p className="text-xs text-stone-400">Chat</p>
             </div>
           )}

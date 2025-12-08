@@ -200,7 +200,8 @@ export function usePlannerData() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/planner/data");
+      // Add cache: 'no-store' to prevent browser caching of old data
+      const res = await fetch("/api/planner/data", { cache: 'no-store' });
       if (!res.ok) throw new Error("Failed to load data");
       const json = await res.json();
       setData(json);

@@ -20,12 +20,12 @@ import {
   useBrowser,
   tools,
   getToolById,
-  StemLogo,
+  ScribeLogo,
 } from "./browser-context";
 import { ToolContent, ArtifactRunner, TabItem } from "./shared-components";
 
 // Re-export for backwards compatibility
-export { useBrowser, StemLogo };
+export { useBrowser, ScribeLogo };
 
 // =============================================================================
 // FAVORITES BAR
@@ -313,13 +313,13 @@ function BrowserChrome({ children }: { children: React.ReactNode }) {
               })()}
             </>
           )}
-          {activeTab?.type === "chat" && <StemLogo size={16} className="text-rose-400 flex-shrink-0" />}
+          {activeTab?.type === "chat" && <ScribeLogo size={16} className="text-rose-400 flex-shrink-0" />}
           {activeTab?.type === "artifact" && <Code className="w-4 h-4 text-emerald-500 flex-shrink-0" />}
           <span className="text-sm text-stone-600 truncate">
-            {activeTab?.type === "chat" && "stem://chat"}
-            {activeTab?.type === "tool" && `stem://${activeTab.toolId}`}
+            {activeTab?.type === "chat" && "scribe://chat"}
+            {activeTab?.type === "tool" && `scribe://${activeTab.toolId}`}
             {activeTab?.type === "artifact" &&
-              `stem://widget/${activeTab.title.toLowerCase().replace(/\s+/g, "-")}`}
+              `scribe://widget/${activeTab.title.toLowerCase().replace(/\s+/g, "-")}`}
           </span>
 
           {/* Favorite button for tools */}

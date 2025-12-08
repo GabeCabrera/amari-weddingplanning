@@ -75,6 +75,7 @@ export interface ToolDefinition {
   icon: React.ComponentType<{ className?: string }>;
   gradient: string;
   shadow: string;
+  // We can add more properties here as needed
 }
 
 export const tools: ToolDefinition[] = [
@@ -139,10 +140,10 @@ export const tools: ToolDefinition[] = [
 export const getToolById = (id: string) => tools.find((t) => t.id === id);
 
 // =============================================================================
-// STEM LOGO
+// SCRIBE LOGO
 // =============================================================================
 
-export function StemLogo({ size = 32, className = "" }: { size?: number; className?: string }) {
+export function ScribeLogo({ size = 32, className = "" }: { size?: number; className?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none" className={className}>
       <path
@@ -188,14 +189,14 @@ export function BrowserProvider({ children }: { children: React.ReactNode }) {
   // Favorites with localStorage persistence
   const [favorites, setFavorites] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("stem-favorites");
+      const saved = localStorage.getItem("scribe-favorites");
       return saved ? JSON.parse(saved) : ["dashboard", "budget"];
     }
     return ["dashboard", "budget"];
   });
 
   useEffect(() => {
-    localStorage.setItem("stem-favorites", JSON.stringify(favorites));
+    localStorage.setItem("scribe-favorites", JSON.stringify(favorites));
   }, [favorites]);
 
   // Tab operations

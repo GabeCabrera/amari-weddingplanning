@@ -94,7 +94,8 @@ export async function GET() {
 
     // Calculate budget stats
     // NOTE: Budget values are stored as STRINGS in the database, must parseFloat
-    const budgetItems = budgetData.items as Array<{
+    // AND they are stored in cents, so we must divide by 100
+    const rawBudgetItems = budgetData.items as Array<{
       id: string;
       category: string;
       vendor?: string;
@@ -103,14 +104,18 @@ export async function GET() {
       notes?: string;
     }>;
     
-    const totalSpent = budgetItems.reduce((sum, item) => {
+    const budgetItems = rawBudgetItems.map(item => {
       const cost = typeof item.totalCost === 'string' ? parseFloat(item.totalCost) : item.totalCost;
-      return sum + (cost || 0);
-    }, 0);
-    const totalPaid = budgetItems.reduce((sum, item) => {
       const paid = typeof item.amountPaid === 'string' ? parseFloat(item.amountPaid) : item.amountPaid;
-      return sum + (paid || 0);
-    }, 0);
+      return {
+        ...item,
+        totalCost: (cost || 0) / 100,
+        amountPaid: (paid || 0) / 100,
+      };
+    });
+    
+    const totalSpent = budgetItems.reduce((sum, item) => sum + item.totalCost, 0);
+    const totalPaid = budgetItems.reduce((sum, item) => sum + item.amountPaid, 0);
     const remainingBalance = totalSpent - totalPaid;
 
     // Calculate guest stats
@@ -179,13 +184,13 @@ export async function GET() {
         // Use kernel budget (cents) as authority, convert to dollars. Fallback to page data.
         total: kernel?.budgetTotal 
           ? kernel.budgetTotal / 100 
-          : budgetData.totalBudget,
+          : (budgetData.totalBudget / 100),
         spent: totalSpent,
         paid: totalPaid,
         remaining: remainingBalance,
         items: budgetItems,
-        percentUsed: (kernel?.budgetTotal ? kernel.budgetTotal / 100 : budgetData.totalBudget) > 0 
-          ? Math.round((totalSpent / (kernel?.budgetTotal ? kernel.budgetTotal / 100 : budgetData.totalBudget)) * 100) 
+        percentUsed: (kernel?.budgetTotal ? kernel.budgetTotal / 100 : (budgetData.totalBudget / 100)) > 0 
+          ? Math.round((totalSpent / (kernel?.budgetTotal ? kernel.budgetTotal / 100 : (budgetData.totalBudget / 100))) * 100) 
           : 0,
       },
       

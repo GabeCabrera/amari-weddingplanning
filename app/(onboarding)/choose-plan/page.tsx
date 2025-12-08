@@ -19,7 +19,7 @@ const FREE_FEATURES = [
   "Guest list",
 ];
 
-const AISLE_FEATURES = [
+const SCRIBE_FEATURES = [
   "All 10+ planning templates",
   "Unlimited AI planner",
   "Vibe discovery & matching",
@@ -30,8 +30,8 @@ const AISLE_FEATURES = [
   "Export to PDF",
 ];
 
-const AISLE_PLUS_FEATURES = [
-  "Everything in Stem",
+const SCRIBE_PLUS_FEATURES = [
+  "Everything in Scribe",
   "Priority AI responses",
   "Curated vendor recommendations",
   "1:1 planning consultation call",
@@ -41,7 +41,7 @@ const AISLE_PLUS_FEATURES = [
 
 // Pricing constants
 const PRICING = {
-  aisle: {
+  scribe: {
     monthly: 11.99,
     yearly: 119,
   },
@@ -51,7 +51,7 @@ const PRICING = {
   },
 };
 
-type PlanSelection = "free" | "aisle" | "plus";
+type PlanSelection = "free" | "scribe" | "plus";
 
 function ChoosePlanContent() {
   const router = useRouter();
@@ -78,8 +78,8 @@ function ChoosePlanContent() {
   }, [session, router]);
 
   // Calculate savings
-  const aisleMonthlyCost = PRICING.aisle.monthly * 12;
-  const aisleYearlySavings = Math.round(aisleMonthlyCost - PRICING.aisle.yearly);
+  const scribeMonthlyCost = PRICING.scribe.monthly * 12;
+  const scribeYearlySavings = Math.round(scribeMonthlyCost - PRICING.scribe.yearly);
 
   const plusMonthlyCost = PRICING.plus.monthly * 12;
   const plusYearlySavings = Math.round(plusMonthlyCost - PRICING.plus.yearly);
@@ -163,11 +163,11 @@ function ChoosePlanContent() {
     }
   };
 
-  const handleSubscribe = async (plan: "aisle" | "plus") => {
+  const handleSubscribe = async (plan: "scribe" | "plus") => {
     setIsLoading(true);
     try {
-      // If it's a FREE promo code, apply it directly (only for aisle plan)
-      if (promoResult?.type === "free" && plan === "aisle") {
+      // If it's a FREE promo code, apply it directly (only for scribe plan)
+      if (promoResult?.type === "free" && plan === "scribe") {
         const response = await fetch("/api/stripe/apply-free-code", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -232,8 +232,8 @@ function ChoosePlanContent() {
     return basePrice;
   };
 
-  const aisleBasePrice = billingCycle === "monthly" ? PRICING.aisle.monthly : PRICING.aisle.yearly;
-  const aisleDisplayPrice = getDisplayPrice(aisleBasePrice);
+  const scribeBasePrice = billingCycle === "monthly" ? PRICING.scribe.monthly : PRICING.scribe.yearly;
+  const scribeDisplayPrice = getDisplayPrice(scribeBasePrice);
 
   const plusBasePrice = billingCycle === "monthly" ? PRICING.plus.monthly : PRICING.plus.yearly;
   const plusDisplayPrice = getDisplayPrice(plusBasePrice);
@@ -338,12 +338,12 @@ function ChoosePlanContent() {
             )}
           </div>
 
-          {/* Aisle Plan - Most Popular */}
+          {/* Scribe Plan - Most Popular */}
           <div
-            onClick={() => setSelectedPlan("aisle")}
+            onClick={() => setSelectedPlan("scribe")}
             className={`
               relative p-6 lg:p-8 border-2 rounded-xl cursor-pointer transition-all duration-300
-              ${selectedPlan === "aisle"
+              ${selectedPlan === "scribe"
                 ? "border-rose-400 bg-gradient-to-br from-rose-50/50 to-amber-50/50 shadow-lg"
                 : "border-rose-200 hover:border-rose-300 hover:shadow-md bg-gradient-to-br from-rose-50/30 to-amber-50/30"
               }
@@ -358,7 +358,7 @@ function ChoosePlanContent() {
 
             <div className="mb-6 mt-2">
               <h2 className="text-xl font-serif tracking-wider uppercase mb-2 flex items-center gap-2">
-                Stem
+                Scribe
                 <Crown className="w-5 h-5 text-amber-500" />
               </h2>
 
@@ -373,21 +373,21 @@ function ChoosePlanContent() {
                   {promoResult?.valid ? (
                     <div className="flex items-baseline gap-2">
                       <p className="text-3xl font-light text-green-600">
-                        ${aisleDisplayPrice.toFixed(2)}
+                        ${scribeDisplayPrice.toFixed(2)}
                       </p>
                       <p className="text-lg text-warm-400 line-through">
-                        ${aisleBasePrice}
+                        ${scribeBasePrice}
                       </p>
                     </div>
                   ) : (
                     <p className="text-3xl font-light text-warm-700">
-                      ${aisleBasePrice}
+                      ${scribeBasePrice}
                     </p>
                   )}
                   <p className="text-sm text-warm-500">
                     {billingCycle === "monthly" ? "per month" : "per year"}
                     {billingCycle === "yearly" && (
-                      <span className="text-green-600 ml-1">(save ${aisleYearlySavings})</span>
+                      <span className="text-green-600 ml-1">(save ${scribeYearlySavings})</span>
                     )}
                   </p>
                 </div>
@@ -395,11 +395,11 @@ function ChoosePlanContent() {
             </div>
 
             <p className="text-warm-600 mb-6 text-sm">
-              The full Stem experience with unlimited AI planning help.
+              The full Scribe experience with unlimited AI planning help.
             </p>
 
             <div className="space-y-3 mb-6">
-              {AISLE_FEATURES.map((feature) => (
+              {SCRIBE_FEATURES.map((feature) => (
                 <div key={feature} className="flex items-center gap-3">
                   <Check className="w-4 h-4 text-rose-400 flex-shrink-0" />
                   <span className="text-warm-700 text-sm">{feature}</span>
@@ -407,7 +407,7 @@ function ChoosePlanContent() {
               ))}
             </div>
 
-            {selectedPlan === "aisle" && (
+            {selectedPlan === "scribe" && (
               <div className="absolute top-4 right-4">
                 <div className="w-6 h-6 rounded-full bg-rose-500 flex items-center justify-center">
                   <Check className="w-4 h-4 text-white" />
@@ -416,7 +416,7 @@ function ChoosePlanContent() {
             )}
           </div>
 
-          {/* Aisle+ Plan - Premium */}
+          {/* Scribe+ Plan - Premium */}
           <div
             onClick={() => setSelectedPlan("plus")}
             className={`
@@ -437,7 +437,7 @@ function ChoosePlanContent() {
 
             <div className="mb-6 mt-2">
               <h2 className="text-xl font-serif tracking-wider uppercase mb-2 flex items-center gap-2">
-                Stem+
+                Scribe+
                 <Star className="w-5 h-5 text-purple-500" />
               </h2>
 
@@ -471,7 +471,7 @@ function ChoosePlanContent() {
             </p>
 
             <div className="space-y-3 mb-6">
-              {AISLE_PLUS_FEATURES.map((feature, index) => (
+              {SCRIBE_PLUS_FEATURES.map((feature, index) => (
                 <div key={feature} className="flex items-center gap-3">
                   <Check className={`w-4 h-4 flex-shrink-0 ${index === 0 ? "text-rose-400" : "text-purple-400"}`} />
                   <span className={`text-sm ${index === 0 ? "text-warm-600 font-medium" : "text-warm-700"}`}>
@@ -548,9 +548,9 @@ function ChoosePlanContent() {
               >
                 {isLoading ? "Loading..." : "Start with Free"}
               </Button>
-            ) : selectedPlan === "aisle" ? (
+            ) : selectedPlan === "scribe" ? (
               <Button
-                onClick={() => handleSubscribe("aisle")}
+                onClick={() => handleSubscribe("scribe")}
                 size="lg"
                 disabled={isLoading}
                 className="px-12 bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white"
@@ -559,7 +559,7 @@ function ChoosePlanContent() {
                   ? "Loading..."
                   : promoResult?.type === "free"
                     ? "Claim Free Access"
-                    : `Subscribe — $${aisleDisplayPrice.toFixed(2)}/${billingCycle === "monthly" ? "mo" : "yr"}`
+                    : `Subscribe — $${scribeDisplayPrice.toFixed(2)}/${billingCycle === "monthly" ? "mo" : "yr"}`
                 }
               </Button>
             ) : (
@@ -579,7 +579,7 @@ function ChoosePlanContent() {
             <p className="mt-4 text-sm text-warm-500">
               {selectedPlan === "free"
                 ? "Upgrade anytime to unlock everything"
-                : promoResult?.type === "free" && selectedPlan === "aisle"
+                : promoResult?.type === "free" && selectedPlan === "scribe"
                   ? "No payment required"
                   : "Cancel anytime. Secure checkout powered by Stripe."
               }

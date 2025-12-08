@@ -1,21 +1,21 @@
 import type { Metadata } from "next";
 
-const SITE_NAME = "Stem";
-const SITE_DESCRIPTION = "Stem is an AI wedding planner that helps couples plan their perfect wedding. Get personalized advice on budgets, venues, timelines, vendors, and more.";
-const SITE_URL = "https://scribeandstem.com";
+const SITE_NAME = "Scribe";
+const SITE_DESCRIPTION = "Scribe is an AI wedding planner that helps couples plan their perfect wedding. Get personalized advice on budgets, venues, timelines, vendors, and more.";
+const SITE_URL = "https://scribe.wedding";
 
 export const siteConfig = {
   name: SITE_NAME,
   description: SITE_DESCRIPTION,
   url: SITE_URL,
   ogImage: `${SITE_URL}/og.png`,
-  creator: "Stem",
+  creator: "Scribe",
   keywords: [
     "AI wedding planner",
     "wedding planning AI",
-    "Stem AI",
-    "Stem wedding planner",
-    "Scribe & Stem",
+    "Scribe AI",
+    "Scribe wedding planner",
+    "Scribe",
     "wedding budget calculator",
     "wedding planning assistant",
     "AI wedding assistant",
@@ -74,7 +74,7 @@ export const defaultMetadata: Metadata = {
     title: `${SITE_NAME} - AI Wedding Planner`,
     description: SITE_DESCRIPTION,
     images: [siteConfig.ogImage],
-    creator: "@scribeandstem",
+    creator: "@scribe",
   },
   alternates: {
     canonical: SITE_URL,

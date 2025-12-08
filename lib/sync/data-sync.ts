@@ -24,7 +24,7 @@ export interface DataChangeEvent {
 }
 
 // Use BroadcastChannel for cross-tab sync, with fallback to custom events
-const CHANNEL_NAME = "aisle-data-sync";
+const CHANNEL_NAME = "scribe-data-sync";
 let broadcastChannel: BroadcastChannel | null = null;
 
 // Initialize broadcast channel if available
@@ -60,7 +60,7 @@ export function broadcastDataChange(
 
   // Also dispatch a custom event (same-tab)
   if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent("aisle-data-change", { detail: event }));
+    window.dispatchEvent(new CustomEvent("scribe-data-change", { detail: event }));
   }
 }
 
@@ -82,7 +82,7 @@ export function subscribeToDataChanges(
   const customEventHandler = (e: Event) => {
     handleEvent((e as CustomEvent<DataChangeEvent>).detail);
   };
-  window.addEventListener("aisle-data-change", customEventHandler);
+  window.addEventListener("scribe-data-change", customEventHandler);
 
   // Listen to BroadcastChannel (cross-tab)
   const channelHandler = (e: MessageEvent<DataChangeEvent>) => {
@@ -94,7 +94,7 @@ export function subscribeToDataChanges(
 
   // Return unsubscribe function
   return () => {
-    window.removeEventListener("aisle-data-change", customEventHandler);
+    window.removeEventListener("scribe-data-change", customEventHandler);
     if (broadcastChannel) {
       broadcastChannel.removeEventListener("message", channelHandler);
     }

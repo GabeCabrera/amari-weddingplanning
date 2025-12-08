@@ -59,7 +59,7 @@ async function prompt(question: string): Promise<string> {
 }
 
 async function main() {
-  console.log("\n🎊 Aisle - Create New Tenant\n");
+  console.log("\n🎊 Scribe - Create New Tenant\n");
   console.log("This will create a new wedding planner for a couple.\n");
 
   // Get partner names
@@ -133,7 +133,7 @@ async function main() {
     console.log("\n" + "=".repeat(60));
     console.log("🎉 TENANT CREATED SUCCESSFULLY!");
     console.log("=".repeat(60));
-    console.log(`\nSubdomain URL: https://${slug}.aisle.wedding`);
+    console.log(`\nSubdomain URL: https://${slug}.scribe.wedding`);
     console.log(`(For local dev: http://${slug}.localhost:3000)\n`);
     
     console.log("📧 ONBOARDING EMAIL INFO:");

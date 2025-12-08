@@ -136,10 +136,10 @@ export function canAccessTemplate(access: PlanAccess, templateIsFree: boolean): 
 export function getPlanDisplayName(plan: PlanType, isLegacy: boolean): string {
   if (isLegacy) return "Complete (Legacy)";
   switch (plan) {
-    case "monthly": return "Stem Monthly";
-    case "yearly": return "Stem Yearly";
-    case "premium_monthly": return "Stem+ Monthly";
-    case "premium_yearly": return "Stem+ Yearly";
+    case "monthly": return "Scribe Monthly";
+    case "yearly": return "Scribe Yearly";
+    case "premium_monthly": return "Scribe+ Monthly";
+    case "premium_yearly": return "Scribe+ Yearly";
     default: return "Free";
   }
 }

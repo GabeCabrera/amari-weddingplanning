@@ -21,7 +21,7 @@ export interface DataChangeEvent {
   timestamp: number;
 }
 
-const CHANNEL_NAME = "aisle-data-sync";
+const CHANNEL_NAME = "scribe-data-sync";
 
 /**
  * Hook to listen for data changes from other parts of the app (like AI chat)
@@ -61,7 +61,7 @@ export function useDataSync(
     const customEventHandler = (e: Event) => {
       handleEvent((e as CustomEvent<DataChangeEvent>).detail);
     };
-    window.addEventListener("aisle-data-change", customEventHandler);
+    window.addEventListener("scribe-data-change", customEventHandler);
 
     // Listen to BroadcastChannel (cross-tab)
     const channelHandler = (e: MessageEvent<DataChangeEvent>) => {
@@ -72,7 +72,7 @@ export function useDataSync(
     }
 
     return () => {
-      window.removeEventListener("aisle-data-change", customEventHandler);
+      window.removeEventListener("scribe-data-change", customEventHandler);
       if (channelRef.current) {
         channelRef.current.removeEventListener("message", channelHandler);
         channelRef.current.close();
@@ -101,7 +101,7 @@ export function broadcastDataChange(
 
   // Dispatch custom event (same-tab)
   if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent("aisle-data-change", { detail: event }));
+    window.dispatchEvent(new CustomEvent("scribe-data-change", { detail: event }));
   }
 
   // Broadcast via BroadcastChannel (cross-tab)
