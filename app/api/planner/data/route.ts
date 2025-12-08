@@ -176,13 +176,16 @@ export async function GET() {
       kernel: kernel || null,
       
       budget: {
-        total: budgetData.totalBudget,
+        // Use kernel budget (cents) as authority, convert to dollars. Fallback to page data.
+        total: kernel?.budgetTotal 
+          ? kernel.budgetTotal / 100 
+          : budgetData.totalBudget,
         spent: totalSpent,
         paid: totalPaid,
         remaining: remainingBalance,
         items: budgetItems,
-        percentUsed: budgetData.totalBudget > 0 
-          ? Math.round((totalSpent / budgetData.totalBudget) * 100) 
+        percentUsed: (kernel?.budgetTotal ? kernel.budgetTotal / 100 : budgetData.totalBudget) > 0 
+          ? Math.round((totalSpent / (kernel?.budgetTotal ? kernel.budgetTotal / 100 : budgetData.totalBudget)) * 100) 
           : 0,
       },
       
