@@ -19,7 +19,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Monitor,
-  Smartphone
+  Smartphone,
+  Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -58,6 +59,7 @@ export default function CalendarTool() {
   const [syncStatus, setSyncStatus] = useState<GoogleSyncStatus>({ connected: false });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [view, setView] = useState("dayGridMonth");
 
   // Fetch Data
@@ -137,6 +139,26 @@ export default function CalendarTool() {
     }
   };
 
+  const handleImportTasks = async () => {
+    try {
+      setIsImporting(true);
+      const res = await fetch("/api/calendar/sync-internal", { 
+        method: "POST",
+        body: JSON.stringify({ type: "tasks" }),
+        headers: { "Content-Type": "application/json" }
+      });
+      if (!res.ok) throw new Error("Import failed");
+      
+      const result = await res.json();
+      toast.success(result.message || "Tasks imported");
+      await fetchData();
+    } catch (error) {
+      toast.error("Failed to import tasks");
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "vendor": return "#3B82F6"; // Blue
@@ -197,6 +219,18 @@ export default function CalendarTool() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleImportTasks}
+            disabled={isImporting}
+            className="text-xs h-8 gap-1.5 text-stone-600 hover:text-stone-900"
+            title="Import tasks with due dates"
+          >
+            <Download className={cn("h-3.5 w-3.5", isImporting && "animate-spin")} />
+            {isImporting ? "Importing..." : "Import Tasks"}
+          </Button>
+
           {syncStatus.connected ? (
             <Button 
               variant="outline" 
