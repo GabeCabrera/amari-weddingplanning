@@ -129,6 +129,7 @@ function PaymentSuccessContent() {
         <p className="text-warm-500 text-sm mb-8">
           You now have lifetime access to the complete wedding planner.
         </p>
+          </div> {/* Correct closing div for the text-center block */}
 
         <div className="w-12 h-px bg-warm-400 mx-auto mb-8" />
 
