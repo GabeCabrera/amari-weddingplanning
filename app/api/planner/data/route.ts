@@ -154,9 +154,17 @@ export async function GET() {
       total: vendors.length,
       booked: vendors.filter(v => v.status === "booked" || v.status === "confirmed").length,
       researching: vendors.filter(v => v.status === "researching").length,
-      totalCost: vendors.reduce((sum, v) => sum + (v.cost || 0), 0),
-      totalDeposits: vendors.reduce((sum, v) => sum + (v.depositPaid || 0), 0),
+      totalCost: vendors.reduce((sum, v) => sum + ((v.cost || 0) / 100), 0),
+      totalDeposits: vendors.reduce((sum, v) => sum + ((v.depositPaid || 0) / 100), 0),
     };
+
+    // Normalize vendor list costs to dollars
+    const normalizedVendors = vendors.map(v => ({
+      ...v,
+      cost: v.cost ? v.cost / 100 : 0,
+      depositPaid: v.depositPaid ? v.depositPaid / 100 : 0,
+      price: v.cost ? v.cost / 100 : 0 // handle legacy naming
+    }));
 
     // Days until wedding
     // kernel.weddingDate is a Date object from the database
@@ -184,7 +192,7 @@ export async function GET() {
       },
       
       vendors: {
-        list: vendors,
+        list: normalizedVendors,
         stats: vendorStats,
       },
       

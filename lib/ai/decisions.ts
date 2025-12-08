@@ -166,7 +166,41 @@ export async function updateDecision(
   name: string,
   updates: UpdateDecisionParams
 ): Promise<{ success: boolean; message: string; wasLocked?: boolean }> {
-  const decision = await getDecision(tenantId, name);
+  // Handle aliases
+  if (name === "wedding_budget") name = "budget";
+
+  let decision = await getDecision(tenantId, name);
+
+  // Auto-create if missing but in default list
+  if (!decision) {
+    const defaultDef = DEFAULT_DECISIONS.find(d => d.name === name);
+    if (defaultDef) {
+      const [newDecision] = await db.insert(weddingDecisions).values({
+        tenantId,
+        name: defaultDef.name,
+        displayName: defaultDef.displayName,
+        category: defaultDef.category,
+        isRequired: defaultDef.isRequired,
+        position: defaultDef.position,
+        status: "not_started",
+      }).returning();
+      
+      // Re-fetch formatted result (with joins if any, though simple query here)
+      decision = await getDecision(tenantId, name);
+    } else if (name === "rehearsal_dinner_venue") {
+      // Specific fallback for rehearsal dinner if not found in defaults for some reason
+      const [newDecision] = await db.insert(weddingDecisions).values({
+        tenantId,
+        name: "rehearsal_dinner_venue",
+        displayName: "Rehearsal Dinner Venue",
+        category: "venue",
+        isRequired: false,
+        position: 12,
+        status: "not_started",
+      }).returning();
+      decision = await getDecision(tenantId, name);
+    }
+  }
 
   if (!decision) {
     return { success: false, message: `Decision "${name}" not found` };

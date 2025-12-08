@@ -336,57 +336,72 @@ async function deleteBudgetItem(
 ): Promise<ToolResult> {
   const { pageId, fields } = await getOrCreatePage(context.tenantId, "budget");
   
-  const items = (fields.items as Array<Record<string, unknown>>) || [];
-  let itemIndex = -1;
-  let deletedItem: Record<string, unknown> | null = null;
+  let items = (fields.items as Array<Record<string, unknown>>) || [];
+  const initialCount = items.length;
 
   // Normalize search strings for comparison
   const normalize = (s: string | undefined | null) => 
     (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 
-  // Find by ID first
-  if (params.itemId) {
-    itemIndex = items.findIndex(i => i.id === params.itemId);
-  }
-  
-  // Try vendor name match (exact or partial)
-  if (itemIndex === -1 && params.vendor) {
-    const searchVendor = normalize(params.vendor as string);
-    itemIndex = items.findIndex(i => 
-      normalize(i.vendor as string) === searchVendor ||
-      normalize(i.vendor as string).includes(searchVendor) ||
-      searchVendor.includes(normalize(i.vendor as string))
-    );
-  }
-  
-  // Try category match (flexible - handles "Wedding Attire" vs "attire")
-  if (itemIndex === -1 && params.category) {
-    const searchCategory = normalize(params.category as string);
-    itemIndex = items.findIndex(i => {
+  const searchVendor = params.vendor ? normalize(params.vendor as string) : null;
+  const searchCategory = params.category ? normalize(params.category as string) : null;
+  const searchAmount = params.amount as number | undefined;
+
+  // Filter out items that match the criteria
+  // We keep items that DO NOT match
+  const newItems = items.filter(i => {
+    // If ID is provided and matches, delete it (return false)
+    if (params.itemId && i.id === params.itemId) return false;
+
+    // If ID was provided, we only care about ID match
+    if (params.itemId) return true;
+
+    let matches = false;
+    let criteriaCount = 0;
+    let matchCount = 0;
+
+    // Vendor Check
+    if (searchVendor) {
+      criteriaCount++;
+      const itemVendor = normalize(i.vendor as string);
+      if (itemVendor === searchVendor || itemVendor.includes(searchVendor) || searchVendor.includes(itemVendor)) {
+        matchCount++;
+      }
+    }
+
+    // Category Check
+    if (searchCategory) {
+      criteriaCount++;
       const itemCategory = normalize(i.category as string);
-      // Exact match after normalization
-      if (itemCategory === searchCategory) return true;
-      // Check if one contains the other (e.g., "weddingattire" contains "attire")
-      if (itemCategory.includes(searchCategory) || searchCategory.includes(itemCategory)) return true;
-      return false;
-    });
-  }
+      if (itemCategory === searchCategory || itemCategory.includes(searchCategory) || searchCategory.includes(itemCategory)) {
+        matchCount++;
+      }
+    }
 
-  // Try matching by amount (useful for finding specific items)
-  if (itemIndex === -1 && params.amount) {
-    const searchAmount = params.amount as number;
-    // Check both dollars and cents (in case of mixed formats)
-    itemIndex = items.findIndex(i => {
-      const cost = i.totalCost as number;
-      return cost === searchAmount || cost === searchAmount * 100 || cost === searchAmount / 100;
-    });
-  }
+    // Amount Check
+    if (searchAmount !== undefined) {
+      criteriaCount++;
+      const cost = parseFloat(String(i.totalCost));
+      // Check exact dollars, x100 (cents), or /100 (dollars from cents)
+      if (Math.abs(cost - searchAmount) < 0.01 || 
+          Math.abs(cost - searchAmount * 100) < 0.01 || 
+          Math.abs(cost - searchAmount / 100) < 0.01) {
+        matchCount++;
+      }
+    }
 
-  if (itemIndex === -1) {
-    // Provide helpful error with available items
-    const itemList = items.map(i => {
+    // If we have criteria and they ALL match, then delete
+    if (criteriaCount > 0 && matchCount === criteriaCount) {
+      matches = true;
+    }
+
+    return !matches;
+  });
+
+  if (newItems.length === initialCount) {
+     const itemList = items.slice(0, 5).map(i => {
       const cost = parseFloat(String(i.totalCost)) || 0;
-      return `${i.category || "Unknown"} - ${i.vendor || "No vendor"} (${cost.toLocaleString()})`;
+      return `${i.category || "Unknown"} - ${i.vendor || "No vendor"} ($${cost.toLocaleString()})`;
     }).join(", ");
     return { 
       success: false, 
@@ -394,20 +409,16 @@ async function deleteBudgetItem(
     };
   }
 
-  deletedItem = items[itemIndex];
-  items.splice(itemIndex, 1);
+  const deletedCount = initialCount - newItems.length;
 
   await db.update(pages)
-    .set({ fields: { ...fields, items }, updatedAt: new Date() })
+    .set({ fields: { ...fields, items: newItems }, updatedAt: new Date() })
     .where(eq(pages.id, pageId));
-
-  // Format the cost - values are stored in dollars as strings
-  const cost = parseFloat(String(deletedItem.totalCost)) || 0;
 
   return {
     success: true,
-    message: `Removed ${deletedItem.vendor || deletedItem.category} (${cost.toLocaleString()}) from budget`,
-    data: deletedItem
+    message: `Removed ${deletedCount} item${deletedCount > 1 ? "s" : ""} from budget`,
+    data: { deletedCount }
   };
 }
 
@@ -1896,6 +1907,44 @@ async function handleUpdateDecision(
     return { success: false, message: result.message };
   }
 
+  // Auto-create vendor if decision is made/booked and we have a name
+  if ((params.status === "decided" || params.status === "booked") && params.choiceName) {
+    const { pageId, fields } = await getOrCreatePage(context.tenantId, "vendor-contacts");
+    const vendors = (fields.vendors as Array<Record<string, unknown>>) || [];
+    const vendorName = params.choiceName as string;
+    
+    // Check if vendor already exists
+    const exists = vendors.some(v => 
+      (v.name as string)?.toLowerCase() === vendorName.toLowerCase()
+    );
+
+    if (!exists) {
+      const decision = await getDecision(context.tenantId, params.decisionName as string);
+      const category = decision?.category === "vendors" ? decision.displayName : decision?.category || "other";
+      
+      const newVendor = {
+        id: crypto.randomUUID(),
+        category,
+        name: vendorName,
+        contactName: "",
+        email: "",
+        phone: "",
+        status: params.status === "booked" ? "booked" : "researching", // Default to researching unless explicitly booked logic
+        price: choiceAmount ? choiceAmount * 100 : (estimatedCost ? estimatedCost * 100 : null), // Store as CENTS
+        notes: params.notes || `Added from ${decision?.displayName} decision`,
+        depositPaid: false,
+        contractSigned: false,
+        createdAt: new Date().toISOString()
+      };
+      
+      vendors.push(newVendor);
+
+      await db.update(pages)
+        .set({ fields: { ...fields, vendors }, updatedAt: new Date() })
+        .where(eq(pages.id, pageId));
+    }
+  }
+
   return { success: result.success, message: result.message };
 }
 
@@ -2464,12 +2513,11 @@ async function webSearch(
   const cx = process.env.GOOGLE_SEARCH_ENGINE_ID;
 
   if (!apiKey || !cx) {
-    console.warn("Google Search API key or Engine ID missing.");
-    // Fallback message that explains the situation without exposing internal config details to the end user (too much)
-    // But allows the developer (you) to know what's wrong if you see this response in dev.
+    console.error(`[WebSearch] Missing config: API Key is ${apiKey ? "SET" : "MISSING"}, Engine ID is ${cx ? "SET" : "MISSING"}`);
+    // Fallback message that explains the situation without exposing internal config details to the end user.
     return { 
       success: false, 
-      message: "I cannot browse the web right now because the search function hasn't been fully configured yet." 
+      message: "I cannot browse the web right now because the search function is not fully configured." 
     };
   }
 

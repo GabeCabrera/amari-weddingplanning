@@ -267,16 +267,13 @@ export function usePlannerData() {
 // ============================================================================
 
 export function formatCurrency(amount: number): string {
-  // Values are now stored in dollars (as strings in DB, parsed to numbers)
-  // If the amount looks like cents (> 10000 for typical wedding budget items), convert
-  const dollars = amount > 10000 ? amount / 100 : amount;
-  
+  // Values are normalized to dollars by the API
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(dollars);
+    maximumFractionDigits: 2,
+  }).format(amount);
 }
 
 export function formatDate(dateString: string): string {
