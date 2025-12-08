@@ -161,7 +161,7 @@ export async function GET() {
         v.id === "undefined" || 
         !v.name || 
         v.name === "undefined" ||
-        (v.name === "0" && v.category === "Other");
+        v.name === "0";
       return !isCorrupt;
     });
 
