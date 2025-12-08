@@ -16,9 +16,7 @@ const SUGGESTED_NAMES = ["Opal", "Fern", "Willa", "June", "Pearl", "Hazel"];
 export default function WelcomePage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const [step, setStep] = useState<"naming" | "chat">("naming");
-  const [plannerName, setPlannerName] = useState("");
-  const [nameInput, setNameInput] = useState("");
+  const plannerName = "Scribe"; // AI's name is always Scribe
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +24,6 @@ export default function WelcomePage() {
   const [hasAskedNames, setHasAskedNames] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const nameInputRef = useRef<HTMLInputElement>(null);
 
   // Redirect if already onboarded
   useEffect(() => {
@@ -35,16 +32,9 @@ export default function WelcomePage() {
     }
   }, [session, router]);
 
-  // Focus name input on mount
-  useEffect(() => {
-    if (step === "naming") {
-      nameInputRef.current?.focus();
-    }
-  }, [step]);
-
   // Initial greeting - ask for names naturally
   useEffect(() => {
-    if (step === "chat" && messages.length === 0) {
+    if (messages.length === 0) { // Only show greeting once
       const timer = setTimeout(() => {
         setMessages([
           {
@@ -55,7 +45,7 @@ export default function WelcomePage() {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [step, plannerName, messages.length]);
+  }, [messages.length, plannerName]);
 
   // Scroll to bottom
   useEffect(() => {
@@ -77,20 +67,6 @@ export default function WelcomePage() {
     }
   }, [messages, hasAskedNames]);
 
-  const handleNameSubmit = async (name: string) => {
-    const finalName = name.trim() || "Planner";
-    setPlannerName(finalName);
-    
-    // Save the planner name
-    await fetch("/api/settings/profile", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plannerName: finalName }),
-    });
-    
-    setStep("chat");
-  };
-
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -101,13 +77,13 @@ export default function WelcomePage() {
     setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
 
     try {
-      const res = await fetch("/api/concierge", {
+      const res = await fetch("/api/scribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           message: userMessage,
           isOnboarding: true,
-          plannerName,
+          // plannerName is now hardcoded and not sent dynamically
         }),
       });
 
@@ -146,72 +122,14 @@ export default function WelcomePage() {
     }
   };
 
-  const handleNameKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleNameSubmit(nameInput);
-    }
-  };
-
   const handleContinue = async () => {
     await fetch("/api/settings/profile", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ onboardingComplete: true }),
     });
-    router.push("/");
+    router.push("/planner");
   };
-
-  // Naming step
-  if (step === "naming") {
-    return (
-      <main className="min-h-screen bg-warm-50 flex flex-col items-center justify-center px-6">
-        <div className="max-w-md w-full text-center">
-          <Logo size="lg" href={undefined} />
-          
-          <div className="mt-12 mb-8">
-            <h1 className="text-2xl font-serif text-warm-800 mb-3">
-              Name your planner
-            </h1>
-            <p className="text-warm-500 text-sm">
-              Give your wedding planner a name — or pick one of ours
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <input
-              ref={nameInputRef}
-              type="text"
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              onKeyDown={handleNameKeyDown}
-              placeholder="Type a name..."
-              className="w-full px-4 py-3 bg-white border border-warm-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-warm-300 focus:border-transparent text-center text-lg"
-            />
-            
-            <div className="flex flex-wrap justify-center gap-2">
-              {SUGGESTED_NAMES.map((name) => (
-                <button
-                  key={name}
-                  onClick={() => handleNameSubmit(name)}
-                  className="px-4 py-2 bg-white border border-warm-200 rounded-full text-sm text-warm-600 hover:bg-warm-100 hover:border-warm-300 transition-colors"
-                >
-                  {name}
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={() => handleNameSubmit(nameInput)}
-              className="w-full mt-6 py-3 bg-warm-800 hover:bg-warm-900 text-white rounded-xl transition-colors"
-            >
-              {nameInput.trim() ? `Name them ${nameInput.trim()}` : "Skip for now"}
-            </button>
-          </div>
-        </div>
-      </main>
-    );
-  }
 
   // Chat step
   return (
