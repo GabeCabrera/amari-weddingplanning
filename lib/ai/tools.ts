@@ -82,13 +82,21 @@ export const tools: ToolDefinition[] = [
   },
   {
     name: "update_budget_item",
-    description: "Update an existing budget item with new information.",
+    description: "Update an existing budget item. Can find item by ID, or by matching vendor name / category.",
     parameters: {
       type: "object",
       properties: {
         itemId: {
           type: "string",
           description: "The ID of the budget item to update"
+        },
+        findVendor: {
+          type: "string",
+          description: "Find item by vendor name (if ID not known)"
+        },
+        findCategory: {
+          type: "string",
+          description: "Find item by category (if ID not known)"
         },
         estimatedCost: {
           type: "number",
@@ -107,7 +115,7 @@ export const tools: ToolDefinition[] = [
           description: "Updated notes"
         }
       },
-      required: ["itemId"]
+      required: []
     }
   },
   {

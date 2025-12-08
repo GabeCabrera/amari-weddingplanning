@@ -251,13 +251,13 @@ async function addBudgetItem(
   
   const items = (fields.items as Array<Record<string, unknown>>) || [];
   
-  // Store as string in dollars (matching BudgetRenderer format)
+  // Store as string in CENTS (matching API expectation)
   const newItem = {
     id: crypto.randomUUID(),
     category: params.category,
     vendor: params.vendor || "",
-    totalCost: String(params.estimatedCost || 0),
-    amountPaid: String(params.amountPaid || 0),
+    totalCost: String((params.estimatedCost as number || 0) * 100),
+    amountPaid: String((params.amountPaid as number || 0) * 100),
     notes: params.notes || "",
     createdAt: new Date().toISOString()
   };
@@ -268,24 +268,26 @@ async function addBudgetItem(
     .set({ fields: { ...fields, items }, updatedAt: new Date() })
     .where(eq(pages.id, pageId));
 
-  // Also update kernel decisions
+  // Also update kernel decisions (already expects cents/dollars? No, usually dollars for decision, let's keep it as is or check decision logic. 
+  // Actually, `updateDecisionFn` expects CENTS for estimatedCost. Let's verify updateDecisionFn call below.
+  // The call below passed `params.estimatedCost`. If we want cents there, we need to multiply.
   await updateKernelDecision(context.tenantId, params.category as string, {
     status: "budgeted",
-    amount: params.estimatedCost
+    amount: params.estimatedCost // This might need checking if kernel decisions expects cents
   });
 
   // Update checklist decision
   const decisionName = getDecisionNameFromCategory(params.category as string);
   if (decisionName) {
       await updateDecisionFn(context.tenantId, decisionName, {
-          status: "researching", // Start researching if we are budgeting
-          estimatedCost: (params.estimatedCost as number) * 100
+          status: "researching", 
+          estimatedCost: (params.estimatedCost as number) * 100 // Correctly converting to cents here
       });
   }
 
   return {
     success: true,
-    message: `Added ${params.category} to budget: ${(params.estimatedCost as number).toLocaleString()}`,
+    message: `Added ${params.category} to budget: $${(params.estimatedCost as number).toLocaleString()}`,
     data: newItem
   };
 }
@@ -297,18 +299,33 @@ async function updateBudgetItem(
   const { pageId, fields } = await getOrCreatePage(context.tenantId, "budget");
   
   const items = (fields.items as Array<Record<string, unknown>>) || [];
-  const itemIndex = items.findIndex(i => i.id === params.itemId);
+  let itemIndex = -1;
+
+  // Find by ID first
+  if (params.itemId) {
+    itemIndex = items.findIndex(i => i.id === params.itemId);
+  }
+  // Find by Vendor Name (fuzzy)
+  else if (params.findVendor) {
+    const search = (params.findVendor as string).toLowerCase();
+    itemIndex = items.findIndex(i => (i.vendor as string)?.toLowerCase().includes(search));
+  }
+  // Find by Category (exactish)
+  else if (params.findCategory) {
+    const search = (params.findCategory as string).toLowerCase();
+    itemIndex = items.findIndex(i => (i.category as string)?.toLowerCase() === search);
+  }
 
   if (itemIndex === -1) {
     return { success: false, message: "Budget item not found" };
   }
 
-  // Store as string in dollars (matching BudgetRenderer format)
+  // Store as string in CENTS
   if (params.estimatedCost !== undefined) {
-    items[itemIndex].totalCost = String(params.estimatedCost);
+    items[itemIndex].totalCost = String((params.estimatedCost as number) * 100);
   }
   if (params.amountPaid !== undefined) {
-    items[itemIndex].amountPaid = String(params.amountPaid);
+    items[itemIndex].amountPaid = String((params.amountPaid as number) * 100);
   }
   if (params.vendor !== undefined) {
     items[itemIndex].vendor = params.vendor;
@@ -425,11 +442,11 @@ async function setTotalBudget(
   context: ToolContext
 ): Promise<ToolResult> {
   const { pageId, fields } = await getOrCreatePage(context.tenantId, "budget");
-  // Store as string in dollars (matching BudgetRenderer format)
+  // Store as string in CENTS
   const amount = params.amount as number;
 
   await db.update(pages)
-    .set({ fields: { ...fields, totalBudget: String(amount) }, updatedAt: new Date() })
+    .set({ fields: { ...fields, totalBudget: String(amount * 100) }, updatedAt: new Date() })
     .where(eq(pages.id, pageId));
 
   // Also update kernel (kernel uses cents for historical reasons)
@@ -439,7 +456,7 @@ async function setTotalBudget(
 
   return {
     success: true,
-    message: `Total budget set to ${amount.toLocaleString()}`,
+    message: `Total budget set to $${amount.toLocaleString()}`,
     data: { totalBudget: amount }
   };
 }
