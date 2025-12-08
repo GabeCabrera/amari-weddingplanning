@@ -158,8 +158,8 @@ export default function LoginPage() {
         <div className="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80')] bg-cover bg-center mix-blend-overlay" />
         <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-primary" />
         
-        <div className="relative z-10 max-w-lg text-primary-foreground text-center space-y-6">
-          <h2 className="font-serif text-5xl md:text-6xl leading-tight text-primary-foreground">
+        <div className="relative z-10 max-w-lg text-white text-center space-y-6">
+          <h2 className="font-serif text-5xl md:text-6xl leading-tight text-white">
             "Love is composed of a single soul inhabiting two bodies."
           </h2>
           <p className="font-sans text-lg opacity-80 font-light tracking-wide uppercase">— Aristotle</p>

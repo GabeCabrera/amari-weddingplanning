@@ -225,8 +225,8 @@ export default function RegisterPage() {
         <div className="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&q=80')] bg-cover bg-center mix-blend-overlay" />
         <div className="absolute inset-0 bg-gradient-to-br from-secondary/80 to-secondary" />
         
-        <div className="relative z-10 max-w-lg text-secondary-foreground text-center space-y-6">
-          <h2 className="font-serif text-5xl md:text-6xl leading-tight text-secondary-foreground">
+        <div className="relative z-10 max-w-lg text-white text-center space-y-6">
+          <h2 className="font-serif text-5xl md:text-6xl leading-tight text-white">
             "A successful marriage requires falling in love many times, always with the same person."
           </h2>
           <p className="font-sans text-lg opacity-80 font-light tracking-wide uppercase">— Mignon McLaughlin</p>

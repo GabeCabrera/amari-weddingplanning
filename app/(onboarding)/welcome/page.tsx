@@ -1,29 +1,22 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Send, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/logo";
-
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-}
-
-const SUGGESTED_NAMES = ["Opal", "Fern", "Willa", "June", "Pearl", "Hazel"];
+import { Loader2 } from "lucide-react";
 
 export default function WelcomePage() {
   const router = useRouter();
-  const { data: session } = useSession();
-  const plannerName = "Scribe"; // AI's name is always Scribe
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
+  const { data: session, update } = useSession();
   const [isLoading, setIsLoading] = useState(false);
-  const [showContinue, setShowContinue] = useState(false);
-  const [hasAskedNames, setHasAskedNames] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [formData, setFormData] = useState({
+    partnerName: "",
+    weddingDate: "",
+  });
 
   // Redirect if already onboarded
   useEffect(() => {
@@ -32,181 +25,75 @@ export default function WelcomePage() {
     }
   }, [session, router]);
 
-  // Initial greeting - ask for names naturally
-  useEffect(() => {
-    if (messages.length === 0) { // Only show greeting once
-      const timer = setTimeout(() => {
-        setMessages([
-          {
-            role: "assistant",
-            content: `Hey! I'm ${plannerName} 👋\n\nI'm so excited to help you plan your wedding. First things first — what's your name, and your partner's name?`,
-          },
-        ]);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [messages.length, plannerName]);
-
-  // Scroll to bottom
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  // Focus chat input
-  useEffect(() => {
-    if (messages.length > 0) {
-      inputRef.current?.focus();
-    }
-  }, [messages.length]);
-
-  // Show continue button after names are captured and a couple exchanges
-  useEffect(() => {
-    const userMessages = messages.filter((m) => m.role === "user").length;
-    if (hasAskedNames && userMessages >= 2) {
-      setShowContinue(true);
-    }
-  }, [messages, hasAskedNames]);
-
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
-
-    const userMessage = input.trim();
-    setInput("");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
 
-    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
-
     try {
-      const res = await fetch("/api/scribe", {
+      // Update profile
+      await fetch("/api/settings/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          message: userMessage,
-          isOnboarding: true,
-          // plannerName is now hardcoded and not sent dynamically
+        body: JSON.stringify({
+          // If they entered a partner name, append it to their display name? 
+          // Or just store it in the kernel? For now, let's just update the wedding date.
+          // If we want to update the display name, we'd need to know the current one.
+          // Let's just send what we have.
+          weddingDate: formData.weddingDate || null,
+          onboardingComplete: true,
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to send message");
+      // Update session
+      await update({ onboardingComplete: true });
 
-      const data = await res.json();
-      setMessages((prev) => [...prev, { role: "assistant", content: data.message }]);
-      
-      // Check if names were captured
-      if (data.namesExtracted) {
-        setHasAskedNames(true);
-        // Save the display name
-        if (data.displayName) {
-          await fetch("/api/settings/profile", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ displayName: data.displayName }),
-          });
-        }
-      }
+      router.push("/planner");
     } catch (error) {
-      console.error("Failed to send message:", error);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Sorry, I had trouble responding. Try again?" },
-      ]);
+      console.error("Onboarding error:", error);
+      // Proceed anyway
+      router.push("/planner");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
-
-  const handleContinue = async () => {
-    await fetch("/api/settings/profile", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ onboardingComplete: true }),
-    });
-    router.push("/planner");
-  };
-
-  // Chat step
   return (
-    <main className="min-h-screen bg-warm-50 flex flex-col">
-      {/* Header */}
-      <header className="px-6 py-4 border-b border-warm-100 bg-white">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <Logo size="sm" href={undefined} />
-          {showContinue && (
-            <button
-              onClick={handleContinue}
-              className="flex items-center gap-2 text-sm text-warm-600 hover:text-warm-800 transition-colors"
-            >
-              Continue to planner
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          )}
+    <main className="min-h-screen bg-warm-50 flex flex-col items-center justify-center px-4">
+      <div className="w-full max-w-md space-y-8 text-center">
+        <div className="flex justify-center">
+          <Logo size="xl" href={undefined} />
         </div>
-      </header>
 
-      {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-6 py-8">
-          <div className="space-y-6">
-            {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[85%] ${
-                    msg.role === "user"
-                      ? "bg-warm-800 text-white rounded-3xl rounded-br-lg px-5 py-3"
-                      : "text-warm-800"
-                  }`}
-                >
-                  <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="flex gap-1 py-2">
-                  <span className="w-2 h-2 bg-warm-300 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="w-2 h-2 bg-warm-300 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="w-2 h-2 bg-warm-300 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
+        <div className="space-y-2">
+          <h1 className="font-serif text-4xl text-warm-900">Welcome to Stem</h1>
+          <p className="text-warm-600">Let's set up your workspace.</p>
         </div>
-      </div>
 
-      {/* Input Area */}
-      <div className="border-t border-warm-100 bg-white px-6 py-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="flex items-end gap-3">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={`Message ${plannerName}...`}
-              className="flex-1 resize-none px-4 py-3 bg-warm-50 border border-warm-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-warm-300 focus:border-transparent text-[15px] max-h-32"
-              rows={1}
-              disabled={isLoading}
+        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-3xl shadow-soft border border-warm-100 space-y-6 text-left">
+          
+          <div className="space-y-2">
+            <Label htmlFor="weddingDate">When is the big day?</Label>
+            <Input
+              id="weddingDate"
+              type="date"
+              value={formData.weddingDate}
+              onChange={(e) => setFormData({ ...formData, weddingDate: e.target.value })}
+              className="h-12"
             />
-            <button
-              onClick={sendMessage}
-              disabled={!input.trim() || isLoading}
-              className="h-12 w-12 flex items-center justify-center bg-warm-800 hover:bg-warm-900 disabled:bg-warm-300 text-white rounded-2xl transition-colors"
-            >
-              <Send className="w-5 h-5" />
-            </button>
+            <p className="text-xs text-muted-foreground">
+              It's okay if you don't have an exact date yet.
+            </p>
           </div>
-        </div>
+
+          <Button 
+            type="submit" 
+            className="w-full h-12 text-base bg-warm-900 hover:bg-warm-800 text-white rounded-xl"
+            disabled={isLoading}
+          >
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+            Start Planning
+          </Button>
+        </form>
       </div>
     </main>
   );
