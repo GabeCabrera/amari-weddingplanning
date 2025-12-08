@@ -171,14 +171,14 @@ export function BrowserProvider({ children }: { children: React.ReactNode }) {
   // Tab state
   const [tabs, setTabs] = useState<Tab[]>([
     {
-      id: "chat",
+      id: "scribe",
       type: "chat",
-      title: "Chat",
+      title: "Scribe",
       closable: false,
     },
   ]);
-  const [activeTabId, setActiveTabId] = useState("chat");
-  const [history, setHistory] = useState<string[]>(["chat"]);
+  const [activeTabId, setActiveTabId] = useState("scribe");
+  const [history, setHistory] = useState<string[]>(["scribe"]);
   const [historyIndex, setHistoryIndex] = useState(0);
 
   // Mobile UI state
@@ -264,7 +264,7 @@ export function BrowserProvider({ children }: { children: React.ReactNode }) {
   }, [historyIndex, history, tabs]);
 
   const goHome = useCallback(() => {
-    switchTab("chat");
+    switchTab("scribe");
   }, [switchTab]);
 
   const toggleFavorite = useCallback((toolId: string) => {

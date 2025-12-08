@@ -18,6 +18,7 @@ export default function ScribeChatTool() {
       onClose={() => browser.switchTab("dashboard")} // Go to dashboard if user tries to "close" it from within the tool view
       coupleNames={session?.user?.name || undefined}
       aiName="Scribe"
+      variant="full"
     />
   );
 }

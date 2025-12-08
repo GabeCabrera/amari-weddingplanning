@@ -29,10 +29,11 @@ interface ScribeChatProps {
   onClose: () => void;
   coupleNames?: string;
   aiName?: string;
+  variant?: "overlay" | "full";
 }
 
 // The main chat component
-export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe" }: ScribeChatProps) {
+export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe", variant = "overlay" }: ScribeChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -51,14 +52,14 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe" }: 
     }
   }, [isOpen, hasLoaded]);
 
-  // Handle open animation
+  // Handle open animation (only for overlay)
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && variant === "overlay") {
       setIsAnimating(true);
       const timer = setTimeout(() => setIsAnimating(false), 300);
       return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isOpen, variant]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -187,8 +188,8 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe" }: 
 
   if (!isOpen) return null;
 
-  // Minimized state
-  if (isMinimized) {
+  // Minimized state (only for overlay)
+  if (isMinimized && variant === "overlay") {
     return (
       <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
         <button
@@ -205,18 +206,24 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe" }: 
     );
   }
 
+  // Container classes based on variant
+  const containerClasses = variant === "overlay"
+    ? "fixed inset-0 z-50 flex items-end justify-end p-4 sm:p-6 pointer-events-none"
+    : "h-full w-full flex flex-col bg-white"; // Full mode
+
+  // Window classes based on variant
+  const windowClasses = variant === "overlay"
+    ? `relative w-full max-w-[420px] h-[600px] max-h-[85vh] bg-white rounded-2xl shadow-2xl border border-warm-200/60 flex flex-col pointer-events-auto transition-all duration-300 ease-out ${
+        isAnimating ? "opacity-0 translate-y-4 scale-[0.98]" : "opacity-100 translate-y-0 scale-100"
+      }`
+    : "flex-1 flex flex-col h-full"; // Full mode: take up available space
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-end p-4 sm:p-6 pointer-events-none">
+    <div className={containerClasses}>
       {/* Chat Window */}
-      <div 
-        className={`relative w-full max-w-[420px] h-[600px] max-h-[85vh] bg-white rounded-2xl shadow-2xl border border-warm-200/60 flex flex-col pointer-events-auto transition-all duration-300 ease-out ${
-          isAnimating 
-            ? "opacity-0 translate-y-4 scale-[0.98]" 
-            : "opacity-100 translate-y-0 scale-100"
-        }`}
-      >
+      <div className={windowClasses}>
         {/* Header */}
-        <div className="flex-shrink-0 flex items-center justify-between px-5 py-4 border-b border-warm-100 bg-gradient-to-r from-warm-50 to-rose-50/50 rounded-t-2xl">
+        <div className={`flex-shrink-0 flex items-center justify-between px-5 py-4 border-b border-warm-100 bg-gradient-to-r from-warm-50 to-rose-50/50 ${variant === "overlay" ? "rounded-t-2xl" : ""}`}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-400 to-amber-400 flex items-center justify-center shadow-sm">
               <Sparkles className="w-5 h-5 text-white" />
@@ -239,20 +246,26 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe" }: 
             >
               <RotateCcw className="w-4 h-4 text-warm-400" />
             </button>
-            <button
-              onClick={handleMinimize}
-              className="p-2 hover:bg-warm-100 rounded-lg transition-colors"
-              title="Minimize"
-            >
-              <Minimize2 className="w-4 h-4 text-warm-400" />
-            </button>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-warm-100 rounded-lg transition-colors"
-              title="Close"
-            >
-              <X className="w-4 h-4 text-warm-400" />
-            </button>
+            
+            {/* Only show Minimize/Close in overlay mode */}
+            {variant === "overlay" && (
+              <>
+                <button
+                  onClick={handleMinimize}
+                  className="p-2 hover:bg-warm-100 rounded-lg transition-colors"
+                  title="Minimize"
+                >
+                  <Minimize2 className="w-4 h-4 text-warm-400" />
+                </button>
+                <button
+                  onClick={onClose}
+                  className="p-2 hover:bg-warm-100 rounded-lg transition-colors"
+                  title="Close"
+                >
+                  <X className="w-4 h-4 text-warm-400" />
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -359,7 +372,7 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe" }: 
 
         {/* Input Area */}
         {!showUpgradePrompt && (
-          <div className="flex-shrink-0 p-4 border-t border-warm-100 bg-white rounded-b-2xl">
+          <div className={`flex-shrink-0 p-4 border-t border-warm-100 bg-white ${variant === "overlay" ? "rounded-b-2xl" : ""}`}>
             <div className="flex items-end gap-3">
               <div className="flex-1 relative">
                 <textarea

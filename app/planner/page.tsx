@@ -41,6 +41,7 @@ export default function ChatPage() {
     Timeline: TimelineTool,
     Settings: SettingsTool,
     Chat: ScribeChatTool,
+    Scribe: ScribeChatTool,
   };
 
   // Fallback to Dashboard if tool not found
