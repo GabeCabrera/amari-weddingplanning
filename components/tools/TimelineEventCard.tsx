@@ -1,16 +1,11 @@
 import React from "react";
-import { TimelineEvent } from "@/lib/hooks/usePlannerData"; // Assuming TimelineEvent type is also exported or defined globally
+import { TimelineEvent } from "@/lib/hooks/usePlannerData";
+import { cn } from "@/lib/utils";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import {
-  Box,
-  Typography,
-  Paper,
-  Grid,
-  Chip,
-} from "@mui/material";
-import {
-  LocationOn as LocationIcon,
-  Person as PersonIcon,
-} from "@mui/icons-material";
+  MapPin, // Location icon
+  User, // Person icon
+} from "lucide-react";
 
 // Moved formatTime out of the component for better testability and to fix `this` context
 export function formatTime(time: string | undefined): string {
@@ -41,49 +36,41 @@ export function formatTime(time: string | undefined): string {
 
 export default function TimelineEventCard({ event }: { event: TimelineEvent }) {
   return (
-    <Paper elevation={3} sx={{ p: 2, borderRadius: 2 }}>
-      <Grid container spacing={1} alignItems="center">
-        <Grid size={{ xs: 12, sm: 3 }}>
-          <Box sx={{ textAlign: { xs: 'left', sm: 'right' }, pr: { sm: 2 } }}>
-            <Typography variant="h6" component="p" sx={{ mb: 0.5 }}>
-              {formatTime(event.time)}
-            </Typography>
-            {event.duration && (
-              <Typography variant="body2" color="text.secondary">
-                {event.duration} min
-              </Typography>
-            )}
-          </Box>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 9 }}>
-          <Typography variant="h6" component="h3">
-            {event.title}
-          </Typography>
-          {event.description && (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              {event.description}
-            </Typography>
+    <Card className="p-4 rounded-xl shadow-soft bg-white border border-border transition-all duration-300 hover:shadow-medium hover:translate-y-[-2px]">
+      <CardContent className="p-0 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+        <div className="text-left sm:text-right sm:pr-4 border-b pb-2 sm:pb-0 sm:border-b-0 sm:border-r border-border/70">
+          <CardTitle className="font-sans text-xl font-medium mb-0.5 text-foreground">
+            {formatTime(event.time)}
+          </CardTitle>
+          {event.duration && (
+            <p className="text-sm text-muted-foreground">
+              {event.duration} min
+            </p>
           )}
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+        </div>
+        <div className="sm:col-span-2 sm:pl-4">
+          <CardTitle className="font-sans text-lg font-medium mb-0.5 text-foreground">
+            {event.title}
+          </CardTitle>
+          {event.description && (
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {event.description}
+            </p>
+          )}
+          <div className="flex flex-wrap gap-2 mt-2">
             {event.location && (
-              <Chip
-                icon={<LocationIcon sx={{ fontSize: 16 }} />}
-                label={event.location}
-                size="small"
-                variant="outlined"
-              />
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs">
+                <MapPin className="h-3 w-3" /> {event.location}
+              </span>
             )}
             {event.vendor && (
-              <Chip
-                icon={<PersonIcon sx={{ fontSize: 16 }} />}
-                label={event.vendor}
-                size="small"
-                variant="outlined"
-              />
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs">
+                <User className="h-3 w-3" /> {event.vendor}
+              </span>
             )}
-          </Box>
-        </Grid>
-      </Grid>
-    </Paper>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

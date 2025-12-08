@@ -1,39 +1,84 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;500;600;700;800&family=Manrope:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /**
- * Aisle Global Styles
- * π-ID: 3.14159.4
- * 
- * Muted, warm, easy on the eyes.
+ * Aisle Design System v2.0
+ * "Enterprise Editorial"
  */
 
 @layer base {
   :root {
-    /* Updated to use warm canvas colors */
-    --background: 35 25% 97%;      /* canvas #F8F6F3 */
-    --foreground: 30 10% 22%;      /* ink #3D3833 */
-    --card: 40 33% 99%;            /* canvas-soft #FDFCFA */
-    --card-foreground: 30 10% 22%;
-    --popover: 40 33% 99%;
-    --popover-foreground: 30 10% 22%;
-    --primary: 12 25% 60%;         /* rose-500 */
-    --primary-foreground: 40 33% 99%;
-    --secondary: 35 20% 94%;       /* stone-100 */
-    --secondary-foreground: 30 10% 22%;
-    --muted: 35 20% 94%;
-    --muted-foreground: 25 5% 40%; /* ink-soft */
-    --accent: 100 15% 55%;         /* sage-500 */
-    --accent-foreground: 30 10% 22%;
-    --destructive: 0 70% 55%;
-    --destructive-foreground: 40 33% 99%;
-    --border: 35 15% 88%;          /* stone-200 */
-    --input: 35 15% 88%;
-    --ring: 35 15% 75%;            /* stone-400 */
-    --radius: 16px;
+    /* 
+      Base Palette - High Contrast Editorial 
+      Warm, textured greys + Crisp White + Sharp Accents
+    */
+    
+    /* App Background: A very subtle warm grey, almost white but distinct from cards */
+    --background: 40 20% 98%; /* #FAF9F7 */
+    --foreground: 30 10% 15%; /* #2A2623 - Soft Black */
+
+    /* Cards: Crisp White to pop against the background */
+    --card: 0 0% 100%;
+    --card-foreground: 30 10% 15%;
+
+    /* Popovers: Same as cards */
+    --popover: 0 0% 100%;
+    --popover-foreground: 30 10% 15%;
+
+    /* Primary: Deep Copper / Terracotta (Sophisticated, not "Pink") */
+    --primary: 20 70% 44%; /* #C05621 */
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Forest Green (Deep, organic, grounding) */
+    --secondary: 120 10% 19%; /* #2C362C */
+    --secondary-foreground: 60 30% 96%;
+
+    /* Muted: Warm Greys for UI dividers/bg */
+    --muted: 40 10% 94%;
+    --muted-foreground: 30 5% 45%;
+
+    /* Accent: Sage/Olive for success/highlight states */
+    --accent: 80 30% 85%;
+    --accent-foreground: 120 20% 25%;
+
+    /* Destructive: Muted Red */
+    --destructive: 0 60% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders: Subtle warm grey */
+    --border: 40 10% 90%;
+    --input: 40 10% 90%;
+    
+    /* Ring: Focus ring color */
+    --ring: 20 70% 44%;
+
+    /* Radii - Airbnb/Pinterest style (Generous) */
+    --radius: 1.25rem; /* 20px */
+  }
+
+  .dark {
+    --background: 30 10% 10%;
+    --foreground: 40 20% 98%;
+    --card: 30 10% 13%;
+    --card-foreground: 40 20% 98%;
+    --popover: 30 10% 13%;
+    --popover-foreground: 40 20% 98%;
+    --primary: 20 70% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 120 10% 25%;
+    --secondary-foreground: 60 30% 96%;
+    --muted: 30 10% 18%;
+    --muted-foreground: 30 5% 60%;
+    --accent: 120 10% 25%;
+    --accent-foreground: 40 20% 98%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 40 20% 98%;
+    --border: 30 10% 20%;
+    --input: 30 10% 20%;
+    --ring: 20 70% 55%;
   }
 }
 
@@ -41,247 +86,56 @@
   * {
     @apply border-border;
   }
-  
-  html {
-    /* Prevent harsh white flash on load */
-    background-color: #F8F6F3;
-  }
-  
   body {
-    @apply bg-canvas text-ink font-sans antialiased;
-    font-weight: 300;
-    letter-spacing: 0.01em;
+    @apply bg-background text-foreground font-sans antialiased;
+    /* Font feature settings for Manrope (tabular nums for budgets) */
+    font-feature-settings: "tnum" on, "salt" on; 
   }
   
+  /* Typography Scale overrides for "Editorial" feel */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif font-light;
-    letter-spacing: 0.02em;
+    @apply font-serif tracking-tight text-secondary;
+  }
+
+  h1 {
+    @apply text-5xl md:text-6xl lg:text-7xl font-medium leading-[0.95];
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl font-medium leading-tight;
   }
   
-  /* Smooth text rendering */
-  * {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  h3 {
+    @apply text-2xl font-medium;
   }
 }
 
-/* Custom scrollbar - softer */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-stone-100;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-stone-300 rounded-full;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-stone-400;
-}
-
-/* Focus styles - softer ring */
-/* Exclude form inputs which have their own focus styles */
-*:focus-visible:not(input):not(textarea):not(select):not(button) {
-  @apply outline-none ring-2 ring-stone-400/50 ring-offset-2 ring-offset-canvas;
-}
-
-/* Form inputs get subtle focus without offset (respects border-radius) */
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-  @apply outline-none;
-}
-
-/* Buttons get subtle focus */
-button:focus-visible {
-  @apply outline-none ring-2 ring-stone-400/30 ring-offset-0;
-}
-
-/* Selection color */
-::selection {
-  @apply bg-rose-200/60 text-ink;
-}
-
-/* Typewriter cursor animation */
-.typewriter-cursor::after {
-  content: '|';
-  @apply animate-cursor-blink ml-0.5;
-}
-
-/* FullCalendar Custom Styles - updated for new palette */
-.fc {
-  --fc-border-color: theme('colors.stone.200');
-  --fc-button-bg-color: theme('colors.stone.100');
-  --fc-button-border-color: theme('colors.stone.300');
-  --fc-button-text-color: theme('colors.ink.DEFAULT');
-  --fc-button-hover-bg-color: theme('colors.stone.200');
-  --fc-button-hover-border-color: theme('colors.stone.400');
-  --fc-button-active-bg-color: theme('colors.ink.DEFAULT');
-  --fc-button-active-border-color: theme('colors.ink.DEFAULT');
-  --fc-today-bg-color: theme('colors.rose.100');
-  --fc-event-bg-color: theme('colors.rose.400');
-  --fc-event-border-color: theme('colors.rose.400');
-  --fc-page-bg-color: theme('colors.canvas.soft');
-  --fc-neutral-bg-color: theme('colors.canvas.DEFAULT');
-  --fc-list-event-hover-bg-color: theme('colors.stone.100');
-  font-family: inherit;
-}
-
-.fc .fc-toolbar-title {
-  font-family: theme('fontFamily.serif');
-  font-weight: 300;
-  font-size: 1.5rem;
-  color: theme('colors.ink.DEFAULT');
-}
-
-.fc .fc-button {
-  font-weight: 400;
-  font-size: 0.875rem;
-  padding: 0.5rem 1rem;
-  border-radius: 12px;
-  text-transform: capitalize;
-}
-
-.fc .fc-button:focus {
-  box-shadow: none;
-}
-
-.fc .fc-button-primary:not(:disabled).fc-button-active,
-.fc .fc-button-primary:not(:disabled):active {
-  background-color: theme('colors.ink.DEFAULT');
-  border-color: theme('colors.ink.DEFAULT');
-  color: theme('colors.ink.inverse');
-}
-
-.fc .fc-daygrid-day-number {
-  font-size: 0.875rem;
-  color: theme('colors.ink.soft');
-  padding: 0.5rem;
-}
-
-.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
-  background-color: theme('colors.rose.400');
-  color: white;
-  border-radius: 50%;
-  width: 1.75rem;
-  height: 1.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.fc .fc-col-header-cell-cushion {
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: theme('colors.ink.faint');
-  padding: 0.75rem 0;
-}
-
-.fc .fc-event {
-  border-radius: 8px;
-  font-size: 0.75rem;
-  padding: 0.125rem 0.375rem;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-}
-
-.fc .fc-event:hover {
-  opacity: 0.85;
-}
-
-.fc .fc-daygrid-event-dot {
-  border-radius: 50%;
-}
-
-.fc .fc-timegrid-slot-label-cushion {
-  font-size: 0.75rem;
-  color: theme('colors.ink.faint');
-}
-
-.fc .fc-list-event:hover td {
-  background-color: theme('colors.stone.100');
-}
-
-.fc .fc-list-day-cushion {
-  background-color: theme('colors.stone.100');
-  font-weight: 500;
-}
-
-.fc .fc-list-event-time {
-  color: theme('colors.ink.faint');
-}
-
-.fc .fc-list-empty {
-  background-color: theme('colors.canvas.DEFAULT');
-}
-
-/* Wedding day event special styling */
-.fc .wedding-day-event {
-  background: linear-gradient(135deg, theme('colors.rose.400'), theme('colors.rose.500')) !important;
-  border: none !important;
-  font-weight: 500;
-}
-
-/* Mobile responsive adjustments */
-@media (max-width: 640px) {
-  .fc .fc-toolbar {
-    flex-direction: column;
-    gap: 0.5rem;
+@layer utilities {
+  /* Glassmorphism utilities */
+  .glass {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-sm;
   }
   
-  .fc .fc-toolbar-title {
-    font-size: 1.25rem;
+  .glass-dark {
+    @apply bg-black/80 backdrop-blur-md border border-white/10 shadow-sm;
+  }
+
+  /* Enterprise-grade transitions */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)];
   }
   
-  .fc .fc-button {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.75rem;
+  /* Card hover lift */
+  .hover-lift {
+    @apply transition-smooth hover:-translate-y-1 hover:shadow-lifted;
   }
 }
 
-/* Wave glow animations */
-@keyframes wave-slow {
-  0%, 100% {
-    transform: translateX(-15%) translateY(0%) scale(1);
-  }
-  50% {
-    transform: translateX(15%) translateY(-20%) scale(1.1);
-  }
+/* Hide scrollbar but allow scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
-
-@keyframes wave-medium {
-  0%, 100% {
-    transform: translateX(10%) translateY(-5%) scale(1.05);
-  }
-  50% {
-    transform: translateX(-12%) translateY(10%) scale(0.95);
-  }
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
-
-@keyframes wave-fast {
-  0%, 100% {
-    transform: translateX(-8%) translateY(8%) scale(0.98);
-  }
-  50% {
-    transform: translateX(12%) translateY(-10%) scale(1.08);
-  }
-}
-
-.animate-wave-slow {
-  animation: wave-slow 10s ease-in-out infinite;
-}
-
-.animate-wave-medium {
-  animation: wave-medium 7s ease-in-out infinite;
-}
-
-.animate-wave-fast {
-  animation: wave-fast 5s ease-in-out infinite;
-}
-

@@ -258,7 +258,7 @@ export default function RootLayout({
           position="bottom-right"
           toastOptions={{
             style: {
-              fontFamily: "Montserrat, sans-serif",
+              fontFamily: "Manrope, sans-serif",
               fontWeight: 300,
             },
           }}

@@ -92,7 +92,7 @@ describe('TimelineTool', () => {
     await act(async () => {
         render(<BrowserProvider><TimelineTool /></BrowserProvider>);
     });
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
   });
 
   it('renders empty state when no timeline data is available', async () => {
@@ -113,6 +113,11 @@ describe('TimelineTool', () => {
       expect(screen.getByText('No timeline events yet')).toBeInTheDocument();
       expect(screen.getByText("Tell me about your wedding day schedule in chat and I'll build your timeline.")).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /Go to chat/i })).toBeInTheDocument();
+      expect(screen.getByTestId('empty-timeline-icon')).toBeInTheDocument();
+      expect(screen.getByText('"Ceremony starts at 4pm"')).toBeInTheDocument();
+      expect(screen.getByText('"Hair and makeup from 10am to 1pm"')).toBeInTheDocument();
+      expect(screen.getByText('"First dance right after dinner"')).toBeInTheDocument();
+      expect(screen.getByText('"We want to do a sparkler exit at 10pm"')).toBeInTheDocument();
     });
   });
 

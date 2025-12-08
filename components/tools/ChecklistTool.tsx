@@ -1,36 +1,22 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Typography,
-  Container,
-  Paper,
-  LinearProgress,
-  Chip,
-  Button,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Checkbox,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  CircularProgress,
-  ToggleButtonGroup,
-  ToggleButton,
-} from "@mui/material";
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {
-  RadioButtonUnchecked,
-  CheckCircle,
-  Lock,
-  Search,
-  HorizontalRule,
-} from "@mui/icons-material";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  RefreshCw, 
+  CheckCircle, 
+  Lock, 
+  Search, 
+  Minus, // For skipped/horizontal rule
+  ChevronDown, // For accordion expand
+  Hourglass, // For researching
+  Circle // For not_started
+} from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
-// Interfaces
+// Interfaces (These are already defined in the original file, copy-pasting for clarity)
 interface Decision {
   id: string;
   name: string;
@@ -71,42 +57,47 @@ const categoryOrder = Object.keys(categoryLabels);
 
 function DecisionRow({ decision }: { decision: Decision }) {
   const StatusIcon = () => {
-    if (decision.isSkipped) return <HorizontalRule fontSize="small" color="disabled" />;
+    if (decision.isSkipped) return <Minus className="h-4 w-4 text-muted-foreground/50" />;
     switch (decision.status) {
-      case "locked": return <Lock color="success" />;
-      case "decided": return <CheckCircle color="success" />;
-      case "researching": return <Search color="warning" />;
-      default: return <RadioButtonUnchecked color="action" />;
+      case "locked": return <Lock className="h-4 w-4 text-green-600" />;
+      case "decided": return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case "researching": return <Hourglass className="h-4 w-4 text-amber-500" />;
+      default: return <Circle className="h-4 w-4 text-muted-foreground/70" />;
     }
   };
 
   return (
-    <ListItem
-      secondaryAction={
-        decision.choiceAmount ? (
-          <Typography variant="body2">
-            ${(decision.choiceAmount / 100).toLocaleString()}
-          </Typography>
-        ) : null
-      }
-      sx={{ pl: 2, pr: 4 }}
-      divider
+    <div 
+      className={cn(
+        "flex items-center py-3 px-4 border-b last:border-b-0 border-border/70",
+        decision.isSkipped && "opacity-60"
+      )}
     >
-      <ListItemIcon sx={{ minWidth: 40 }}>
+      <div className="flex items-center w-6 shrink-0">
         <StatusIcon />
-      </ListItemIcon>
-      <ListItemText
-        primary={
-          <Typography sx={{ textDecoration: decision.isSkipped ? 'line-through' : 'none' }}>
-            {decision.displayName}
-            {decision.isRequired && !decision.isSkipped && (
-              <Typography component="span" color="error.main" sx={{ ml: 0.5 }}>*</Typography>
-            )}
-          </Typography>
-        }
-        secondary={decision.choiceName || decision.lockDetails}
-      />
-    </ListItem>
+      </div>
+      <div className="flex-1 ml-3">
+        <p className={cn(
+          "font-medium text-foreground",
+          decision.isSkipped && "line-through text-muted-foreground"
+        )}>
+          {decision.displayName}
+          {decision.isRequired && !decision.isSkipped && (
+            <span className="ml-1 text-red-500">*</span>
+          )}
+        </p>
+        {(decision.choiceName || decision.lockDetails) && (
+          <p className="text-sm text-muted-foreground">
+            {decision.choiceName || decision.lockDetails}
+          </p>
+        )}
+      </div>
+      {decision.choiceAmount && (
+        <p className="text-sm text-foreground ml-4">
+          ${(decision.choiceAmount / 100).toLocaleString()}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -114,7 +105,8 @@ export default function ChecklistTool() {
   const [decisions, setDecisions] = useState<Decision[]>([]);
   const [progress, setProgress] = useState<DecisionProgress | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<string>("all");
+  const [filter, setFilter] = useState<"all" | "todo" | "done">("all");
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     const loadDecisions = async () => {
@@ -143,83 +135,136 @@ export default function ChecklistTool() {
   const getFilteredDecisions = (categoryDecisions: Decision[]) => {
     if (filter === "all") return categoryDecisions;
     if (filter === "todo") return categoryDecisions.filter(d => d.status === "not_started" && !d.isSkipped);
-    if (filter === "done") return categoryDecisions.filter(d => d.status === "decided" || d.status === "locked");
+    if (filter === "done") return categoryDecisions.filter(d => (d.status === "decided" || d.status === "locked") && !d.isSkipped);
     return categoryDecisions;
   };
   
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex h-full items-center justify-center p-6">
+        <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" data-testid="loading-spinner" />
+      </div>
     );
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Box>
-          <Typography variant="h4" component="h1" gutterBottom>Wedding Checklist</Typography>
+    <div className="w-full max-w-5xl mx-auto py-8 px-6 space-y-8 animate-fade-up">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-5xl md:text-6xl text-foreground tracking-tight">
+            Wedding Checklist
+          </h1>
           {progress && (
-            <Typography color="text.secondary">
-              {progress.decided} of {progress.total} complete
-            </Typography>
+            <p className="text-xl text-muted-foreground mt-2 font-light">
+              {progress.decided} of {progress.total} decisions complete
+            </p>
           )}
-        </Box>
-      </Box>
+        </div>
+      </div>
 
+      {/* Progress Card */}
       {progress && (
-        <Paper sx={{ p: 2, mb: 4 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-            <LinearProgress
-              variant="determinate"
-              value={progress.percentComplete}
-              sx={{ flexGrow: 1, height: 10, borderRadius: 5 }}
-            />
-            <Typography variant="body2" color="text.secondary">{progress.percentComplete}%</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
-            <Chip icon={<Lock />} label={`${progress.locked} Locked`} size="small" variant="outlined" color="success" />
-            <Chip icon={<CheckCircle />} label={`${progress.decided - progress.locked} Decided`} size="small" variant="outlined" color="success" />
-            <Chip icon={<Search />} label={`${progress.researching} Researching`} size="small" variant="outlined" color="warning" />
-            <Chip icon={<RadioButtonUnchecked />} label={`${progress.notStarted} To-Do`} size="small" variant="outlined" />
-          </Box>
-        </Paper>
+        <Card className="bg-white rounded-3xl p-6 border border-border shadow-soft">
+          <CardContent className="p-0">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-muted-foreground text-sm">Overall Progress</p>
+              <p className="font-medium text-foreground">{progress.percentComplete}%</p>
+            </div>
+            {/* Custom Progress Bar */}
+            <div className="h-2 w-full bg-muted rounded-full overflow-hidden mb-4">
+              <div 
+                className="h-full bg-primary transition-all duration-1000 ease-out"
+                style={{ width: `${progress.percentComplete}%` }}
+              />
+            </div>
+            <div className="flex justify-around mt-4 text-center text-sm">
+              <div className="flex flex-col items-center">
+                <Lock className="h-4 w-4 text-green-600 mb-1" />
+                <span className="font-medium">{progress.locked}</span>
+                <span className="text-muted-foreground">Locked</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <CheckCircle className="h-4 w-4 text-green-600 mb-1" />
+                <span className="font-medium">{progress.decided - progress.locked}</span>
+                <span className="text-muted-foreground">Decided</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <Hourglass className="h-4 w-4 text-amber-500 mb-1" />
+                <span className="font-medium">{progress.researching}</span>
+                <span className="text-muted-foreground">Researching</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <Circle className="h-4 w-4 text-muted-foreground/70 mb-1" />
+                <span className="font-medium">{progress.notStarted}</span>
+                <span className="text-muted-foreground">To-Do</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      <Box sx={{ mb: 4 }}>
-        <ToggleButtonGroup
-          value={filter}
-          exclusive
-          onChange={(e, newValue) => newValue && setFilter(newValue)}
-        >
-          <ToggleButton value="all">All</ToggleButton>
-          <ToggleButton value="todo">To-Do</ToggleButton>
-          <ToggleButton value="done">Done</ToggleButton>
-        </ToggleButtonGroup>
-      </Box>
+      {/* Filter Buttons */}
+      <div className="flex space-x-2 mb-4">
+        {(["all", "todo", "done"] as const).map((f) => (
+          <Button
+            key={f}
+            variant={filter === f ? "default" : "outline"}
+            size="sm"
+            className={cn(
+              "rounded-full px-4",
+              filter === f ? "bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:bg-muted/30"
+            )}
+            onClick={() => setFilter(f)}
+          >
+            {f.charAt(0).toUpperCase() + f.slice(1)}
+          </Button>
+        ))}
+      </div>
 
-      <Box>
+      {/* Categories Accordions */}
+      <div className="space-y-4">
         {categoryOrder.map(category => {
           const categoryDecisions = getFilteredDecisions(byCategory[category] || []);
           if (categoryDecisions.length === 0) return null;
 
+          const isCategoryExpanded = expandedCategory === category;
+
           return (
-            <Accordion key={category} defaultExpanded>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="h6">{categoryLabels[category] || category}</Typography>
-              </AccordionSummary>
-              <AccordionDetails sx={{ p: 0 }}>
-                <List sx={{ p: 0 }}>
-                  {categoryDecisions.map(decision => (
-                    <DecisionRow key={decision.id} decision={decision} />
-                  ))}
-                </List>
-              </AccordionDetails>
-            </Accordion>
+            <Card key={category} className="bg-white rounded-3xl border border-border shadow-soft">
+              <div 
+                className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-colors"
+                onClick={() => setExpandedCategory(isCategoryExpanded ? null : category)}
+              >
+                <CardTitle className="font-serif text-xl text-foreground">{categoryLabels[category] || category}</CardTitle>
+                <ChevronDown className={cn(
+                  "h-5 w-5 text-muted-foreground transition-transform duration-300",
+                  isCategoryExpanded && "rotate-180"
+                )} />
+              </div>
+              <AnimatePresence>
+                {isCategoryExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <CardContent className="p-0">
+                      <div className="divide-y divide-border/70">
+                        {categoryDecisions.map(decision => (
+                          <DecisionRow key={decision.id} decision={decision} />
+                        ))}
+                      </div>
+                    </CardContent>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Card>
           );
         })}
-      </Box>
-    </Container>
+      </div>
+    </div>
   );
 }

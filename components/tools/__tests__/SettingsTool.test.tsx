@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import SettingsTool from '../SettingsTool';
@@ -29,23 +28,24 @@ describe('SettingsTool', () => {
     render(<SettingsTool />);
 
     // Check header
-    expect(screen.getByRole('heading', { name: /Settings/i, level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument();
     expect(screen.getByText(/Manage your account and preferences/i)).toBeInTheDocument();
 
     // Check account section
-    expect(screen.getByRole('heading', { name: /Account/i, level: 2 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Account' })).toBeInTheDocument();
     expect(screen.getByText('Test User')).toBeInTheDocument();
     expect(screen.getByText('test@example.com')).toBeInTheDocument();
     expect(screen.getByText('TU')).toBeInTheDocument(); // Avatar initials
+    expect(screen.getByRole('button', { name: 'Edit Profile' })).toBeInTheDocument();
 
     // Check plan section
-    expect(screen.getByRole('heading', { name: /Plan/i, level: 2 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Plan' })).toBeInTheDocument();
     expect(screen.getByText('Free Plan')).toBeInTheDocument();
     expect(screen.getByText('Basic features included')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Upgrade/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Upgrade' })).toBeInTheDocument();
 
     // Check danger zone
-    expect(screen.getByRole('heading', { name: /Danger Zone/i, level: 2 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Danger Zone' })).toBeInTheDocument();
     expect(screen.getByText('Delete Account')).toBeInTheDocument();
     expect(screen.getByText('Permanently delete your account and all data')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Delete/i })).toBeInTheDocument();
@@ -78,6 +78,9 @@ describe('SettingsTool', () => {
     // In a real scenario, you might expect a navigation or modal to appear.
     // For this test, we just ensure it's clickable without error.
 
+    const editProfileButton = screen.getByRole('button', { name: 'Edit Profile' });
+    fireEvent.click(editProfileButton);
+    
     const deleteButton = screen.getByRole('button', { name: /Delete/i });
     fireEvent.click(deleteButton);
     // Similar to upgrade, check for side effects in a full app.

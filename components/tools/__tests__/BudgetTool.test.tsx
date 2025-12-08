@@ -24,6 +24,7 @@ describe('BudgetTool', () => {
 
     expect(screen.getByText('No budget items yet')).toBeInTheDocument();
     expect(screen.getByText("Tell me about your wedding expenses in chat and I'll track them here.")).toBeInTheDocument();
+    expect(screen.getByTestId('empty-budget-icon')).toBeInTheDocument();
   });
 
   it('renders the budget data when available', async () => {
@@ -48,8 +49,6 @@ describe('BudgetTool', () => {
       lastRefresh: Date.now(),
     });
 
-    // Mock the formatCurrency function directly from the module
-    // This ensures both the component and the test use the same formatting logic or a controlled mock
     jest.spyOn(PlannerData, 'formatCurrency').mockImplementation((amount: number) => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
     });
@@ -59,20 +58,37 @@ describe('BudgetTool', () => {
     });
 
     // Check for summary cards
-    const totalBudgetCard = screen.getByText('Total Budget').closest('div.MuiCard-root');
-    expect(within(totalBudgetCard).getByText(PlannerData.formatCurrency(mockData.budget.total))).toBeInTheDocument();
+    const totalBudgetCard = screen.getByText('Total Budget').closest('.bg-white.rounded-3xl');
+    expect(within(totalBudgetCard as HTMLElement).getByText(PlannerData.formatCurrency(mockData.budget.total))).toBeInTheDocument();
 
-    const allocatedCard = screen.getByText('Allocated').closest('div.MuiCard-root');
-    expect(within(allocatedCard).getByText(PlannerData.formatCurrency(mockData.budget.spent))).toBeInTheDocument();
+    const allocatedCard = screen.getByText('Allocated').closest('.bg-white.rounded-3xl');
+    expect(within(allocatedCard as HTMLElement).getByText(PlannerData.formatCurrency(mockData.budget.spent))).toBeInTheDocument();
+    expect(within(allocatedCard as HTMLElement).getByText('75% of budget')).toBeInTheDocument();
     
-    const paidCard = screen.getByText('Paid So Far').closest('div.MuiCard-root');
-    expect(within(paidCard).getByText(PlannerData.formatCurrency(mockData.budget.paid))).toBeInTheDocument();
+    const paidCard = screen.getByText('Paid So Far').closest('.bg-white.rounded-3xl');
+    expect(within(paidCard as HTMLElement).getByText(PlannerData.formatCurrency(mockData.budget.paid))).toBeInTheDocument();
     
-    const owedCard = screen.getByText('Still Owed').closest('div.MuiCard-root');
-    expect(within(owedCard).getByText(PlannerData.formatCurrency(mockData.budget.remaining))).toBeInTheDocument();
+    const owedCard = screen.getByText('Still Owed').closest('.bg-white.rounded-3xl');
+    expect(within(owedCard as HTMLElement).getByText(PlannerData.formatCurrency(mockData.budget.remaining))).toBeInTheDocument();
 
     // Check for an item in the list
     expect(screen.getByText('The Grand Hall')).toBeInTheDocument();
     expect(screen.getByText('Includes catering')).toBeInTheDocument();
+
+    // Check progress bar text
+    const progressBarCard = screen.getByText('Budget used').closest('.bg-white.rounded-3xl');
+    expect(within(progressBarCard as HTMLElement).getByText('75%')).toBeInTheDocument();
+
+    // Check category breakdown
+    expect(screen.getByText('By Category')).toBeInTheDocument();
+    expect(screen.getByText('Venue')).toBeInTheDocument();
+    expect(screen.getByText('Photography')).toBeInTheDocument();
+
+    // Check all items list
+    expect(screen.getByText('All Items')).toBeInTheDocument();
+    expect(screen.getByText('The Grand Hall')).toBeInTheDocument();
+    expect(screen.getByText('Perfect Pics')).toBeInTheDocument();
+    expect(screen.getByText(`${PlannerData.formatCurrency(5000)} paid`)).toBeInTheDocument(); // For Venue
+    expect(screen.getByText(`${PlannerData.formatCurrency(2000)} paid`)).toBeInTheDocument(); // For Photography
   });
 });

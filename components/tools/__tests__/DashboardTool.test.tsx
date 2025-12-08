@@ -48,7 +48,7 @@ describe('DashboardTool', () => {
       lastRefresh: 0,
     });
     render(<BrowserProvider><DashboardTool /></BrowserProvider>);
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
   });
 
   it('renders the new Wedding Hub dashboard correctly', async () => {
@@ -98,24 +98,34 @@ describe('DashboardTool', () => {
       expect(screen.getByText(MOCK_DATE_STRING)).toBeInTheDocument();
 
       // Hub cards
-      expect(screen.getByRole('heading', { name: 'Checklist' })).toBeInTheDocument();
-      expect(screen.getByText('50%')).toBeInTheDocument();
-      expect(screen.getByText('5 of 10 decisions')).toBeInTheDocument();
+      // Checklist Card
+      const checklistCard = screen.getByRole('heading', { name: 'Checklist' }).closest('.group');
+      expect(checklistCard).toBeInTheDocument();
+      expect(within(checklistCard as HTMLElement).getByText('50%')).toBeInTheDocument();
+      expect(within(checklistCard as HTMLElement).getByText('5 of 10 decisions made')).toBeInTheDocument();
 
-      expect(screen.getByRole('heading', { name: 'Budget' })).toBeInTheDocument();
-      const budgetCard = screen.getByRole('heading', { name: 'Budget' }).closest('div.MuiCard-root');
-      expect(screen.getByText('$20000')).toBeInTheDocument();
-      expect(within(budgetCard as HTMLElement).getByText(/\$15000\s+allocated\s+\(/i)).toBeInTheDocument(); // For "$15000 allocated ("
-      expect(within(budgetCard as HTMLElement).getByText(/\s*75\s*/)).toBeInTheDocument(); // For "75"
-      expect(within(budgetCard as HTMLElement).getByText(/%\)/i)).toBeInTheDocument(); // For ")%"
+      // Budget Card
+      const budgetCard = screen.getByRole('heading', { name: 'Budget' }).closest('.group');
+      expect(budgetCard).toBeInTheDocument();
+      expect(within(budgetCard as HTMLElement).getByText('$20000')).toBeInTheDocument();
+      // New assertions for allocated budget:
+      expect(within(budgetCard as HTMLElement).getByText('$15000')).toBeInTheDocument(); // Finds the span
+      expect(within(budgetCard as HTMLElement).getByText(/\s*allocated\s*\(/i)).toBeInTheDocument(); // Finds the text node for " allocated ("
+      expect(within(budgetCard as HTMLElement).getByText(/\s*75\s*/)).toBeInTheDocument(); // Finds the text node for "75"
+      expect(within(budgetCard as HTMLElement).getByText(/%\)/i)).toBeInTheDocument(); // Finds the text node for "%)"
 
-      expect(screen.getByRole('heading', { name: 'Guests' })).toBeInTheDocument();
-      expect(screen.getByText('100')).toBeInTheDocument();
-      expect(screen.getByText('80 confirmed, 20 pending')).toBeInTheDocument();
+      // Guests Card
+      const guestsCard = screen.getByRole('heading', { name: 'Guest List' }).closest('.group'); // Changed from 'Guests' to 'Guest List'
+      expect(guestsCard).toBeInTheDocument();
+      expect(within(guestsCard as HTMLElement).getByText('100')).toBeInTheDocument();
+      expect(within(guestsCard as HTMLElement).getByText('80 confirmed')).toBeInTheDocument(); // Split into two spans now
+      expect(within(guestsCard as HTMLElement).getByText('20 pending')).toBeInTheDocument(); // Split into two spans now
 
-      expect(screen.getByRole('heading', { name: 'Vendors' })).toBeInTheDocument();
-      expect(screen.getByText('Venue Co.')).toBeInTheDocument();
-      expect(screen.getByText('Photog Inc.')).toBeInTheDocument();
+      // Vendors Card
+      const vendorsCard = screen.getByRole('heading', { name: 'Vendors' }).closest('.group');
+      expect(vendorsCard).toBeInTheDocument();
+      expect(within(vendorsCard as HTMLElement).getByText('Venue Co.')).toBeInTheDocument();
+      expect(within(vendorsCard as HTMLElement).getByText('Photog Inc.')).toBeInTheDocument();
     });
   });
 

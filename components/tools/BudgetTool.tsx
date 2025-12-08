@@ -2,27 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { usePlannerData, formatCurrency, BudgetItem } from "@/lib/hooks/usePlannerData";
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  Grid, 
-  Card, 
-  CardContent, 
-  CircularProgress, 
-  LinearProgress,
-  Chip,
-  Paper,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
-  Container,
-  Alert
-} from "@mui/material";
-import { Refresh as RefreshIcon, History as ClockIcon, AccountBalanceWallet as BudgetIcon } from '@mui/icons-material';
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RefreshCw, History, Wallet, AlertTriangle, Info, CheckCircle, ArrowRight } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { useBrowser } from "../layout/browser-context";
+import Link from "next/link"; // Assuming Link is used for goHome
 
 export default function BudgetTool() {
   const browser = useBrowser();
@@ -30,7 +16,6 @@ export default function BudgetTool() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [timeAgo, setTimeAgo] = useState("just now");
 
-  // Update "time ago" display every 10 seconds
   useEffect(() => {
     const updateTimeAgo = () => setTimeAgo(formatDistanceToNow(new Date(lastRefresh), { addSuffix: true }));
     updateTimeAgo();
@@ -38,11 +23,9 @@ export default function BudgetTool() {
     return () => clearInterval(interval);
   }, [lastRefresh]);
 
-  // Refresh when tab becomes visible (user switches back to this tab)
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
-        // Only auto-refresh if data is older than 30 seconds
         if (Date.now() - lastRefresh > 30000) {
           console.log("[BudgetTool] Tab visible, refreshing stale data...");
           refetch();
@@ -61,9 +44,9 @@ export default function BudgetTool() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex h-full items-center justify-center p-6">
+        <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" data-testid="loading-spinner" />
+      </div>
     );
   }
 
@@ -71,7 +54,6 @@ export default function BudgetTool() {
   const hasData = budget && budget.items.length > 0;
   const isOverBudget = budget && budget.total > 0 && budget.spent > budget.total;
 
-  // Group items by category for summary
   const byCategory = (budget?.items || []).reduce((acc, item) => {
     const cat = item.category || "Other";
     if (!acc[cat]) acc[cat] = { total: 0, paid: 0, items: [] };
@@ -84,209 +66,198 @@ export default function BudgetTool() {
   const categories = Object.entries(byCategory).sort((a, b) => b[1].total - a[1].total);
   
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <div className="w-full max-w-5xl mx-auto py-8 px-6 space-y-8 animate-fade-up">
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 4 }}>
-        <Box>
-          <Typography variant="h4" component="h1" gutterBottom>
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-5xl md:text-6xl text-foreground tracking-tight">
             Budget
-          </Typography>
-          <Typography color="text.secondary">
-            Track your wedding expenses
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <ClockIcon sx={{ fontSize: '1rem' }} />
+          </h1>
+          <p className="text-xl text-muted-foreground mt-2 font-light">
+            Track your wedding expenses and stay on track.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-muted-foreground flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full shadow-sm border border-border">
+            <History className="h-3 w-3" />
             Updated {timeAgo}
-          </Typography>
+          </span>
           <Button
-            variant="outlined"
-            startIcon={<RefreshIcon className={isRefreshing ? 'animate-spin' : ''} />}
+            variant="outline"
+            size="sm"
+            className="rounded-full h-8 px-3 border-border hover:bg-white hover:text-primary"
             onClick={handleRefresh}
             disabled={isRefreshing}
           >
+            <RefreshCw className={cn("h-3 w-3 mr-2", isRefreshing && "animate-spin")} />
             Refresh
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
 
       {!hasData ? (
         /* Empty state */
-        <Paper elevation={0} sx={{ textAlign: 'center', p: 4, bgcolor: 'grey.50', borderRadius: 2 }}>
-           <Box sx={{
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              bgcolor: 'primary.light',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mx: 'auto',
-              mb: 2,
-            }}>
-            <BudgetIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          </Box>
-          <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
-            No budget items yet
-          </Typography>
-          <Typography color="text.secondary" sx={{ mb: 3 }}>
+        <Card className="text-center p-8 border-dashed border-muted-foreground/30 shadow-none bg-canvas">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <Wallet className="h-8 w-8 text-primary" data-testid="empty-budget-icon" />
+          </div>
+          <CardTitle className="font-serif text-2xl text-foreground mb-2">No budget items yet</CardTitle>
+          <p className="text-muted-foreground mb-6">
             Tell me about your wedding expenses in chat and I'll track them here.
-          </Typography>
-          <Button variant="contained" onClick={() => browser.goHome()}>
+          </p>
+          <Button onClick={() => browser.goHome()} className="rounded-full px-6 shadow-soft">
             Go to chat
           </Button>
-        </Paper>
+        </Card>
       ) : (
         <>
           {/* Summary Cards */}
-          <Grid container spacing={2} sx={{ mb: 4 }}>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card>
-                <CardContent>
-                  <Typography color="text.secondary" gutterBottom>Total Budget</Typography>
-                  <Typography variant="h5" component="div">
-                    {budget.total > 0 ? formatCurrency(budget.total) : "Not set"}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card sx={{ bgcolor: isOverBudget ? 'error.light' : 'background.paper' }}>
-                <CardContent>
-                  <Typography color={isOverBudget ? 'error.contrastText' : 'text.secondary'} gutterBottom>Allocated</Typography>
-                  <Typography variant="h5" component="div" color={isOverBudget ? 'error.contrastText' : 'text.primary'}>
-                    {formatCurrency(budget.spent)}
-                  </Typography>
-                  {budget.total > 0 && (
-                     <Typography color={isOverBudget ? 'error.contrastText' : 'text.secondary'} sx={{mt: 1}}>
-                      {budget.percentUsed}% of budget
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card>
-                <CardContent>
-                  <Typography color="text.secondary" gutterBottom>Paid So Far</Typography>
-                  <Typography variant="h5" component="div" sx={{ color: 'success.main' }}>
-                    {formatCurrency(budget.paid)}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card>
-                <CardContent>
-                  <Typography color="text.secondary" gutterBottom>Still Owed</Typography>
-                  <Typography variant="h5" component="div">
-                    {formatCurrency(budget.remaining)}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            <Card className="bg-white rounded-3xl p-6 border border-border shadow-soft hover:shadow-lifted transition-all duration-300">
+              <CardContent className="p-0">
+                <p className="text-muted-foreground text-sm mb-1">Total Budget</p>
+                <h3 className="font-sans text-2xl font-medium text-foreground">
+                  {budget.total > 0 ? formatCurrency(budget.total) : "Not set"}
+                </h3>
+              </CardContent>
+            </Card>
+            <Card className={cn(
+              "bg-white rounded-3xl p-6 border border-border shadow-soft hover:shadow-lifted transition-all duration-300",
+              isOverBudget && "bg-destructive/10 border-destructive/20"
+            )}>
+              <CardContent className="p-0">
+                <p className={cn("text-sm mb-1", isOverBudget ? "text-destructive" : "text-muted-foreground")}>Allocated</p>
+                <h3 className="font-sans text-2xl font-medium text-foreground">
+                  {formatCurrency(budget.spent)}
+                </h3>
+                {budget.total > 0 && (
+                  <p className={cn("text-sm mt-1", isOverBudget ? "text-destructive/80" : "text-muted-foreground")}>
+                    {budget.percentUsed}% of budget
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+            <Card className="bg-white rounded-3xl p-6 border border-border shadow-soft hover:shadow-lifted transition-all duration-300">
+              <CardContent className="p-0">
+                <p className="text-muted-foreground text-sm mb-1">Paid So Far</p>
+                <h3 className="font-sans text-2xl font-medium text-foreground">
+                  {formatCurrency(budget.paid)}
+                </h3>
+              </CardContent>
+            </Card>
+            <Card className="bg-white rounded-3xl p-6 border border-border shadow-soft hover:shadow-lifted transition-all duration-300">
+              <CardContent className="p-0">
+                <p className="text-muted-foreground text-sm mb-1">Still Owed</p>
+                <h3 className="font-sans text-2xl font-medium text-foreground">
+                  {formatCurrency(budget.remaining)}
+                </h3>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Progress Bar */}
           {budget.total > 0 && (
-            <Card sx={{ mb: 4 }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography color="text.secondary">Budget used</Typography>
-                  <Typography color={isOverBudget ? 'error' : 'text.secondary'}>
+            <Card className="bg-white rounded-3xl p-6 border border-border shadow-soft">
+              <CardContent className="p-0">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-muted-foreground text-sm">Budget used</p>
+                  <p className={cn("font-medium", isOverBudget ? "text-destructive" : "text-foreground")}>
                     {budget.percentUsed}%
-                  </Typography>
-                </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={Math.min(budget.percentUsed, 100)}
-                  color={isOverBudget ? "error" : budget.percentUsed > 90 ? "warning" : "primary"}
-                />
+                  </p>
+                </div>
+                {/* Custom Progress Bar */}
+                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className={cn(
+                      "h-full transition-all duration-1000 ease-out",
+                      isOverBudget ? "bg-destructive" : budget.percentUsed > 90 ? "bg-primary" : "bg-primary/70"
+                    )}
+                    style={{ width: `${Math.min(budget.percentUsed, 100)}%` }}
+                  />
+                </div>
                 {isOverBudget && (
-                  <Alert severity="error" sx={{ mt: 2 }}>
+                  <div className="flex items-center text-destructive text-sm mt-3 p-2 bg-destructive/10 rounded-lg">
+                    <AlertTriangle className="h-4 w-4 mr-2" />
                     Over budget by {formatCurrency(budget.spent - budget.total)}
-                  </Alert>
+                  </div>
                 )}
               </CardContent>
             </Card>
           )}
 
           {/* Category Breakdown */}
-          <Paper sx={{ mb: 4 }}>
-            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-              <Typography variant="h6">By Category</Typography>
-            </Box>
-            <List>
-              {categories.map(([category, data], index) => {
-                const percentage = budget.spent > 0 
-                  ? Math.round((data.total / budget.spent) * 100) 
-                  : 0;
-                
-                return (
-                  <React.Fragment key={category}>
-                    <ListItem>
-                      <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 2 }}>
-                        <Chip label={category} size="small" />
-                        <Typography variant="body2" color="text.secondary">
+          <Card className="bg-white rounded-3xl border border-border shadow-soft">
+            <CardHeader className="p-6 border-b border-border/70">
+              <CardTitle className="font-serif text-xl text-foreground">By Category</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ul className="divide-y divide-border/70">
+                {categories.map(([category, data], index) => {
+                  const percentage = budget.spent > 0 
+                    ? Math.round((data.total / budget.spent) * 100) 
+                    : 0;
+                  
+                  return (
+                    <li key={category} className="flex items-center justify-between p-4 group hover:bg-muted/30 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <span className="px-3 py-1 bg-muted rounded-full text-sm font-medium text-muted-foreground">{category}</span>
+                        <p className="text-sm text-muted-foreground">
                           {data.items.length} item{data.items.length !== 1 ? "s" : ""}
-                        </Typography>
-                        <Box sx={{ flexGrow: 1, textAlign: 'right' }}>
-                          <Typography>{formatCurrency(data.total)}</Typography>
-                          <Typography variant="body2" color="text.secondary">{percentage}% of total</Typography>
-                        </Box>
-                      </Box>
-                    </ListItem>
-                    {index < categories.length -1 && <Divider component="li" />}
-                  </React.Fragment>
-                );
-              })}
-            </List>
-          </Paper>
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-sans font-medium text-foreground">{formatCurrency(data.total)}</p>
+                        <p className="text-sm text-muted-foreground">{percentage}% of total</p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </CardContent>
+          </Card>
 
           {/* All Items */}
-          <Paper>
-            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-              <Typography variant="h6">All Items</Typography>
-            </Box>
-            <List>
-              {budget.items.map((item, index) => {
-                const isPaidInFull = item.amountPaid >= item.totalCost;
-                
-                return (
-                  <React.Fragment key={item.id}>
-                    <ListItem>
-                      <ListItemText
-                        primary={item.vendor || item.category}
-                        secondary={item.notes || `Category: ${item.category}`}
-                      />
-                      <Box sx={{ textAlign: 'right' }}>
-                        <Typography>{formatCurrency(item.totalCost)}</Typography>
+          <Card className="bg-white rounded-3xl border border-border shadow-soft">
+            <CardHeader className="p-6 border-b border-border/70">
+              <CardTitle className="font-serif text-xl text-foreground">All Items</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ul className="divide-y divide-border/70">
+                {budget.items.map((item, index) => {
+                  const isPaidInFull = item.amountPaid >= item.totalCost;
+                  
+                  return (
+                    <li key={item.id} className="flex items-center justify-between p-4 group hover:bg-muted/30 transition-colors">
+                      <div>
+                        <p className="font-sans font-medium text-foreground">{item.vendor || item.category}</p>
+                        <p className="text-sm text-muted-foreground">{item.notes || `Category: ${item.category}`}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-sans font-medium text-foreground">{formatCurrency(item.totalCost)}</p>
                         {item.amountPaid > 0 && (
-                          <Typography variant="body2" color={isPaidInFull ? 'success.main' : 'text.secondary'}>
+                          <p className={cn("text-sm", isPaidInFull ? "text-green-600" : "text-muted-foreground")}>
                             {isPaidInFull ? "Paid in full" : `${formatCurrency(item.amountPaid)} paid`}
-                          </Typography>
+                          </p>
                         )}
-                      </Box>
-                    </ListItem>
-                    {index < budget.items.length -1 && <Divider component="li" />}
-                  </React.Fragment>
-                );
-              })}
-            </List>
-          </Paper>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </CardContent>
+          </Card>
 
           {/* Help prompt */}
-          <Paper elevation={0} sx={{ mt: 4, p: 2, bgcolor: 'grey.50', textAlign: 'center' }}>
-            <Typography variant="body2" color="text.secondary">
+          <div className="text-center mt-4 p-4 bg-muted/30 rounded-2xl">
+            <p className="text-muted-foreground text-sm">
               Need to add or update something?{" "}
-              <a onClick={() => browser.goHome()} style={{ color: 'primary.main', cursor: 'pointer' }}>
+              <Link href="#" onClick={() => browser.goHome()} className="text-primary font-medium hover:underline">
                 Tell me in chat
-              </a>
-            </Typography>
-          </Paper>
+              </Link>
+            </p>
+          </div>
         </>
       )}
-    </Container>
+    </div>
   );
 }

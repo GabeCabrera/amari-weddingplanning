@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, act } from '@testing-library/react';
 import GuestsTool from '../GuestsTool';
 import * as PlannerData from '@/lib/hooks/usePlannerData';
 import { BrowserProvider } from '../../../components/layout/browser-context';
@@ -9,7 +9,7 @@ jest.mock('@/lib/hooks/usePlannerData');
 const mockedUsePlannerData = PlannerData.usePlannerData as jest.Mock;
 
 describe('GuestsTool', () => {
-  it('renders the empty state when there is no data', () => {
+  it('renders the empty state when there is no data', async () => {
     mockedUsePlannerData.mockReturnValue({
       data: { guests: { list: [] } },
       loading: false,
@@ -17,13 +17,16 @@ describe('GuestsTool', () => {
       lastRefresh: Date.now(),
     });
 
-    render(<BrowserProvider><GuestsTool /></BrowserProvider>);
+    await act(async () => {
+        render(<BrowserProvider><GuestsTool /></BrowserProvider>);
+    });
 
     expect(screen.getByText('No guests yet')).toBeInTheDocument();
     expect(screen.getByText("Tell me about your guests in chat and I'll add them to your list.")).toBeInTheDocument();
+    expect(screen.getByTestId('empty-guests-icon')).toBeInTheDocument();
   });
 
-  it('renders the guest data when available', () => {
+  it('renders the guest data when available', async () => {
     const mockData = {
       guests: {
         stats: {
@@ -50,17 +53,46 @@ describe('GuestsTool', () => {
       lastRefresh: Date.now(),
     });
 
-    render(<BrowserProvider><GuestsTool /></BrowserProvider>);
+    await act(async () => {
+        render(<BrowserProvider><GuestsTool /></BrowserProvider>);
+    });
 
     // Check for summary cards
-    expect(screen.getByText('Total Guests')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
+    const totalGuestsCard = screen.getByText('Total Guests').closest('.bg-white.rounded-3xl');
+    expect(within(totalGuestsCard as HTMLElement).getByText('2')).toBeInTheDocument();
 
-    const confirmedCard = screen.getByTestId('confirmed-card');
-    expect(within(confirmedCard).getByText('1')).toBeInTheDocument();
+    const confirmedCard = screen.getByText('Confirmed', { selector: 'p.text-green-700' }).closest('.bg-white.rounded-3xl');
+    expect(within(confirmedCard as HTMLElement).getByText('1')).toBeInTheDocument();
     
+    const pendingCard = screen.getByText('Pending', { selector: 'p.text-amber-700' }).closest('.bg-white.rounded-3xl');
+    expect(within(pendingCard as HTMLElement).getByText('1')).toBeInTheDocument();
+
+    const declinedCard = screen.getByText('Declined', { selector: 'p.text-red-700' }).closest('.bg-white.rounded-3xl');
+    expect(within(declinedCard as HTMLElement).getByText('0')).toBeInTheDocument();
+    
+    // Check search and filter
+    expect(screen.getByPlaceholderText('Search guests...')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Confirmed' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Pending' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Declined' })).toBeInTheDocument();
+
+    // Check group by buttons
+    expect(screen.getByRole('button', { name: 'None' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Side' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Group' })).toBeInTheDocument();
+
     // Check for an item in the list
     expect(screen.getByText('John Doe')).toBeInTheDocument();
-    expect(screen.getByText('jane@smith.com')).toBeInTheDocument();
+    expect(screen.getByText('john@doe.com • Family')).toBeInTheDocument(); // Combined text in single p
+    expect(screen.getByText('Jane Smith')).toBeInTheDocument();
+    expect(screen.getByText('jane@smith.com • Friends')).toBeInTheDocument(); // Combined text in single p
+
+    // Check RSVP status chips
+    const johnDoeRow = screen.getByText('John Doe').closest('div.flex.items-center');
+    expect(within(johnDoeRow as HTMLElement).getByText('Confirmed')).toBeInTheDocument();
+    
+    const janeSmithRow = screen.getByText('Jane Smith').closest('div.flex.items-center');
+    expect(within(janeSmithRow as HTMLElement).getByText('Pending')).toBeInTheDocument();
   });
 });

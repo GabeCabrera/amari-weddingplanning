@@ -2,48 +2,27 @@
 
 import React, { useState, useEffect } from "react";
 import { usePlannerData, Guest } from "@/lib/hooks/usePlannerData";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input"; // Assuming there's an Input component
 import {
-  Box,
-  Typography,
-  Button,
-  Grid,
-  Card,
-  CardContent,
-  CircularProgress,
-  TextField,
-  Chip,
-  Paper,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
-  Container,
-  Avatar,
-  ListItemAvatar,
-  ToggleButtonGroup,
-  ToggleButton,
-} from "@mui/material";
-import {
-  Refresh as RefreshIcon,
-  History as ClockIcon,
-  People as GuestsIcon,
-} from "@mui/icons-material";
+  RefreshCw,
+  History,
+  Users, // Main icon for Guests
+  CheckCircle, // Confirmed
+  Hourglass, // Pending
+  XCircle, // Declined
+  Search,
+  PersonStanding, // Plus one
+  Filter, // Filter icon
+  ListCollapse // Group by icon
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useBrowser } from "../layout/browser-context";
+import Link from "next/link"; // Assuming Link is used for goHome
 
 function GuestRow({ guest }: { guest: Guest }) {
-  const rsvpStyle = () => {
-    switch (guest.rsvp) {
-      case "confirmed":
-      case "attending":
-        return { backgroundColor: 'success.light', color: 'success.contrastText' };
-      case "declined":
-        return { backgroundColor: 'error.light', color: 'error.contrastText' };
-      default:
-        return { backgroundColor: 'warning.light', color: 'warning.contrastText' };
-    }
-  };
-
   const rsvpLabel = () => {
     switch (guest.rsvp) {
       case "confirmed":
@@ -56,41 +35,56 @@ function GuestRow({ guest }: { guest: Guest }) {
     }
   };
 
+  const rsvpColorClass = () => {
+    switch (guest.rsvp) {
+      case "confirmed":
+      case "attending":
+        return "bg-green-100 text-green-700";
+      case "declined":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-amber-100 text-amber-700";
+    }
+  };
+
+  const initials = guest.name
+    ?.split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2) || "G";
+
   return (
-    <ListItem>
-      <ListItemAvatar>
-        <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.contrastText' }}>
-          {guest.name.charAt(0).toUpperCase()}
-        </Avatar>
-      </ListItemAvatar>
-      <ListItemText
-        primary={guest.name}
-        secondary={
-          <Box component="span" sx={{ display: 'block', mt: 0.5 }}>
-            <Typography variant="body2" color="text.secondary" component="span">
-              {guest.email}
-            </Typography>
-            {guest.group && (
-              <Typography variant="body2" color="text.secondary" component="span" sx={{ ml: 1 }}>
-                • {guest.group}
-              </Typography>
-            )}
-          </Box>
-        }
-      />
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        {guest.side && guest.side !== "both" && (
-          <Chip label={guest.side === 'bride' ? 'Bride' : 'Groom'} size="small" />
+    <div className="flex items-center py-3 px-4 border-b last:border-b-0 border-border/70 group hover:bg-muted/30 transition-colors">
+      <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center mr-4 font-medium shrink-0">
+        {initials}
+      </div>
+      <div className="flex-1">
+        <p className="font-medium text-foreground">{guest.name}</p>
+        {(guest.email || guest.group) && (
+          <p className="text-sm text-muted-foreground">
+            {guest.email} {guest.group && guest.email ? "•" : ""} {guest.group}
+          </p>
+        )}
+      </div>
+      <div className="flex items-center gap-2 ml-4 shrink-0">
+        {guest.plusOne && (
+          <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs flex items-center gap-1">
+            <PersonStanding className="h-3 w-3" />+1
+          </span>
         )}
         {guest.dietaryRestrictions && (
-          <Chip label={guest.dietaryRestrictions} size="small" />
+          <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-xs">
+            {guest.dietaryRestrictions}
+          </span>
         )}
-        <Chip label={rsvpLabel()} size="small" sx={rsvpStyle()} />
-      </Box>
-    </ListItem>
+        <span className={cn("px-2 py-0.5 rounded-full text-xs", rsvpColorClass())}>
+          {rsvpLabel()}
+        </span>
+      </div>
+    </div>
   );
 }
-
 
 export default function GuestsTool() {
   const browser = useBrowser();
@@ -126,9 +120,9 @@ export default function GuestsTool() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex h-full items-center justify-center p-6">
+        <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" data-testid="loading-spinner" />
+      </div>
     );
   }
 
@@ -136,7 +130,6 @@ export default function GuestsTool() {
   const stats = guests?.stats;
   const hasData = guests && guests.list.length > 0;
 
-  // Filter and search
   let filteredGuests = guests?.list || [];
   
   if (filter !== "all") {
@@ -157,7 +150,6 @@ export default function GuestsTool() {
     );
   }
 
-  // Group guests
   const groupedGuests = (): Record<string, Guest[]> => {
     if (groupBy === "none") return { "All Guests": filteredGuests };
     
@@ -179,187 +171,219 @@ export default function GuestsTool() {
   const groups = groupedGuests();
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <div className="w-full max-w-5xl mx-auto py-8 px-6 space-y-8 animate-fade-up">
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 4 }}>
-        <Box>
-          <Typography variant="h4" component="h1" gutterBottom>
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-5xl md:text-6xl text-foreground tracking-tight">
             Guest List
-          </Typography>
-          <Typography color="text.secondary">
-            Manage your wedding guests
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <ClockIcon sx={{ fontSize: '1rem' }} />
+          </h1>
+          <p className="text-xl text-muted-foreground mt-2 font-light">
+            Manage your wedding guests and RSVPs.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-muted-foreground flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full shadow-sm border border-border">
+            <History className="h-3 w-3" />
             Updated {timeAgo}
-          </Typography>
+          </span>
           <Button
-            variant="outlined"
-            startIcon={<RefreshIcon className={isRefreshing ? 'animate-spin' : ''} />}
+            variant="outline"
+            size="sm"
+            className="rounded-full h-8 px-3 border-border hover:bg-white hover:text-primary"
             onClick={handleRefresh}
             disabled={isRefreshing}
           >
+            <RefreshCw className={cn("h-3 w-3 mr-2", isRefreshing && "animate-spin")} />
             Refresh
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
 
       {!hasData ? (
         /* Empty state */
-        <Paper elevation={0} sx={{ textAlign: 'center', p: 4, bgcolor: 'grey.50', borderRadius: 2 }}>
-           <Box sx={{
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              bgcolor: 'primary.light',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mx: 'auto',
-              mb: 2,
-            }}>
-            <GuestsIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          </Box>
-          <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
-            No guests yet
-          </Typography>
-          <Typography color="text.secondary" sx={{ mb: 3 }}>
+        <Card className="text-center p-8 border-dashed border-muted-foreground/30 shadow-none bg-canvas">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <Users className="h-8 w-8 text-primary" data-testid="empty-guests-icon" />
+          </div>
+          <CardTitle className="font-serif text-2xl text-foreground mb-2">No guests yet</CardTitle>
+          <p className="text-muted-foreground mb-6">
             Tell me about your guests in chat and I'll add them to your list.
-          </Typography>
-          <Button variant="contained" onClick={() => browser.goHome()}>
+          </p>
+          <Button onClick={() => browser.goHome()} className="rounded-full px-6 shadow-soft">
             Go to chat
           </Button>
-        </Paper>
+        </Card>
       ) : (
         <>
           {/* Stats Cards */}
-          <Grid container spacing={2} sx={{ mb: 4 }}>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card>
-                <CardContent>
-                  <Typography color="text.secondary" gutterBottom>Total Guests</Typography>
-                  <Typography variant="h5" component="div">
-                    {stats?.total || 0}
-                  </Typography>
-                  {stats?.withPlusOnes ? (
-                    <Typography variant="body2" color="text.secondary" sx={{mt: 1}}>+{stats.withPlusOnes} plus ones</Typography>
-                  ) : null}
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card data-testid="confirmed-card">
-                <CardContent>
-                  <Typography color="text.secondary" gutterBottom>Confirmed</Typography>
-                  <Typography variant="h5" component="div" sx={{ color: 'success.main' }}>
-                    {stats?.confirmed || 0}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card>
-                <CardContent>
-                  <Typography color="text.secondary" gutterBottom>Pending</Typography>
-                  <Typography variant="h5" component="div" sx={{ color: 'warning.main' }}>
-                    {stats?.pending || 0}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card>
-                <CardContent>
-                  <Typography color="text.secondary" gutterBottom>Declined</Typography>
-                  <Typography variant="h5" component="div" color="text.secondary">
-                    {stats?.declined || 0}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            <Card className="bg-white rounded-3xl p-6 border border-border shadow-soft hover:shadow-lifted transition-all duration-300">
+              <CardContent className="p-0">
+                <p className="text-muted-foreground text-sm mb-1">Total Guests</p>
+                <h3 className="font-sans text-2xl font-medium text-foreground">
+                  {stats?.total || 0}
+                </h3>
+                {stats?.withPlusOnes ? (
+                  <p className="text-sm text-muted-foreground mt-1">+{stats.withPlusOnes} plus ones</p>
+                ) : null}
+              </CardContent>
+            </Card>
+            <Card className="bg-white rounded-3xl p-6 border border-border shadow-soft hover:shadow-lifted transition-all duration-300">
+              <CardContent className="p-0">
+                <p className="text-sm mb-1 text-green-700">Confirmed</p>
+                <h3 className="font-sans text-2xl font-medium text-green-700">
+                  {stats?.confirmed || 0}
+                </h3>
+              </CardContent>
+            </Card>
+            <Card className="bg-white rounded-3xl p-6 border border-border shadow-soft hover:shadow-lifted transition-all duration-300">
+              <CardContent className="p-0">
+                <p className="text-sm mb-1 text-amber-700">Pending</p>
+                <h3 className="font-sans text-2xl font-medium text-amber-700">
+                  {stats?.pending || 0}
+                </h3>
+              </CardContent>
+            </Card>
+            <Card className="bg-white rounded-3xl p-6 border border-border shadow-soft hover:shadow-lifted transition-all duration-300">
+              <CardContent className="p-0">
+                <p className="text-sm mb-1 text-red-700">Declined</p>
+                <h3 className="font-sans text-2xl font-medium text-red-700">
+                  {stats?.declined || 0}
+                </h3>
+              </CardContent>
+            </Card>
+          </div>
           
-          {/* Search and filters */}
-           <Paper sx={{ p: 2, mb: 4 }}>
-            <Grid container spacing={2} alignItems="center">
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  placeholder="Search guests..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <ToggleButtonGroup
-                  value={filter}
-                  exclusive
-                  onChange={(e, newValue) => setFilter(newValue)}
-                  aria-label="Filter by RSVP"
-                >
-                  <ToggleButton value="all" aria-label="all">All</ToggleButton>
-                  <ToggleButton value="confirmed" aria-label="confirmed">Confirmed</ToggleButton>
-                  <ToggleButton value="pending" aria-label="pending">Pending</ToggleButton>
-                  <ToggleButton value="declined" aria-label="declined">Declined</ToggleButton>
-                </ToggleButtonGroup>
-              </Grid>
-            </Grid>
-          </Paper>
+          {/* Search and Filters */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Input
+              placeholder="Search guests..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 rounded-xl h-12"
+            />
+            <div className="flex gap-2">
+              <Button
+                variant={filter === "all" ? "default" : "outline"}
+                onClick={() => setFilter("all")}
+                className={cn(
+                  "rounded-full px-4",
+                  filter === "all" ? "bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:bg-muted/30"
+                )}
+              >
+                All
+              </Button>
+              <Button
+                variant={filter === "confirmed" ? "default" : "outline"}
+                onClick={() => setFilter("confirmed")}
+                className={cn(
+                  "rounded-full px-4",
+                  filter === "confirmed" ? "bg-green-600 text-white hover:bg-green-700" : "border-border text-muted-foreground hover:bg-muted/30"
+                )}
+              >
+                Confirmed
+              </Button>
+              <Button
+                variant={filter === "pending" ? "default" : "outline"}
+                onClick={() => setFilter("pending")}
+                className={cn(
+                  "rounded-full px-4",
+                  filter === "pending" ? "bg-amber-600 text-white hover:bg-amber-700" : "border-border text-muted-foreground hover:bg-muted/30"
+                )}
+              >
+                Pending
+              </Button>
+              <Button
+                variant={filter === "declined" ? "default" : "outline"}
+                onClick={() => setFilter("declined")}
+                className={cn(
+                  "rounded-full px-4",
+                  filter === "declined" ? "bg-red-600 text-white hover:bg-red-700" : "border-border text-muted-foreground hover:bg-muted/30"
+                )}
+              >
+                Declined
+              </Button>
+            </div>
+          </div>
 
-          {/* Group by */}
-          <Box sx={{ mb: 2 }}>
-            <ToggleButtonGroup
-              value={groupBy}
-              exclusive
-              onChange={(e, newValue) => setGroupBy(newValue)}
-              aria-label="Group by"
-              size="small"
+          {/* Group By Buttons */}
+          <div className="flex space-x-2 mt-4">
+            <span className="text-sm font-medium text-muted-foreground flex items-center">
+              <ListCollapse className="h-4 w-4 mr-2" /> Group By:
+            </span>
+            <Button
+              variant={groupBy === "none" ? "default" : "outline"}
+              onClick={() => setGroupBy("none")}
+              className={cn(
+                "rounded-full px-4 h-9",
+                groupBy === "none" ? "bg-foreground text-background" : "border-border text-muted-foreground hover:bg-muted/30"
+              )}
             >
-              <ToggleButton value="none" aria-label="none">None</ToggleButton>
-              <ToggleButton value="side" aria-label="side">Side</ToggleButton>
-              <ToggleButton value="group" aria-label="group">Group</ToggleButton>
-            </ToggleButtonGroup>
-          </Box>
+              None
+            </Button>
+            <Button
+              variant={groupBy === "side" ? "default" : "outline"}
+              onClick={() => setGroupBy("side")}
+              className={cn(
+                "rounded-full px-4 h-9",
+                groupBy === "side" ? "bg-foreground text-background" : "border-border text-muted-foreground hover:bg-muted/30"
+              )}
+            >
+              Side
+            </Button>
+            <Button
+              variant={groupBy === "group" ? "default" : "outline"}
+              onClick={() => setGroupBy("group")}
+              className={cn(
+                "rounded-full px-4 h-9",
+                groupBy === "group" ? "bg-foreground text-background" : "border-border text-muted-foreground hover:bg-muted/30"
+              )}
+            >
+              Group
+            </Button>
+          </div>
 
           {/* Guest List */}
-          {Object.entries(groups).map(([groupName, groupGuests]) => (
-            <Paper key={groupName} sx={{ mb: 4 }}>
-              {groupBy !== "none" && (
-                <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-                  <Typography variant="h6">{groupName} ({groupGuests.length})</Typography>
-                </Box>
-              )}
-              <List>
-                {groupGuests.map((guest, index) => (
-                  <React.Fragment key={guest.id}>
-                    <GuestRow guest={guest} />
-                    {index < groupGuests.length -1 && <Divider component="li" />}
-                  </React.Fragment>
-                ))}
-              </List>
-            </Paper>
-          ))}
+          <Card className="bg-white rounded-3xl border border-border shadow-soft">
+            {Object.entries(groups).map(([groupName, groupGuests]) => (
+              <React.Fragment key={groupName}>
+                {groupBy !== "none" && (
+                  <CardHeader className="p-4 border-b border-border/70 bg-muted/20">
+                    <CardTitle className="font-serif text-lg text-foreground">{groupName} ({groupGuests.length})</CardTitle>
+                  </CardHeader>
+                )}
+                <div className="divide-y divide-border/70">
+                  {groupGuests.length === 0 ? (
+                    <p className="p-4 text-muted-foreground text-sm text-center">No guests in this group match the filter.</p>
+                  ) : (
+                    groupGuests.map((guest) => (
+                      <GuestRow key={guest.id} guest={guest} />
+                    ))
+                  )}
+                </div>
+              </React.Fragment>
+            ))}
+          </Card>
 
           {filteredGuests.length === 0 && (
-            <Paper sx={{ textAlign: 'center', p: 4 }}>
-              <Typography color="text.secondary">No guests match your search</Typography>
-            </Paper>
+            <div className="text-center p-8 bg-muted/30 rounded-2xl text-muted-foreground">
+              <Search className="h-8 w-8 mx-auto mb-4" />
+              <p>No guests match your search or filter criteria.</p>
+            </div>
           )}
 
           {/* Help prompt */}
-          <Paper elevation={0} sx={{ mt: 4, p: 2, bgcolor: 'grey.50', textAlign: 'center' }}>
-            <Typography variant="body2" color="text.secondary">
+          <div className="text-center mt-4 p-4 bg-muted/30 rounded-2xl">
+            <p className="text-muted-foreground text-sm">
               Need to add or update guests?{" "}
-              <a onClick={() => browser.goHome()} style={{ color: 'primary.main', cursor: 'pointer' }}>
+              <Link href="#" onClick={() => browser.goHome()} className="text-primary font-medium hover:underline">
                 Tell me in chat
-              </a>
-            </Typography>
-          </Paper>
+              </Link>
+            </p>
+          </div>
         </>
       )}
-    </Container>
+    </div>
   );
 }

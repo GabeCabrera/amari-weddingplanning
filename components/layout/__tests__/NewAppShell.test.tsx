@@ -14,7 +14,13 @@ jest.mock('@/components/layout/browser-context', () => ({
   useBrowser: () => ({
     openTool: jest.fn(),
     goHome: jest.fn(),
+    activeTabId: 'chat', // Mock active tab for testing purposes
+    tabs: [],
   }),
+  tools: [ // Mock the tools array as it's used in NewAppShell
+    { id: 'dashboard', label: 'Dashboard', icon: () => <svg /> },
+    { id: 'budget', label: 'Budget', icon: () => <svg /> },
+  ]
 }));
 
 describe('NewAppShell', () => {
@@ -27,8 +33,8 @@ describe('NewAppShell', () => {
 
     render(<NewAppShell><div>Test Children</div></NewAppShell>);
 
-    // Check for the main title
-    expect(screen.getByText('Aisle')).toBeInTheDocument();
+    // Check for the main title (sidebar title, more specific selection)
+    expect(screen.getByText('Aisle', { selector: '.font-serif.text-2xl' })).toBeInTheDocument();
 
     // Check for the child content
     expect(screen.getByText('Test Children')).toBeInTheDocument();

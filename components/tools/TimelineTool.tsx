@@ -1,49 +1,40 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { usePlannerData, TimelineEvent } from "@/lib/hooks/usePlannerData";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
 import {
-  Box,
-  Typography,
-  Container,
-  CircularProgress,
-  Paper,
-  Button,
-  Grid,
-  Chip,
-} from "@mui/material";
-import {
-  Timeline,
-  TimelineItem,
-  TimelineSeparator,
-  TimelineConnector,
-  TimelineContent,
-  TimelineDot,
-} from "@mui/lab";
-import TimeIcon from "@mui/icons-material/AccessTime";
-import EventIcon from "@mui/icons-material/Event";
-import LocationIcon from "@mui/icons-material/LocationOn";
-import PersonIcon from "@mui/icons-material/Person";
-import ReceptionIcon from "@mui/icons-material/Cake";
-import CeremonyIcon from "@mui/icons-material/Favorite";
-import CocktailIcon from "@mui/icons-material/LocalBar";
-import OtherIcon from "@mui/icons-material/Star";
-import PrepIcon from "@mui/icons-material/Home";
-import { useBrowser } from "@/components/layout/browser-context";
+  Loader2,
+  Calendar,
+  Home,
+  Heart,
+  Martini,
+  Utensils,
+  Sparkles,
+  Circle,
+  Clock, // For updated time ago
+  RefreshCw, // For refresh button
+} from "lucide-react";
 import TimelineEventCard, { formatTime } from './TimelineEventCard';
+import { useBrowser } from "@/components/layout/browser-context";
+import { formatDistanceToNow } from "date-fns";
+
 
 const getCategoryIcon = (category: string) => {
   switch (category.toLowerCase()) {
     case "prep":
-      return <PrepIcon sx={{ color: "primary.main" }} />;
+      return <Home className="h-4 w-4 text-primary" />;
     case "ceremony":
-      return <CeremonyIcon sx={{ color: "error.main" }} />;
+      return <Heart className="h-4 w-4 text-red-500" />;
     case "cocktail hour":
-      return <CocktailIcon sx={{ color: "warning.main" }} />;
+      return <Martini className="h-4 w-4 text-amber-500" />;
     case "reception":
-      return <ReceptionIcon sx={{ color: "success.main" }} />;
+      return <Utensils className="h-4 w-4 text-green-500" />;
     default:
-      return <OtherIcon sx={{ color: "info.main" }} />;
+      return <Sparkles className="h-4 w-4 text-blue-500" />;
   }
 };
 
@@ -51,14 +42,41 @@ const categoryOrder = ["Prep", "Ceremony", "Cocktail Hour", "Reception", "Other"
 
 
 export default function TimelineTool() {
-  const { data, loading } = usePlannerData();
+  const { data, loading, refetch, lastRefresh } = usePlannerData();
   const browser = useBrowser();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [timeAgo, setTimeAgo] = useState("just now");
+
+  useEffect(() => {
+    const updateTimeAgo = () => setTimeAgo(formatDistanceToNow(new Date(lastRefresh), { addSuffix: true }));
+    updateTimeAgo();
+    const interval = setInterval(updateTimeAgo, 10000);
+    return () => clearInterval(interval);
+  }, [lastRefresh]);
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        if (Date.now() - lastRefresh > 30000) {
+          refetch();
+        }
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [lastRefresh, refetch]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+  };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex h-full items-center justify-center p-6">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" data-testid="loading-spinner" />
+      </div>
     );
   }
 
@@ -87,100 +105,104 @@ export default function TimelineTool() {
   });
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Wedding Day Timeline
-        </Typography>
-        <Typography color="text.secondary">
-          {weddingDate
-            ? `Your schedule for ${new Date(weddingDate).toLocaleDateString("en-US", {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}`
-            : "Your day-of schedule"}
-        </Typography>
-      </Box>
+    <div className="w-full max-w-3xl mx-auto py-8 px-6 space-y-8 animate-fade-up">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-5xl md:text-6xl text-foreground tracking-tight">
+            Wedding Day Timeline
+          </h1>
+          <p className="text-xl text-muted-foreground mt-2 font-light">
+            {weddingDate
+              ? `Your schedule for ${new Date(weddingDate).toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}`
+              : "Your day-of schedule"}
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-muted-foreground flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full shadow-sm border border-border">
+            <Clock className="h-3 w-3" />
+            Updated {timeAgo}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full h-8 px-3 border-border hover:bg-white hover:text-primary"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={cn("h-3 w-3 mr-2", isRefreshing && "animate-spin")} />
+            Refresh
+          </Button>
+        </div>
+      </div>
 
       {!hasData ? (
-        <Paper elevation={0} sx={{ textAlign: 'center', p: 4, bgcolor: 'grey.50', borderRadius: 2 }}>
-          <Box sx={{
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              bgcolor: 'primary.light',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mx: 'auto',
-              mb: 2,
-            }}>
-            <TimeIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          </Box>
-          <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
-            No timeline events yet
-          </Typography>
-          <Typography color="text.secondary" sx={{ mb: 3 }}>
+        /* Empty state */
+        <Card className="text-center p-8 border-dashed border-muted-foreground/30 shadow-none bg-canvas">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <Calendar className="h-8 w-8 text-primary" data-testid="empty-timeline-icon" />
+          </div>
+          <CardTitle className="font-serif text-2xl text-foreground mb-2">No timeline events yet</CardTitle>
+          <p className="text-muted-foreground mb-6">
             Tell me about your wedding day schedule in chat and I&apos;ll build your timeline.
-          </Typography>
-          <Button variant="contained" onClick={() => browser.goHome()}>
+          </p>
+          <Button onClick={() => browser.goHome()} className="rounded-full px-6 shadow-soft">
             Go to chat
           </Button>
 
-          <Paper variant="outlined" sx={{ mt: 4, p: 2, textAlign: 'left', bgcolor: 'background.paper' }}>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>Example things to tell me:</Typography>
-            <Typography variant="body2" component="ul" sx={{ listStyleType: 'disc', pl: 2 }}>
+          <Card className="mt-6 p-4 text-left shadow-none border-border/70 bg-background">
+            <CardTitle className="font-sans text-lg mb-2">Example things to tell me:</CardTitle>
+            <ul className="list-disc list-inside text-muted-foreground text-sm space-y-1">
               <li>"Ceremony starts at 4pm"</li>
               <li>"Hair and makeup from 10am to 1pm"</li>
               <li>"First dance right after dinner"</li>
               <li>"We want to do a sparkler exit at 10pm"</li>
-            </Typography>
-          </Paper>
-        </Paper>
+            </ul>
+          </Card>
+        </Card>
       ) : (
-        <Timeline position="right" sx={{ '& .MuiTimelineItem-missingOppositeContent:before': { display: 'none' } }}>
+        <div className="space-y-8">
           {orderedCategories.map((category) => (
-            <React.Fragment key={category}>
-              <TimelineItem>
-                <TimelineSeparator>
-                  <TimelineDot color="primary">
-                    {getCategoryIcon(category)}
-                  </TimelineDot>
-                  <TimelineConnector />
-                </TimelineSeparator>
-                <TimelineContent sx={{ py: '12px', px: 2 }}>
-                  <Typography variant="h6" component="h2">
-                    {category}
-                  </Typography>
-                </TimelineContent>
-              </TimelineItem>
+            <div key={category} className="relative pl-8"> {/* Timeline Item Container */}
+              {/* Category Header */}
+              <div className="absolute -left-1.5 top-0 flex items-center justify-center h-8 w-8 rounded-full bg-primary/10 border border-primary/20 z-10">
+                {getCategoryIcon(category)}
+              </div>
+              <h2 className="font-serif text-2xl text-foreground ml-4 mb-4">{category}</h2>
 
-              {groupedEvents[category].map((event, index) => (
-                <TimelineItem key={event.id || index}>
-                  <TimelineSeparator>
-                    <TimelineDot variant="outlined" color="grey" />
-                    {index < groupedEvents[category].length - 1 && <TimelineConnector />}
-                  </TimelineSeparator>
-                  <TimelineContent sx={{ py: '12px', px: 2 }}>
-                    <TimelineEventCard event={event} />
-                  </TimelineContent>
-                </TimelineItem>
-              ))}
-            </React.Fragment>
+              {/* Events for this category */}
+              <div className="relative border-l-2 border-border/70 ml-3 pl-5 space-y-6">
+                {groupedEvents[category].map((event, index) => (
+                  <div key={event.id || index} className="relative">
+                    {/* Event Dot */}
+                    <div className="absolute -left-3.5 top-0.5 w-6 h-6 rounded-full bg-white border-2 border-primary/40 flex items-center justify-center z-10">
+                      <Circle className="h-2 w-2 text-primary/70 fill-primary/70" />
+                    </div>
+                    {/* Event Content */}
+                    <div className="ml-0">
+                      <TimelineEventCard event={event} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           ))}
-        </Timeline>
+        </div>
       )}
 
-      <Paper elevation={0} sx={{ mt: 4, p: 2, bgcolor: 'grey.50', textAlign: 'center' }}>
-        <Typography variant="body2" color="text.secondary">
+      <div className="text-center mt-4 p-4 bg-muted/30 rounded-2xl">
+        <p className="text-muted-foreground text-sm">
           Need to add or adjust your timeline?{" "}
-          <Button component="a" onClick={() => browser.goHome()} sx={{ textTransform: 'none', p: 0, minWidth: 0 }}>
+          <Link href="#" onClick={() => browser.goHome()} className="text-primary font-medium hover:underline">
             Tell me in chat
-          </Button>
-        </Typography>
-      </Paper>
-    </Container>
+          </Link>
+        </p>
+      </div>
+    </div>
   );
 }

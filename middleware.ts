@@ -65,15 +65,20 @@ export async function middleware(request: NextRequest) {
     route === "/" ? pathname === "/" : pathname.startsWith(route)
   );
 
-  if (isPublicRoute) {
-    return addSecurityHeaders(NextResponse.next());
-  }
-
   // Check authentication for protected routes
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
   });
+
+  // Special case: Redirect authenticated users from Landing Page to Planner
+  if (pathname === "/" && token) {
+    return NextResponse.redirect(new URL("/planner", request.url));
+  }
+
+  if (isPublicRoute) {
+    return addSecurityHeaders(NextResponse.next());
+  }
 
   if (!token) {
     const loginUrl = new URL("/login", request.url);
