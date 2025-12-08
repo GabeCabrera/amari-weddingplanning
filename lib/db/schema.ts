@@ -743,9 +743,9 @@ export type VibeProfile = typeof vibeProfiles.$inferSelect;
 export type NewVibeProfile = typeof vibeProfiles.$inferInsert;
 
 // ============================================================================
-// CONCIERGE CONVERSATIONS - Chat history with the AI wedding planner
+// SCRIBE CONVERSATIONS - Chat history with the AI wedding planner
 // ============================================================================
-export const conciergeConversations = pgTable("concierge_conversations", {
+export const scribeConversations = pgTable("concierge_conversations", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id")
     .notNull()
@@ -762,15 +762,15 @@ export const conciergeConversations = pgTable("concierge_conversations", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const conciergeConversationsRelations = relations(conciergeConversations, ({ one }) => ({
+export const scribeConversationsRelations = relations(scribeConversations, ({ one }) => ({
   tenant: one(tenants, {
-    fields: [conciergeConversations.tenantId],
+    fields: [scribeConversations.tenantId],
     references: [tenants.id],
   }),
 }));
 
-export type ScribeConversation = typeof conciergeConversations.$inferSelect;
-export type NewScribeConversation = typeof conciergeConversations.$inferInsert;
+export type ScribeConversation = typeof scribeConversations.$inferSelect;
+export type NewScribeConversation = typeof scribeConversations.$inferInsert;
 
 // ============================================================================
 // WEDDING KERNELS - Compressed state for AI context

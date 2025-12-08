@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { db } from "@/lib/db";
-import { conciergeConversations } from "@/lib/db/schema";
+import { scribeConversations } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -21,9 +21,9 @@ export async function GET() {
     const tenantId = session.user.tenantId;
 
     // Get most recent conversation
-    const conversation = await db.query.conciergeConversations.findFirst({
-      where: eq(conciergeConversations.tenantId, tenantId),
-      orderBy: [desc(conciergeConversations.updatedAt)],
+    const conversation = await db.query.scribeConversations.findFirst({
+      where: eq(scribeConversations.tenantId, tenantId),
+      orderBy: [desc(scribeConversations.updatedAt)],
     });
 
     if (!conversation) {

@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { db } from "@/lib/db";
 import {
-  conciergeConversations,
+  scribeConversations,
   vibeProfiles,
   tenants,
   pages,
@@ -240,14 +240,14 @@ async function getOrCreateConversation(tenantId: string) {
   // Try to get active conversation
   const [existing] = await db
     .select()
-    .from(conciergeConversations)
+    .from(scribeConversations)
     .where(
       and(
-        eq(conciergeConversations.tenantId, tenantId),
-        eq(conciergeConversations.isActive, true)
+        eq(scribeConversations.tenantId, tenantId),
+        eq(scribeConversations.isActive, true)
       )
     )
-    .orderBy(desc(conciergeConversations.updatedAt))
+    .orderBy(desc(scribeConversations.updatedAt))
     .limit(1);
 
   if (existing) {
@@ -256,7 +256,7 @@ async function getOrCreateConversation(tenantId: string) {
 
   // Create new conversation
   const [newConvo] = await db
-    .insert(conciergeConversations)
+    .insert(scribeConversations)
     .values({
       tenantId,
       messages: [],
@@ -491,12 +491,12 @@ export async function POST(request: NextRequest) {
     ];
 
     await db
-      .update(conciergeConversations)
+      .update(scribeConversations)
       .set({
         messages: updatedMessages,
         updatedAt: new Date(),
       })
-      .where(eq(conciergeConversations.id, conversation.id));
+      .where(eq(scribeConversations.id, conversation.id));
 
     return NextResponse.json({
       message: assistantMessage,
@@ -533,12 +533,12 @@ export async function DELETE() {
 
     // Mark current conversation as inactive
     await db
-      .update(conciergeConversations)
+      .update(scribeConversations)
       .set({ isActive: false })
       .where(
         and(
-          eq(conciergeConversations.tenantId, session.user.tenantId),
-          eq(conciergeConversations.isActive, true)
+          eq(scribeConversations.tenantId, session.user.tenantId),
+          eq(scribeConversations.isActive, true)
         )
       );
 

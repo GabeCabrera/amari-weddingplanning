@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import Anthropic from "@anthropic-ai/sdk";
 import { authOptions } from "@/lib/auth/config";
 import { db } from "@/lib/db";
-import { tenants, conciergeConversations, weddingKernels } from "@/lib/db/schema";
+import { tenants, scribeConversations, weddingKernels } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getAnthropicTools } from "@/lib/ai/tools";
 import { executeToolCall, ToolResult } from "@/lib/ai/executor";
@@ -161,20 +161,24 @@ export async function POST(request: NextRequest) {
     // Get or create conversation
     let conversation;
     if (inputConversationId) {
-      conversation = await db.query.conciergeConversations.findFirst({
+      conversation = await db.query.scribeConversations.findFirst({
         where: and(
-          eq(conciergeConversations.id, inputConversationId),
-          eq(conciergeConversations.tenantId, tenantId)
+          eq(scribeConversations.id, inputConversationId),
+          eq(scribeConversations.tenantId, tenantId)
         ),
       });
+      console.log("[CHAT] Found existing conversation:", !!conversation);
     }
+
     if (!conversation) {
-      const [newConv] = await db.insert(conciergeConversations).values({
+      console.log("[CHAT] Creating new conversation");
+      const [newConv] = await db.insert(scribeConversations).values({
         tenantId,
-        title: "Chat",
+        title: "New Chat",
         messages: [],
       }).returning();
       conversation = newConv;
+      console.log("[CHAT] Created conversation:", conversation.id);
     }
 
     // Build message history
@@ -318,13 +322,12 @@ export async function POST(request: NextRequest) {
       ? [...existingMessages, { role: "user", content: message }, { role: "assistant", content: cleanMessage, artifact }]
       : [...existingMessages, { role: "assistant", content: cleanMessage, artifact }];
 
-    await db.update(conciergeConversations)
-      .set({ 
-        messages: newMessages, 
-        updatedAt: new Date() 
-      })
-      .where(eq(conciergeConversations.id, conversation.id));
-
+        await db.update(scribeConversations)
+          .set({
+            messages: newHistory,
+            updatedAt: new Date(),
+          })
+          .where(eq(scribeConversations.id, conversation.id));
     return NextResponse.json({ 
       message: cleanMessage,
       conversationId: conversation.id,

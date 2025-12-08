@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import Anthropic from "@anthropic-ai/sdk";
 import { authOptions } from "@/lib/auth/config";
 import { db } from "@/lib/db";
-import { tenants, conciergeConversations, weddingKernels } from "@/lib/db/schema";
+import { tenants, scribeConversations, weddingKernels } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 
 /**
@@ -250,10 +250,10 @@ export async function POST(request: NextRequest) {
     let conversation;
     
     if (inputConversationId) {
-      conversation = await db.query.conciergeConversations.findFirst({
+      conversation = await db.query.scribeConversations.findFirst({
         where: and(
-          eq(conciergeConversations.id, inputConversationId),
-          eq(conciergeConversations.tenantId, tenantId)
+          eq(scribeConversations.id, inputConversationId),
+          eq(scribeConversations.tenantId, tenantId)
         ),
       });
       console.log("Onboarding: Found existing conversation:", !!conversation);
@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
 
     if (!conversation) {
       console.log("Onboarding: Creating new conversation");
-      const [newConversation] = await db.insert(conciergeConversations).values({
+      const [newConversation] = await db.insert(scribeConversations).values({
         tenantId,
         title: "Getting started",
         messages: [],
@@ -479,12 +479,12 @@ export async function POST(request: NextRequest) {
       ? [...existingMessages, { role: "user", content: message }, { role: "assistant", content: cleanMessage }]
       : [...existingMessages, { role: "assistant", content: cleanMessage }];
     
-    await db.update(conciergeConversations)
+    await db.update(scribeConversations)
       .set({ 
         messages: newHistory,
         updatedAt: new Date(),
       })
-      .where(eq(conciergeConversations.id, conversation.id));
+      .where(eq(scribeConversations.id, conversation.id));
 
     console.log("Onboarding: Saved conversation, total messages:", newHistory.length);
 
