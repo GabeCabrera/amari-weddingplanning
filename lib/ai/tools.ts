@@ -598,8 +598,8 @@ export const tools: ToolDefinition[] = [
     }
   },
   {
-    name: "update_vendor_status",
-    description: "Update the status of a vendor (e.g., mark as booked).",
+    name: "update_vendor",
+    description: "Update a vendor's information (status, details, price, etc.). Can find vendor by ID or name.",
     parameters: {
       type: "object",
       properties: {
@@ -607,10 +607,38 @@ export const tools: ToolDefinition[] = [
           type: "string",
           description: "The ID of the vendor to update"
         },
+        vendorName: {
+          type: "string",
+          description: "The name of the vendor to update (if ID not known)"
+        },
+        name: {
+          type: "string",
+          description: "New vendor name"
+        },
+        category: {
+          type: "string",
+          description: "New category"
+        },
+        contactName: {
+          type: "string",
+          description: "Contact person's name"
+        },
+        email: {
+          type: "string",
+          description: "Email address"
+        },
+        phone: {
+          type: "string",
+          description: "Phone number"
+        },
         status: {
           type: "string",
           description: "New status",
           enum: ["researching", "contacted", "meeting_scheduled", "booked", "passed"]
+        },
+        price: {
+          type: "number",
+          description: "Price in dollars"
         },
         depositPaid: {
           type: "boolean",
@@ -619,9 +647,13 @@ export const tools: ToolDefinition[] = [
         contractSigned: {
           type: "boolean",
           description: "Whether contract has been signed"
+        },
+        notes: {
+          type: "string",
+          description: "Notes about this vendor"
         }
       },
-      required: ["vendorId", "status"]
+      required: []
     }
   },
   {

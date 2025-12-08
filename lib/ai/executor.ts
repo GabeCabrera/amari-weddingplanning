@@ -97,8 +97,8 @@ export async function executeToolCall(
       // Vendor tools
       case "add_vendor":
         return await addVendor(parameters, context);
-      case "update_vendor_status":
-        return await updateVendorStatus(parameters, context);
+      case "update_vendor":
+        return await updateVendor(parameters, context);
       case "get_vendor_list":
         return await getVendorList(parameters, context);
       case "delete_vendor":
@@ -1432,7 +1432,7 @@ function getDecisionNameFromCategory(category: string): string | null {
   return null;
 }
 
-async function updateVendorStatus(
+async function updateVendor(
   params: Record<string, unknown>,
   context: ToolContext
 ): Promise<ToolResult> {
@@ -1470,30 +1470,67 @@ async function updateVendorStatus(
   }
 
   const vendor = vendors[vendorIndex];
+  const updates: string[] = [];
   
-  vendor.status = params.status;
+  // Update fields if provided
+  if (params.name !== undefined) {
+    vendor.name = params.name;
+    updates.push("name");
+  }
+  if (params.category !== undefined) {
+    vendor.category = params.category;
+    updates.push("category");
+  }
+  if (params.contactName !== undefined) {
+    vendor.contactName = params.contactName;
+    updates.push("contact info");
+  }
+  if (params.email !== undefined) {
+    vendor.email = params.email;
+    updates.push("email");
+  }
+  if (params.phone !== undefined) {
+    vendor.phone = params.phone;
+    updates.push("phone");
+  }
+  if (params.status !== undefined) {
+    vendor.status = params.status;
+    updates.push(`status to ${params.status}`);
+  }
+  if (params.price !== undefined) {
+    vendor.price = (params.price as number) * 100; // Convert to cents
+    updates.push(`price to $${params.price}`);
+  }
+  if (params.notes !== undefined) {
+    vendor.notes = params.notes;
+    updates.push("notes");
+  }
   if (params.depositPaid !== undefined) {
     vendor.depositPaid = params.depositPaid;
+    updates.push(params.depositPaid ? "deposit paid" : "deposit unpaid");
   }
   if (params.contractSigned !== undefined) {
     vendor.contractSigned = params.contractSigned;
+    updates.push(params.contractSigned ? "contract signed" : "contract unsigned");
   }
 
   await db.update(pages)
     .set({ fields: { ...fields, vendors }, updatedAt: new Date() })
     .where(eq(pages.id, pageId));
 
-  // Update kernel
-  await updateKernelDecision(context.tenantId, vendor.category as string, {
-    status: params.status,
-    name: vendor.name,
-    locked: params.status === "booked"
-  });
+  // Update kernel if status or name changed
+  if (params.status || params.name) {
+    await updateKernelDecision(context.tenantId, vendor.category as string, {
+      status: vendor.status,
+      name: vendor.name,
+      locked: vendor.status === "booked"
+    });
+  }
 
-  // Update checklist decision
+  // Update checklist decision if status changed
   const decisionName = getDecisionNameFromCategory(vendor.category as string);
-  if (decisionName) {
-    const decisionStatus = params.status === "booked" || params.status === "confirmed" ? "decided" : "researching";
+  if (decisionName && params.status) {
+    const decisionStatus = vendor.status === "booked" || vendor.status === "confirmed" ? "decided" : "researching";
     await updateDecisionFn(context.tenantId, decisionName, {
         status: decisionStatus,
         choiceName: vendor.name as string,
@@ -1502,7 +1539,7 @@ async function updateVendorStatus(
 
   return {
     success: true,
-    message: `Updated ${vendor.name} status to ${params.status}`,
+    message: `Updated ${vendor.name}: ${updates.join(", ")}`,
     data: vendors[vendorIndex]
   };
 }
