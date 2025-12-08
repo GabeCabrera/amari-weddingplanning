@@ -1441,18 +1441,44 @@ async function updateVendorStatus(
   const { pageId, fields } = await getOrCreatePage(context.tenantId, "vendor-contacts");
   
   const vendors = (fields.vendors as Array<Record<string, unknown>>) || [];
-  const vendorIndex = vendors.findIndex(v => v.id === params.vendorId);
+  let vendorIndex = -1;
+
+  // Find by ID first
+  if (params.vendorId) {
+    vendorIndex = vendors.findIndex(v => v.id === params.vendorId);
+  }
+  // Fall back to name match (case insensitive)
+  else if (params.vendorName) {
+    const searchName = (params.vendorName as string).toLowerCase();
+    // Try exact match first
+    vendorIndex = vendors.findIndex(v => 
+      (v.name as string)?.toLowerCase() === searchName
+    );
+    // Then try partial match
+    if (vendorIndex === -1) {
+      vendorIndex = vendors.findIndex(v => 
+        (v.name as string)?.toLowerCase().includes(searchName) ||
+        searchName.includes((v.name as string)?.toLowerCase() || "")
+      );
+    }
+  }
 
   if (vendorIndex === -1) {
-    return { success: false, message: "Vendor not found" };
+    const vendorNames = vendors.slice(0, 5).map(v => v.name).join(", ");
+    return { 
+      success: false, 
+      message: `Vendor not found. Available vendors: ${vendorNames || "none"}${vendors.length > 5 ? `... and ${vendors.length - 5} more` : ""}` 
+    };
   }
 
-  vendors[vendorIndex].status = params.status;
+  const vendor = vendors[vendorIndex];
+  
+  vendor.status = params.status;
   if (params.depositPaid !== undefined) {
-    vendors[vendorIndex].depositPaid = params.depositPaid;
+    vendor.depositPaid = params.depositPaid;
   }
   if (params.contractSigned !== undefined) {
-    vendors[vendorIndex].contractSigned = params.contractSigned;
+    vendor.contractSigned = params.contractSigned;
   }
 
   await db.update(pages)
@@ -1460,7 +1486,6 @@ async function updateVendorStatus(
     .where(eq(pages.id, pageId));
 
   // Update kernel
-  const vendor = vendors[vendorIndex];
   await updateKernelDecision(context.tenantId, vendor.category as string, {
     status: params.status,
     name: vendor.name,
@@ -1496,7 +1521,7 @@ async function deleteVendor(
 
   // Find by ID first
   if (params.vendorId) {
-    vendorIndex = vendors.findIndex(v => v.id === params.itemId);
+    vendorIndex = vendors.findIndex(v => v.id === params.vendorId);
   }
   // Fall back to name match (case insensitive)
   else if (params.vendorName) {
