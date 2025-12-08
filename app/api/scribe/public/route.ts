@@ -10,8 +10,7 @@ const SYSTEM_PROMPT = `You are Scribe, an AI wedding planner. You help couples p
 Your goal is to be helpful, encouraging, and knowledgeable. You are not a sales bot. You are a wedding expert.
 
 RULES:
-- Your name is Scribe
-
+- Your name is Scribe`;
 
 // Simple in-memory rate limiting (resets on server restart)
 const rateLimits = new Map<string, { count: number; resetAt: number }>();
