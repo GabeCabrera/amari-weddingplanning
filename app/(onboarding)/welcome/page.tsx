@@ -87,7 +87,7 @@ export default function WelcomePage() {
 
           <Button 
             type="submit" 
-            className="w-full h-12 text-base bg-warm-900 hover:bg-warm-800 text-white rounded-xl"
+            className="w-full h-12 text-base bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
             disabled={isLoading}
           >
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
