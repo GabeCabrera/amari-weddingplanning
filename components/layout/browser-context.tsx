@@ -34,7 +34,6 @@ export interface BrowserContextType {
   goHome: () => void;
   toggleFavorite: (toolId: string) => void;
   openTool: (toolId: string) => void;
-  createArtifactTab: (title: string, code: string, language?: "jsx" | "html" | "markdown") => string;
   // Mobile-specific
   isTabSwitcherOpen: boolean;
   setTabSwitcherOpen: (open: boolean) => void;
@@ -64,6 +63,7 @@ import {
   Users,
   Store,
   Calendar,
+  CalendarRange,
   CheckCircle,
   Sparkles,
   Settings,
@@ -85,6 +85,13 @@ export const tools: ToolDefinition[] = [
     icon: LayoutDashboard,
     gradient: "linear-gradient(135deg, #F43F5E 0%, #E11D48 100%)",
     shadow: "rgba(244, 63, 94, 0.4)",
+  },
+  {
+    id: "calendar",
+    label: "Calendar",
+    icon: CalendarRange,
+    gradient: "linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)",
+    shadow: "rgba(99, 102, 241, 0.4)",
   },
   {
     id: "inspo",
@@ -297,18 +304,6 @@ export function BrowserProvider({ children }: { children: React.ReactNode }) {
     [tabs, switchTab, openTab]
   );
 
-  const createArtifactTab = useCallback(
-    (title: string, code: string, language: "jsx" | "html" | "markdown" = "jsx") => {
-      return openTab({
-        type: "artifact",
-        title,
-        closable: true,
-        artifactData: { code, title, language },
-      });
-    },
-    [openTab]
-  );
-
   const contextValue: BrowserContextType = {
     tabs,
     activeTabId,
@@ -323,7 +318,6 @@ export function BrowserProvider({ children }: { children: React.ReactNode }) {
     goHome,
     toggleFavorite,
     openTool,
-    createArtifactTab,
     isTabSwitcherOpen,
     setTabSwitcherOpen,
     isQuickActionsOpen,

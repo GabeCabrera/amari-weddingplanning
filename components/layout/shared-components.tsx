@@ -33,6 +33,9 @@ export function ToolContent({ toolId }: { toolId: string }) {
           case "budget":
             mod = await import("@/components/tools/BudgetTool");
             break;
+          case "calendar":
+            mod = await import("@/components/tools/CalendarTool");
+            break;
           case "guests":
             mod = await import("@/components/tools/GuestsTool");
             break;
