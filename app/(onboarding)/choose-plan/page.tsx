@@ -262,7 +262,7 @@ function ChoosePlanContent() {
             Choose Your Plan
           </h1>
           <p className="text-warm-600 max-w-md mx-auto">
-            Start planning with your AI wedding concierge
+            Start planning with Scribe, your AI wedding planner
           </p>
         </div>
 

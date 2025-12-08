@@ -2,7 +2,7 @@
 
 ## Big Picture Architecture
 
-Scribe & Stem is an AI-powered wedding planning platform where couples chat with an AI concierge (Scribe) that takes actions on their behalf. The AI manages budgets, guest lists, vendors, timelines, and decisions through natural conversation.
+Scribe & Stem is an AI-powered wedding planning platform where couples chat with Scribe (an AI planner) that takes actions on their behalf. The AI manages budgets, guest lists, vendors, timelines, and decisions through natural conversation.
 
 ### Core Domain Model
 ```

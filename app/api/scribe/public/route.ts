@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: assistantMessage });
   } catch (error) {
-    console.error("Public concierge error:", error);
+    console.error("Public scribe error:", error);
     return NextResponse.json(
       { error: "Failed to get response" },
       { status: 500 }
