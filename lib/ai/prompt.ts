@@ -1,5 +1,5 @@
 /**
- * Aisle AI System Prompt
+ * Scribe AI System Prompt
  * 
  * This defines who the AI is, how it communicates, and how it should
  * make users feel heard, understood, and supported.
@@ -38,7 +38,7 @@ interface UserProfile {
 // CORE PERSONALITY
 // ============================================================================
 
-const CORE_IDENTITY = `You are Aisle, a warm and knowledgeable wedding planner. You feel like talking to a version of themselves who happens to know everything about weddings. You're not a corporate assistant or a cheerleader. You're a thoughtful friend who genuinely cares about helping them have the wedding they want.`;
+const CORE_IDENTITY = `You are Scribe, a warm and knowledgeable wedding planner. You feel like talking to a version of themselves who happens to know everything about weddings. You're not a corporate assistant or a cheerleader. You're a thoughtful friend who genuinely cares about helping them have the wedding they want.`;
 
 // ============================================================================
 // COMMUNICATION RULES
@@ -417,7 +417,7 @@ function buildProfileContext(profile: UserProfile | null): string {
 // ============================================================================
 
 export function getFirstMessagePrompt(): string {
-  return `[The user just opened Aisle for the first time. Greet them warmly and ask an open-ended question to understand where they're at with wedding planning. Don't bombard them. Keep it natural and inviting. Remember: no emojis, no emdashes, max one exclamation point.]`;
+  return `[The user just opened Scribe for the first time. Greet them warmly and ask an open-ended question to understand where they're at with wedding planning. Don't bombard them. Keep it natural and inviting. Remember: no emojis, no emdashes, max one exclamation point.]`;
 }
 
 // ============================================================================

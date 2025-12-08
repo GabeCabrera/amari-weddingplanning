@@ -1,8 +1,8 @@
-# Aisle - AI-Powered Wedding Planning Platform
+# Scribe & Stem - AI-Powered Wedding Planning Platform
 
 ## Big Picture Architecture
 
-Aisle is an AI-powered wedding planning platform where couples chat with an AI concierge that takes actions on their behalf. The AI manages budgets, guest lists, vendors, timelines, and decisions through natural conversation.
+Scribe & Stem is an AI-powered wedding planning platform where couples chat with an AI concierge (Scribe) that takes actions on their behalf. The AI manages budgets, guest lists, vendors, timelines, and decisions through natural conversation.
 
 ### Core Domain Model
 ```
@@ -112,7 +112,7 @@ Visual displays triggered by `show_artifact` tool:
 
 ## Pricing Model
 - **Free**: 10 AI messages, basic features
-- **Aisle**: $12/month or $99/year (subscription via Stripe)
+- **Stem**: $12/month or $99/year (subscription via Stripe)
   - Unlimited AI planner
   - All features unlocked
 

@@ -17,7 +17,7 @@ interface CommunityInsight {
   icon: string;
   title: string;
   description: string;
-  source: "community"; // Data from all Aisle users
+  source: "community"; // Data from all Stem users
 }
 
 interface PersonalizedNudge {

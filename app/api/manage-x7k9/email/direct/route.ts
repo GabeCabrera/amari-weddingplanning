@@ -15,7 +15,7 @@ async function isAdmin(session: { user?: { email?: string | null } } | null): Pr
   return user?.isAdmin ?? false;
 }
 
-// POST /api/manage-x7k9/email/direct - Send a direct email from GabeandSarah@aisleboard.com
+// POST /api/manage-x7k9/email/direct - Send a direct email from GabeandSarah@scribeandstem.com
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

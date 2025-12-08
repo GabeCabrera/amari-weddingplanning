@@ -10,6 +10,10 @@ export default async function ChatLayout({ children }: { children: ReactNode }) 
   if (!session) {
     redirect("/login");
   }
+
+  if (!session.user.onboardingComplete) {
+    redirect("/welcome");
+  }
   
   return <NewAppShell>{children}</NewAppShell>;
 }

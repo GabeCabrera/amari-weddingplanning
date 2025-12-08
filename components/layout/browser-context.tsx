@@ -139,10 +139,10 @@ export const tools: ToolDefinition[] = [
 export const getToolById = (id: string) => tools.find((t) => t.id === id);
 
 // =============================================================================
-// AISLE LOGO
+// STEM LOGO
 // =============================================================================
 
-export function AisleLogo({ size = 32, className = "" }: { size?: number; className?: string }) {
+export function StemLogo({ size = 32, className = "" }: { size?: number; className?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none" className={className}>
       <path
@@ -188,14 +188,14 @@ export function BrowserProvider({ children }: { children: React.ReactNode }) {
   // Favorites with localStorage persistence
   const [favorites, setFavorites] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("aisle-favorites");
+      const saved = localStorage.getItem("stem-favorites");
       return saved ? JSON.parse(saved) : ["dashboard", "budget"];
     }
     return ["dashboard", "budget"];
   });
 
   useEffect(() => {
-    localStorage.setItem("aisle-favorites", JSON.stringify(favorites));
+    localStorage.setItem("stem-favorites", JSON.stringify(favorites));
   }, [favorites]);
 
   // Tab operations

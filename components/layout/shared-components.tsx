@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { getToolById, Tab, AisleLogo } from "./browser-context";
+import { getToolById, Tab, StemLogo } from "./browser-context";
 import {
   X,
   Code,
@@ -385,7 +385,7 @@ export function TabItem({
         }
       >
         {tab.type === "chat" ? (
-          <AisleLogo size={12} className="text-white" />
+          <StemLogo size={12} className="text-white" />
         ) : (
           <Icon className="w-3 h-3 text-white" />
         )}

@@ -276,12 +276,12 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe" }: 
                   You've used your free messages
                 </h3>
                 <p className="text-warm-500 text-sm leading-relaxed mb-6 max-w-[280px]">
-                                     Upgrade to Aisle to get unlimited access to {aiName},                  plus all premium planning templates.
+                                     Upgrade to Stem to get unlimited access to {aiName},                  plus all premium planning templates.
                 </p>
                 <Link href="/choose-plan" onClick={onClose}>
                   <Button className="bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white px-8 h-11 rounded-xl shadow-sm">
                     <Crown className="w-4 h-4 mr-2" />
-                    Upgrade to Aisle
+                    Upgrade to Stem
                   </Button>
                 </Link>
                 <p className="text-xs text-warm-400 mt-4">

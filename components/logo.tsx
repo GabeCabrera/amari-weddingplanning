@@ -65,7 +65,7 @@ export function Logo({ size = "md", showText = true, href = "/", className = "",
       {/* Text */}
       {showText && (
         <span className={`font-serif tracking-[0.15em] uppercase ${c.text} ${sizes[size].text}`}>
-          Aisle
+          Stem
         </span>
       )}
     </div>

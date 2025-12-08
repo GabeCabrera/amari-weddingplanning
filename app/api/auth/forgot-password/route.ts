@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     // TODO: Send email with reset link
     // In production, integrate with an email service like Resend, SendGrid, etc.
-    // The reset link should be: https://{subdomain}.aisle.wedding/reset-password?token={token}
+    // The reset link should be: https://{subdomain}.stem.wedding/reset-password?token={token}
     console.log(`Password reset token for ${email}: ${token}`);
 
     return NextResponse.json({ success: true });

@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Aisle Design System v2.0
+ * Stem Design System v2.0
  * Enterprise Editorial Theme
  */
 

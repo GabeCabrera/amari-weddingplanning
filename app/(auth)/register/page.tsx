@@ -226,7 +226,7 @@ export default function RegisterPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-secondary/80 to-secondary" />
         
         <div className="relative z-10 max-w-lg text-secondary-foreground text-center space-y-6">
-          <h2 className="font-serif text-5xl md:text-6xl leading-tight">
+          <h2 className="font-serif text-5xl md:text-6xl leading-tight text-secondary-foreground">
             "A successful marriage requires falling in love many times, always with the same person."
           </h2>
           <p className="font-sans text-lg opacity-80 font-light tracking-wide uppercase">— Mignon McLaughlin</p>

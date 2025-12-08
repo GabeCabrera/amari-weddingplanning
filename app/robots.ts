@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/planner/', '/settings/', '/templates/', '/welcome/', '/choose-plan/', '/payment-success/', '/manage-x7k9/'],
       },
     ],
-    sitemap: 'https://aisleboard.com/sitemap.xml',
+    sitemap: 'https://scribeandstem.com/sitemap.xml',
   };
 }

@@ -105,7 +105,7 @@ export default function AdminSidebar({ userEmail }: AdminSidebarProps) {
             <span className="text-lg font-serif">A</span>
           </div>
           <div>
-            <h1 className="font-serif tracking-wider text-sm uppercase">Aisle</h1>
+            <h1 className="font-serif tracking-wider text-sm uppercase">Stem</h1>
             <p className="text-xs text-warm-400">Admin Panel</p>
           </div>
         </Link>

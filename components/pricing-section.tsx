@@ -52,7 +52,7 @@ export function PricingSection() {
             </div>
           </div>
 
-          {/* Aisle - Most Popular */}
+          {/* Stem - Most Popular */}
           <div className="rounded-2xl border-2 border-rose-200 p-8 bg-gradient-to-br from-rose-50/50 to-amber-50/50 relative">
             <div className="absolute -top-3 left-6">
               <span className="px-3 py-1 bg-gradient-to-r from-rose-500 to-amber-500 text-white text-xs rounded-full">
@@ -61,7 +61,7 @@ export function PricingSection() {
             </div>
 
             <div className="mb-6">
-              <h3 className="text-lg font-medium text-warm-800 mb-1">Aisle</h3>
+              <h3 className="text-lg font-medium text-warm-800 mb-1">Stem</h3>
               <p className="text-sm text-warm-500">For couples planning their wedding</p>
             </div>
 
@@ -97,7 +97,7 @@ export function PricingSection() {
             </div>
           </div>
 
-          {/* Aisle+ Premium */}
+          {/* Stem+ Premium */}
           <div className="rounded-2xl border border-warm-200 p-8 bg-white relative">
             <div className="absolute -top-3 left-6">
               <span className="px-3 py-1 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs rounded-full flex items-center gap-1">
@@ -107,7 +107,7 @@ export function PricingSection() {
             </div>
 
             <div className="mb-6">
-              <h3 className="text-lg font-medium text-warm-800 mb-1">Aisle+</h3>
+              <h3 className="text-lg font-medium text-warm-800 mb-1">Stem+</h3>
               <p className="text-sm text-warm-500">White-glove planning experience</p>
             </div>
 
@@ -125,7 +125,7 @@ export function PricingSection() {
             </Link>
 
             <div className="space-y-3">
-              <p className="text-sm text-warm-500 mb-2">Everything in Aisle, plus:</p>
+              <p className="text-sm text-warm-500 mb-2">Everything in Stem, plus:</p>
               {[
                 "Priority AI responses",
                 "Curated vendor recommendations",

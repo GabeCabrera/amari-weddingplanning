@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Send, ArrowRight } from "lucide-react";
 import { Logo } from "@/components/logo";
 
@@ -14,6 +15,7 @@ const SUGGESTED_NAMES = ["Opal", "Fern", "Willa", "June", "Pearl", "Hazel"];
 
 export default function WelcomePage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [step, setStep] = useState<"naming" | "chat">("naming");
   const [plannerName, setPlannerName] = useState("");
   const [nameInput, setNameInput] = useState("");
@@ -25,6 +27,13 @@ export default function WelcomePage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+
+  // Redirect if already onboarded
+  useEffect(() => {
+    if (session?.user?.onboardingComplete) {
+      router.push("/planner");
+    }
+  }, [session, router]);
 
   // Focus name input on mount
   useEffect(() => {

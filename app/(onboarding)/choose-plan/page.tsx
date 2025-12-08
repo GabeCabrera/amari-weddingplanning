@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -31,7 +31,7 @@ const AISLE_FEATURES = [
 ];
 
 const AISLE_PLUS_FEATURES = [
-  "Everything in Aisle",
+  "Everything in Stem",
   "Priority AI responses",
   "Curated vendor recommendations",
   "1:1 planning consultation call",
@@ -69,6 +69,13 @@ function ChoosePlanContent() {
     description?: string;
   } | null>(null);
   const [isCheckingPromo, setIsCheckingPromo] = useState(false);
+
+  // Redirect if already onboarded
+  useEffect(() => {
+    if (session?.user?.onboardingComplete) {
+      router.push("/planner");
+    }
+  }, [session, router]);
 
   // Calculate savings
   const aisleMonthlyCost = PRICING.aisle.monthly * 12;
@@ -351,7 +358,7 @@ function ChoosePlanContent() {
 
             <div className="mb-6 mt-2">
               <h2 className="text-xl font-serif tracking-wider uppercase mb-2 flex items-center gap-2">
-                Aisle
+                Stem
                 <Crown className="w-5 h-5 text-amber-500" />
               </h2>
 
@@ -388,7 +395,7 @@ function ChoosePlanContent() {
             </div>
 
             <p className="text-warm-600 mb-6 text-sm">
-              The full Aisle experience with unlimited AI planning help.
+              The full Stem experience with unlimited AI planning help.
             </p>
 
             <div className="space-y-3 mb-6">
@@ -430,7 +437,7 @@ function ChoosePlanContent() {
 
             <div className="mb-6 mt-2">
               <h2 className="text-xl font-serif tracking-wider uppercase mb-2 flex items-center gap-2">
-                Aisle+
+                Stem+
                 <Star className="w-5 h-5 text-purple-500" />
               </h2>
 

@@ -107,7 +107,7 @@ function SubscriptionSuccessContent() {
 
         {/* Message */}
         <h1 className="text-3xl font-serif font-light tracking-wide text-warm-800 mb-3">
-          Welcome to Aisle
+          Welcome to Stem
         </h1>
         <p className="text-warm-600 mb-8 leading-relaxed">
           Your subscription is active! You now have unlimited access to your AI wedding planner 

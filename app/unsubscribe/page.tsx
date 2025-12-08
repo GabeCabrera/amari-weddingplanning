@@ -45,7 +45,7 @@ function UnsubscribeContent() {
     <div className="w-full max-w-md text-center">
       <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
       <h1 className="text-3xl font-serif font-light tracking-widest uppercase mb-2">
-        Aisle
+        Stem
       </h1>
       <div className="w-12 h-px bg-warm-400 mx-auto mt-6 mb-12" />
 
@@ -89,7 +89,7 @@ function UnsubscribeContent() {
             Invalid Link
           </h2>
           <p className="text-warm-600 mb-8">
-            This unsubscribe link is invalid or has expired. If you&apos;re still receiving unwanted emails, please contact us at hello@aisleboard.com.
+            This unsubscribe link is invalid or has expired. If you&apos;re still receiving unwanted emails, please contact us at hello@scribeandstem.com.
           </p>
           <Link
             href="/"
@@ -111,7 +111,7 @@ function UnsubscribeContent() {
             Something went wrong
           </h2>
           <p className="text-warm-600 mb-8">
-            We couldn&apos;t process your request. Please try again or contact us at hello@aisleboard.com.
+            We couldn&apos;t process your request. Please try again or contact us at hello@scribeandstem.com.
           </p>
           <Link
             href="/"
@@ -130,7 +130,7 @@ function LoadingFallback() {
     <div className="w-full max-w-md text-center">
       <div className="w-12 h-px bg-warm-400 mx-auto mb-6" />
       <h1 className="text-3xl font-serif font-light tracking-widest uppercase mb-2">
-        Aisle
+        Stem
       </h1>
       <div className="w-12 h-px bg-warm-400 mx-auto mt-6 mb-12" />
       <p className="text-warm-600 mb-4">Loading...</p>

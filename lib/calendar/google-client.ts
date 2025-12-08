@@ -147,7 +147,7 @@ export async function createWeddingCalendar(
   const { data: newCalendar } = await calendar.calendars.insert({
     requestBody: {
       summary: calendarName,
-      description: "Wedding planning calendar created by Aisle",
+      description: "Wedding planning calendar created by Stem",
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     },
   });

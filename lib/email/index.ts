@@ -13,9 +13,9 @@ function getResendClient(): Resend | null {
   return resend;
 }
 
-const FROM_EMAIL = "Aisle <hello@aisleboard.com>";
-const PERSONAL_FROM_EMAIL = "Gabe & Sarah <GabeandSarah@aisleboard.com>";
-const BASE_URL = process.env.NEXTAUTH_URL || "https://aisleboard.com";
+const FROM_EMAIL = "Stem <hello@scribeandstem.com>";
+const PERSONAL_FROM_EMAIL = "Gabe & Sarah <GabeandSarah@scribeandstem.com>";
+const BASE_URL = process.env.NEXTAUTH_URL || "https://scribeandstem.com";
 
 export type EmailTemplate = "welcome" | "why_29" | "tips_week_1" | "broadcast";
 
@@ -40,9 +40,9 @@ function getUnsubscribeFooter(unsubscribeToken: string) {
     <tr>
       <td style="padding: 20px 40px; background-color: #f5f3f0; border-top: 1px solid #e8e4df;">
         <p style="margin: 0; font-size: 11px; color: #9a8d7f; text-align: center; line-height: 1.6;">
-          You're receiving this because you signed up for wedding planning tips from Aisle.<br>
+          You're receiving this because you signed up for wedding planning tips from Stem.<br>
           <a href="${unsubscribeUrl}" style="color: #8b7355; text-decoration: underline;">Unsubscribe</a> · 
-          <a href="${BASE_URL}" style="color: #8b7355; text-decoration: none;">aisleboard.com</a>
+          <a href="${BASE_URL}" style="color: #8b7355; text-decoration: none;">scribeandstem.com</a>
         </p>
       </td>
     </tr>
@@ -57,7 +57,7 @@ function getWelcomeEmail(name: string, unsubscribeToken: string) {
   const firstName = name.split(" ")[0] || name;
   
   return {
-    subject: `Welcome to Aisle, ${firstName}! 💍`,
+    subject: `Welcome to Stem, ${firstName}! 💍`,
     html: `
 <!DOCTYPE html>
 <html>
@@ -75,7 +75,7 @@ function getWelcomeEmail(name: string, unsubscribeToken: string) {
             <td style="padding: 40px 40px 20px; text-align: center;">
               <div style="width: 60px; height: 1px; background-color: #c9b99a; margin: 0 auto 20px;"></div>
               <h1 style="margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 4px; text-transform: uppercase; color: #5c5147;">
-                AISLE
+                STEM
               </h1>
               <p style="margin: 8px 0 0; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #9a8d7f;">
                 Wedding Planner
@@ -91,7 +91,7 @@ function getWelcomeEmail(name: string, unsubscribeToken: string) {
               </h2>
               
               <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #6b6157;">
-                Congratulations on your engagement! We're so excited you've chosen Aisle to help plan your special day.
+                Congratulations on your engagement! We're so excited you've chosen Stem to help plan your special day.
               </p>
               
               <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #6b6157;">
@@ -150,7 +150,7 @@ function getWhy29Email(name: string, unsubscribeToken: string) {
             <td style="padding: 40px 40px 20px; text-align: center;">
               <div style="width: 60px; height: 1px; background-color: #c9b99a; margin: 0 auto 20px;"></div>
               <h1 style="margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 4px; text-transform: uppercase; color: #5c5147;">
-                AISLE
+                STEM
               </h1>
             </td>
           </tr>
@@ -182,7 +182,7 @@ function getWhy29Email(name: string, unsubscribeToken: string) {
               </ul>
               
               <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.7; color: #6b6157;">
-                <strong style="color: #5c5147;">With Aisle's $29 Complete plan, you get:</strong>
+                <strong style="color: #5c5147;">With Stem's $29 Complete plan, you get:</strong>
               </p>
               
               <ul style="margin: 0 0 24px; padding-left: 20px; font-size: 16px; line-height: 1.8; color: #6b6157;">
@@ -194,12 +194,12 @@ function getWhy29Email(name: string, unsubscribeToken: string) {
               </ul>
               
               <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.7; color: #6b6157;">
-                Think of it this way: $29 is about the cost of one dinner out. And you'll use Aisle for 12-18 months of planning.
+                Think of it this way: $29 is about the cost of one dinner out. And you'll use Stem for 12-18 months of planning.
               </p>
               
               <div style="background-color: #faf9f7; padding: 24px; margin: 30px 0; border-left: 3px solid #c9b99a;">
                 <p style="margin: 0; font-size: 16px; line-height: 1.7; color: #6b6157; font-style: italic;">
-                  "We built Aisle because we're planning our own wedding and got tired of the chaos. The $29 keeps us independent — no investors pushing us to sell your info."
+                  "We built Stem because we're planning our own wedding and got tired of the chaos. The $29 keeps us independent — no investors pushing us to sell your info."
                 </p>
                 <p style="margin: 12px 0 0; font-size: 14px; color: #9a8d7f;">
                   — Sarah & Gabe, founders
@@ -237,7 +237,7 @@ function getTipsWeek1Email(name: string, unsubscribeToken: string) {
   const firstName = name.split(" ")[0] || name;
   
   return {
-    subject: "Your first week with Aisle — 3 quick wins",
+    subject: "Your first week with Stem — 3 quick wins",
     html: `
 <!DOCTYPE html>
 <html>
@@ -255,7 +255,7 @@ function getTipsWeek1Email(name: string, unsubscribeToken: string) {
             <td style="padding: 40px 40px 20px; text-align: center;">
               <div style="width: 60px; height: 1px; background-color: #c9b99a; margin: 0 auto 20px;"></div>
               <h1 style="margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 4px; text-transform: uppercase; color: #5c5147;">
-                AISLE
+                STEM
               </h1>
             </td>
           </tr>
@@ -268,7 +268,7 @@ function getTipsWeek1Email(name: string, unsubscribeToken: string) {
               </h2>
               
               <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.7; color: #6b6157;">
-                Hey ${firstName}! Here are three things successful couples do in their first week with Aisle:
+                Hey ${firstName}! Here are three things successful couples do in their first week with Stem:
               </p>
               
               <!-- Tip 1 -->
@@ -346,17 +346,13 @@ function getBroadcastEmail(name: string, unsubscribeToken: string, subject: stri
             <td style="padding: 40px 40px 20px; text-align: center;">
               <div style="width: 60px; height: 1px; background-color: #c9b99a; margin: 0 auto 20px;"></div>
               <h1 style="margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 4px; text-transform: uppercase; color: #5c5147;">
-                AISLE
+                STEM
               </h1>
             </td>
           </tr>
           
           <!-- Content -->
           <tr>
-            <td style="padding: 20px 40px 40px;">
-              <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.7; color: #6b6157;">
-                Hey ${firstName},
-              </p>
               
               <div style="font-size: 16px; line-height: 1.7; color: #6b6157;">
                 ${content.split('\n').map(p => `<p style="margin: 0 0 16px;">${p}</p>`).join('')}
@@ -485,7 +481,7 @@ export async function sendDirectEmail({ to, subject, content, replyTo }: SendDir
               
               <p style="margin: 30px 0 0; font-size: 14px; line-height: 1.6; color: #9a8d7f;">
                 — Gabe & Sarah<br>
-                <a href="${BASE_URL}" style="color: #8b7355;">aisleboard.com</a>
+                <a href="${BASE_URL}" style="color: #8b7355;">scribeandstem.com</a>
               </p>
             </td>
           </tr>
@@ -503,7 +499,7 @@ export async function sendDirectEmail({ to, subject, content, replyTo }: SendDir
       to,
       subject,
       html,
-      replyTo: replyTo || "GabeandSarah@aisleboard.com",
+      replyTo: replyTo || "GabeandSarah@scribeandstem.com",
     });
 
     return { success: true, id: result.data?.id };

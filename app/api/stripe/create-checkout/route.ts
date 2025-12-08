@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: "usd",
             product_data: {
-              name: "Aisle Complete" + discountDescription,
+              name: "Stem Complete" + discountDescription,
               description: "Lifetime access to the complete wedding planner",
             },
             unit_amount: finalPrice,

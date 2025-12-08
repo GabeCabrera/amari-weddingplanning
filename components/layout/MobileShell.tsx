@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useBrowser, getToolById, tools, AisleLogo } from "./browser-context";
+import { useBrowser, getToolById, tools, StemLogo } from "./browser-context";
 import { ChevronLeft, ChevronRight, Home, Layers, MoreHorizontal, X, Plus, Code } from "lucide-react";
 import { ToolContent } from "./shared-components";
 import { MobileTabSwitcher } from "./MobileTabSwitcher";
@@ -131,7 +131,7 @@ function BottomNavBar() {
         }`}
       >
         {activeTab?.type === "chat" ? (
-          <AisleLogo size={24} className="text-rose-500" />
+          <StemLogo size={24} className="text-rose-500" />
         ) : (
           <Home className="w-6 h-6 text-stone-600" />
         )}
@@ -182,7 +182,7 @@ function MobileAddressBar() {
         background: "linear-gradient(135deg, #F5F5F4 0%, #E7E5E4 100%)",
       }}
     >
-      {activeTab?.type === "chat" && <AisleLogo size={16} className="text-rose-400" />}
+      {activeTab?.type === "chat" && <StemLogo size={16} className="text-rose-400" />}
       {activeTab?.type === "tool" && tool && (
         <div
           className="w-4 h-4 rounded flex items-center justify-center"
@@ -193,10 +193,10 @@ function MobileAddressBar() {
       )}
       {activeTab?.type === "artifact" && <Code className="w-4 h-4 text-emerald-500" />}
       <span className="text-sm text-stone-500 truncate flex-1">
-        {activeTab?.type === "chat" && "aisle://chat"}
-        {activeTab?.type === "tool" && `aisle://${activeTab.toolId}`}
+        {activeTab?.type === "chat" && "stem://chat"}
+        {activeTab?.type === "tool" && `stem://${activeTab.toolId}`}
         {activeTab?.type === "artifact" &&
-          `aisle://widget/${activeTab.title.toLowerCase().replace(/\s+/g, "-")}`}
+          `stem://widget/${activeTab.title.toLowerCase().replace(/\s+/g, "-")}`}
       </span>
     </div>
   );

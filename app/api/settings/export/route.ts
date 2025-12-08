@@ -41,7 +41,7 @@ export async function GET() {
     return new NextResponse(JSON.stringify(exportData, null, 2), {
       headers: {
         "Content-Type": "application/json",
-        "Content-Disposition": `attachment; filename="aisle-export-${new Date().toISOString().split("T")[0]}.json"`,
+        "Content-Disposition": `attachment; filename="stem-export-${new Date().toISOString().split("T")[0]}.json"`,
       },
     });
   } catch (error) {

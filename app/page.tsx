@@ -48,7 +48,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background text-foreground overflow-hidden selection:bg-primary selection:text-white">
       {/* Navigation */}
       <nav className="w-full px-6 py-6 flex justify-between items-center max-w-7xl mx-auto">
-        <div className="font-serif text-2xl font-medium tracking-tight">Aisle</div>
+        <div className="font-serif text-2xl font-medium tracking-tight">Stem</div>
         <div className="flex gap-4">
           <Link href="/login">
             <Button variant="ghost" className="hover:bg-transparent hover:text-primary transition-colors">
@@ -83,7 +83,7 @@ export default function LandingPage() {
           </motion.h1>
           
           <motion.p variants={item} className="text-xl md:text-2xl text-muted-foreground max-w-2xl mb-12 font-light leading-relaxed">
-            Aisle isn't just a checklist. It's an intelligent operating system for your wedding that manages your budget, guests, and sanity.
+            Stem isn't just a checklist. It's an intelligent operating system for your wedding that manages your budget, guests, and sanity.
           </motion.p>
 
           <motion.div variants={item} className="flex flex-col sm:flex-row gap-4">

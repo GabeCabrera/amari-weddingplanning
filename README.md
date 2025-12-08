@@ -1,10 +1,10 @@
-# Aisle - Wedding Planning SaaS
+# Stem - Wedding Planning SaaS
 
 A beautiful, minimalist wedding planning platform where each couple gets their own personalized subdomain.
 
 ## Features
 
-- **Multi-tenant architecture**: Each couple gets `{names}.aisle.wedding`
+- **Multi-tenant architecture**: Each couple gets `{names}.stem.wedding`
 - **Personalized onboarding**: Typewriter-style welcome experience
 - **Template marketplace**: Choose from curated planning templates
 - **Drag-and-drop pages**: Reorganize your planner however you like
@@ -34,7 +34,7 @@ A beautiful, minimalist wedding planning platform where each couple gets their o
 1. Clone the repository:
    ```bash
    git clone <repo-url>
-   cd aisle
+   cd stem
    ```
 
 2. Install dependencies:
@@ -139,9 +139,9 @@ Then visit `http://sarahandgabe.localhost:3000`
 
 For production with custom subdomains:
 
-1. Add a wildcard DNS record: `*.aisle.wedding` → Vercel
+1. Add a wildcard DNS record: `*.stem.wedding` → Vercel
 2. Configure the domain in Vercel dashboard
-3. Update `NEXTAUTH_URL` to `https://aisle.wedding`
+3. Update `NEXTAUTH_URL` to `https://stem.wedding`
 
 ## Development Commands
 

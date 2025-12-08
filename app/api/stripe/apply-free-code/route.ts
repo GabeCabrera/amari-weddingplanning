@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Free membership activated! Enjoy unlimited access to Aisle.",
+      message: "Free membership activated! Enjoy unlimited access to Stem.",
     });
   } catch (error) {
     console.error("Apply free code error:", error);

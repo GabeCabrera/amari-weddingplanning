@@ -17,6 +17,7 @@ declare module "next-auth" {
       tenantId: string;
       tenantSlug: string;
       mustChangePassword: boolean;
+      onboardingComplete: boolean;
     };
   }
 
@@ -27,6 +28,7 @@ declare module "next-auth" {
     tenantId: string;
     tenantSlug: string;
     mustChangePassword: boolean;
+    onboardingComplete: boolean;
   }
 }
 
@@ -36,6 +38,7 @@ declare module "next-auth/jwt" {
     tenantId: string;
     tenantSlug: string;
     mustChangePassword: boolean;
+    onboardingComplete: boolean;
   }
 }
 
@@ -109,6 +112,7 @@ export const authOptions: NextAuthOptions = {
           tenantId: user.tenantId,
           tenantSlug: tenant.slug,
           mustChangePassword: user.mustChangePassword,
+          onboardingComplete: tenant.onboardingComplete ?? false,
         };
       },
     }),
@@ -217,6 +221,7 @@ export const authOptions: NextAuthOptions = {
             token.tenantId = dbUser.tenantId;
             token.tenantSlug = tenant?.slug ?? "";
             token.mustChangePassword = false;
+            token.onboardingComplete = tenant?.onboardingComplete ?? false;
           }
         } else {
           // Credentials login
@@ -224,6 +229,7 @@ export const authOptions: NextAuthOptions = {
           token.tenantId = user.tenantId;
           token.tenantSlug = user.tenantSlug;
           token.mustChangePassword = user.mustChangePassword;
+          token.onboardingComplete = user.onboardingComplete;
         }
       }
 
@@ -231,6 +237,10 @@ export const authOptions: NextAuthOptions = {
       if (trigger === "update" && session) {
         token.mustChangePassword =
           session.mustChangePassword ?? token.mustChangePassword;
+        // Also update onboarding status if passed
+        if (session.onboardingComplete !== undefined) {
+          token.onboardingComplete = session.onboardingComplete;
+        }
       }
 
       return token;
@@ -244,6 +254,7 @@ export const authOptions: NextAuthOptions = {
         tenantId: token.tenantId,
         tenantSlug: token.tenantSlug,
         mustChangePassword: token.mustChangePassword,
+        onboardingComplete: token.onboardingComplete,
       };
       return session;
     },

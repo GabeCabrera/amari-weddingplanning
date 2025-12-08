@@ -159,7 +159,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-primary" />
         
         <div className="relative z-10 max-w-lg text-primary-foreground text-center space-y-6">
-          <h2 className="font-serif text-5xl md:text-6xl leading-tight">
+          <h2 className="font-serif text-5xl md:text-6xl leading-tight text-primary-foreground">
             "Love is composed of a single soul inhabiting two bodies."
           </h2>
           <p className="font-sans text-lg opacity-80 font-light tracking-wide uppercase">— Aristotle</p>

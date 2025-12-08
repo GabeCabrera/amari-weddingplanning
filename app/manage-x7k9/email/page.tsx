@@ -205,8 +205,8 @@ export default function EmailManagementPage() {
             <AtSign className="w-5 h-5 text-warm-400" />
             Direct Email
           </h2>
-          <p className="text-sm text-warm-500 mt-1">
-            Send from <span className="font-medium text-warm-700">GabeandSarah@aisleboard.com</span> — for business outreach, partnerships, etc.
+          <p className="text-sm text-muted-foreground mb-4">
+            Send from <span className="font-medium text-warm-700">GabeandSarah@scribeandstem.com</span> — for business outreach, partnerships, etc.
           </p>
         </div>
         

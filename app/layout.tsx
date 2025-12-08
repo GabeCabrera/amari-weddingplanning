@@ -22,8 +22,8 @@ export const metadata: Metadata = {
   },
   keywords: [
     'AI wedding planner',
-    'Aisle AI',
-    'Aisle wedding planner',
+    'Scribe & Stem AI',
+    'Stem wedding planner',
     'wedding planning AI',
     'AI wedding assistant',
     'wedding planner chatbot',
