@@ -1614,28 +1614,29 @@ async function deleteVendor(
     const searchName = (params.vendorName as string).toLowerCase();
     const searchCategory = params.category ? (params.category as string).toLowerCase() : null;
 
-    // Filter candidates first
-    let candidates = vendors.map((v, i) => ({ ...v, originalIndex: i }));
+    // Map to preserve original indices
+    const candidates = vendors.map((v, i) => ({ vendor: v, index: i }));
     
-    if (searchCategory) {
-      candidates = candidates.filter(v => (v.category as string)?.toLowerCase() === searchCategory);
-    }
+    // Filter by category if provided
+    const filteredCandidates = searchCategory
+      ? candidates.filter(({ vendor }) => (vendor.category as string)?.toLowerCase() === searchCategory)
+      : candidates;
 
     // Try exact match first
-    let match = candidates.find(v => (v.name as string)?.toLowerCase() === searchName);
+    let match = filteredCandidates.find(({ vendor }) => (vendor.name as string)?.toLowerCase() === searchName);
     
     // If no exact match, try partial match
     if (!match) {
-      match = candidates.find(v => (v.name as string)?.toLowerCase().includes(searchName));
+      match = filteredCandidates.find(({ vendor }) => (vendor.name as string)?.toLowerCase().includes(searchName));
     }
 
     if (!match) {
        return { success: false, message: `Vendor "${params.vendorName}" not found` };
     }
 
-    // We found a match, delete it using the original index or ID
-    const deletedVendor = vendors[match.originalIndex];
-    vendors.splice(match.originalIndex, 1);
+    // We found a match, delete it using the original index
+    const deletedVendor = vendors[match.index];
+    vendors.splice(match.index, 1);
 
     await db.update(pages)
       .set({ fields: { ...fields, vendors }, updatedAt: new Date() })
