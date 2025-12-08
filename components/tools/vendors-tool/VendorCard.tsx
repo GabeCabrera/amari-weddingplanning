@@ -95,10 +95,23 @@ export default function VendorCard({ vendor }: { vendor: Vendor }) {
     }
   };
 
+  // Map text colors to background colors
+  const getBgClass = (textColor: string) => {
+    if (textColor.includes("text-primary")) return "bg-primary/10";
+    if (textColor.includes("text-secondary")) return "bg-secondary/10";
+    if (textColor.includes("text-blue")) return "bg-blue-100";
+    if (textColor.includes("text-destructive")) return "bg-destructive/10";
+    if (textColor.includes("text-green")) return "bg-green-100";
+    if (textColor.includes("text-yellow")) return "bg-yellow-100";
+    if (textColor.includes("text-red")) return "bg-red-100";
+    if (textColor.includes("text-purple")) return "bg-purple-100";
+    return "bg-muted/10";
+  };
+
   return (
     <Card className="rounded-3xl shadow-soft h-full flex flex-col hover:shadow-medium hover:translate-y-[-2px] transition-all duration-300">
       <CardHeader className="flex flex-row items-center space-x-4 p-4 border-b border-border/70">
-        <div className={cn("w-12 h-12 rounded-full flex items-center justify-center shrink-0", config.colorClass === "text-primary" && "bg-primary/10", config.colorClass === "text-secondary" && "bg-secondary/10", config.colorClass === "text-blue-500" && "bg-blue-100", config.colorClass === "text-destructive" && "bg-destructive/10", config.colorClass === "text-green-500" && "bg-green-100", config.colorClass === "text-yellow-500" && "bg-yellow-100", config.colorClass === "text-primary-foreground" && "bg-primary/10", config.colorClass === "text-red-500" && "bg-red-100", config.colorClass === "text-secondary-foreground" && "bg-secondary/10", config.colorClass === "text-blue-600" && "bg-blue-100", config.colorClass === "text-green-600" && "bg-green-100", config.colorClass === "text-purple-500" && "bg-purple-100", config.colorClass === "text-muted-foreground" && "bg-muted/10")}>
+        <div className={cn("w-12 h-12 rounded-full flex items-center justify-center shrink-0", getBgClass(config.colorClass))}>
           <IconComponent className={cn("h-6 w-6", config.colorClass)} />
         </div>
         <div className="flex-1">
