@@ -2271,8 +2271,8 @@ async function analyzePlanningGaps(
 
   // Calculate days until wedding
   const weddingDate = kernel?.weddingDate;
-  const daysUntil = weddingDate 
-    ? Math.ceil((new Date(weddingDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+  const daysUntil = weddingDate?.getTime()
+    ? Math.ceil((weddingDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null;
 
   // Analyze gaps
