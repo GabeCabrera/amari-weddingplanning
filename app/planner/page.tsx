@@ -28,10 +28,6 @@ export default function ChatPage() {
   const { tabs, activeTabId } = useBrowser();
   const activeTab = tabs.find(tab => tab.id === activeTabId);
 
-  console.log("Current activeTabId:", activeTabId);
-  console.log("Active Tab:", activeTab);
-  console.log("Active Tab Title:", activeTab?.title);
-
   // Map titles to components
   // Note: These keys must match the 'label' in browser-context.tsx tools definition
   // or the title set when opening a tab.
@@ -53,7 +49,6 @@ export default function ChatPage() {
   };
 
   const ResolvedComponent = activeTab?.title ? toolComponents[activeTab.title] : null;
-  console.log("Resolved Component from map:", ResolvedComponent);
 
   // Fallback to Dashboard if tool not found
   const ActiveTool = ResolvedComponent || DashboardTool;
