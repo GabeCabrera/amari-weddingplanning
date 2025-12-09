@@ -2569,24 +2569,40 @@ async function analyzePlanningGaps(
   // Build summary message
   let message = "";
   if (daysUntil !== null) {
-    message = `**${daysUntil} days until your wedding!**\n\n`;
+    message = `# ${daysUntil} Days Until Your Wedding\n\n`;
   }
 
   if (gaps.length === 0 && warnings.length === 0) {
-    message += "You're in great shape! All the essentials are covered. ";
+    message += "**You're in great shape! All the essentials are covered.** 🎉\n\n";
   } else {
     const highPriorityGaps = gaps.filter(g => g.priority === "high");
     if (highPriorityGaps.length > 0) {
-      message += `**${highPriorityGaps.length} high-priority item${highPriorityGaps.length > 1 ? "s" : ""} to address:**\n`;
+      message += `### 🚨 High Priority Actions (${highPriorityGaps.length})\n`;
       highPriorityGaps.forEach(g => {
-        message += `• ${g.issue}\n`;
+        message += `- **${g.issue}**: ${g.suggestion}\n`;
       });
       message += "\n";
+    }
+
+    const mediumPriorityGaps = gaps.filter(g => g.priority === "medium");
+    if (mediumPriorityGaps.length > 0) {
+        message += `### ⚠️ Upcoming Tasks\n`;
+        mediumPriorityGaps.forEach(g => {
+            message += `- ${g.issue}\n`;
+        });
+        message += "\n";
+    }
+
+    if (warnings.length > 0) {
+        message += `### ⚠️ Alerts\n`;
+        warnings.forEach(w => message += `- ${w}\n`);
+        message += "\n";
     }
   }
 
   if (wins.length > 0) {
-    message += `**What's going well:** ${wins.join(", ")}`;
+    message += `### ✅ What's Going Well\n`;
+    wins.forEach(w => message += `- ${w}\n`);
   }
 
   return {
