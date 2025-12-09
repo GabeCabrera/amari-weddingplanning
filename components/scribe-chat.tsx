@@ -299,10 +299,9 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe", va
               </div>
             ) : messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center px-4 py-12 max-w-xl mx-auto">
-                <div className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center mb-6">
-                  <span className="text-stone-400 font-serif italic text-2xl">S</span>
-                </div>
                 <h3 className="text-2xl font-serif text-stone-900 mb-3">
+                  Hello{coupleNames ? `, ${coupleNames.split("&")[0]?.trim()}` : ""}
+                </h3>
                   Hello{coupleNames ? `, ${coupleNames.split("&")[0]?.trim()}` : ""}
                 </h3>
                 <p className="text-stone-500 text-base leading-relaxed mb-12">
