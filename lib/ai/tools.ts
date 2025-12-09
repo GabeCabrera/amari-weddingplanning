@@ -473,6 +473,33 @@ export const tools: ToolDefinition[] = [
   // CALENDAR / TIMELINE TOOLS
   // ----------------------------------------
   {
+    name: "get_calendar_events",
+    description: "Get a list of calendar events. Can filter by date range or category.",
+    parameters: {
+      type: "object",
+      properties: {
+        startDate: {
+          type: "string",
+          description: "Start date (YYYY-MM-DD). Defaults to today if not provided."
+        },
+        endDate: {
+          type: "string",
+          description: "End date (YYYY-MM-DD). Defaults to 30 days from start if not provided."
+        },
+        category: {
+          type: "string",
+          description: "Filter by category",
+          enum: ["vendor_meeting", "deadline", "appointment", "tasting", "fitting", "milestone", "other"]
+        },
+        limit: {
+          type: "number",
+          description: "Max number of events to return (default 50)"
+        }
+      },
+      required: []
+    }
+  },
+  {
     name: "add_event",
     description: "Add an event to the wedding calendar (appointments, deadlines, tasks).",
     parameters: {
@@ -501,7 +528,7 @@ export const tools: ToolDefinition[] = [
         category: {
           type: "string",
           description: "Type of event",
-          enum: ["vendor_meeting", "deadline", "appointment", "tasting", "fitting", "other"]
+          enum: ["vendor_meeting", "deadline", "appointment", "tasting", "fitting", "milestone", "other"]
         },
         notes: {
           type: "string",
@@ -509,6 +536,75 @@ export const tools: ToolDefinition[] = [
         }
       },
       required: ["title", "date"]
+    }
+  },
+  {
+    name: "update_event",
+    description: "Update an existing calendar event. Can identify event by ID or title.",
+    parameters: {
+      type: "object",
+      properties: {
+        eventId: {
+          type: "string",
+          description: "The ID of the event to update"
+        },
+        title: {
+          type: "string",
+          description: "Title to search for if ID is unknown"
+        },
+        newTitle: {
+          type: "string",
+          description: "New title for the event"
+        },
+        date: {
+          type: "string",
+          description: "New date (YYYY-MM-DD)"
+        },
+        time: {
+          type: "string",
+          description: "New start time (HH:MM)"
+        },
+        endTime: {
+          type: "string",
+          description: "New end time (HH:MM)"
+        },
+        location: {
+          type: "string",
+          description: "New location"
+        },
+        category: {
+          type: "string",
+          description: "New category",
+          enum: ["vendor_meeting", "deadline", "appointment", "tasting", "fitting", "milestone", "other"]
+        },
+        notes: {
+          type: "string",
+          description: "New notes"
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: "delete_event",
+    description: "Delete a calendar event. Can identify event by ID or title.",
+    parameters: {
+      type: "object",
+      properties: {
+        eventId: {
+          type: "string",
+          description: "The ID of the event to delete"
+        },
+        title: {
+          type: "string",
+          description: "Title to search for if ID is unknown"
+        },
+        date: {
+          type: "string",
+          description: "Date of the event to help disambiguate (YYYY-MM-DD)"
+        }
+      },
+      required: []
     }
   },
   {

@@ -7,6 +7,11 @@
 
 import { db } from "@/lib/db";
 import {
+  getCalendarEventsByTenantId,
+  updateCalendarEvent,
+  deleteCalendarEvent,
+} from "@/lib/db/queries";
+import {
   weddingKernels,
   pages,
   planners,
@@ -18,7 +23,8 @@ import {
   palettes,
   sparks,
   knowledgeBase,
-  weddingDecisions
+  weddingDecisions,
+  type CalendarEvent
 } from "@/lib/db/schema";
 import { eq, and, sql, desc, like, or } from "drizzle-orm";
 
@@ -89,8 +95,14 @@ export async function executeToolCall(
         return await getRsvpResponses(parameters, context);
 
       // Calendar tools
+      case "get_calendar_events":
+        return await getCalendarEvents(parameters, context);
       case "add_event":
         return await addEvent(parameters, context);
+      case "update_event":
+        return await updateEvent(parameters, context);
+      case "delete_event":
+        return await deleteEvent(parameters, context);
       case "add_day_of_event":
         return await addDayOfEvent(parameters, context);
 
@@ -1319,6 +1331,81 @@ async function getRsvpResponses(
 // CALENDAR TOOLS
 // ============================================================================ 
 
+async function getCalendarEvents(
+  params: Record<string, unknown>,
+  context: ToolContext
+): Promise<ToolResult> {
+  const events = await getCalendarEventsByTenantId(context.tenantId);
+  
+  let filtered = events;
+  const now = new Date();
+
+  // Date Filtering
+  if (params.startDate) {
+    const start = new Date(params.startDate as string);
+    if (!isNaN(start.getTime())) {
+      filtered = filtered.filter(e => e.startTime >= start);
+    }
+  } else {
+    // Default to showing upcoming events from today if no specific range given, 
+    // unless user asked for "past" events (which we can infer if endDate is in past, but simpler to just default to >= today)
+    // actually, let's just default to >= today for "upcoming" context unless range specified
+    // If endDate is provided but not startDate, assume range is -infinity to endDate? No, usually means "until X".
+    // Let's stick to: if no start date, show from today.
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    filtered = filtered.filter(e => e.startTime >= today);
+  }
+
+  if (params.endDate) {
+    const end = new Date(params.endDate as string);
+    if (!isNaN(end.getTime())) {
+      // Include the whole end date
+      end.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(e => e.startTime <= end);
+    }
+  } else if (!params.startDate) {
+    // If no range specified at all, default to next 30 days to avoid overwhelming
+    const nextMonth = new Date();
+    nextMonth.setDate(nextMonth.getDate() + 30);
+    filtered = filtered.filter(e => e.startTime <= nextMonth);
+  }
+
+  // Category Filtering
+  if (params.category) {
+    const cat = (params.category as string).toLowerCase();
+    filtered = filtered.filter(e => e.category.toLowerCase() === cat);
+  }
+
+  // Limit
+  if (params.limit) {
+    filtered = filtered.slice(0, params.limit as number);
+  } else {
+    filtered = filtered.slice(0, 50); // Safe default
+  }
+
+  if (filtered.length === 0) {
+    return {
+      success: true,
+      message: "No upcoming events found for the specified criteria.",
+      data: []
+    };
+  }
+
+  // Format for chat
+  const eventList = filtered.map(e => {
+    const dateStr = e.startTime.toLocaleDateString("en-US", { weekday: 'short', month: 'short', day: 'numeric' });
+    const timeStr = e.allDay ? "All Day" : e.startTime.toLocaleTimeString("en-US", { hour: 'numeric', minute: '2-digit' });
+    return `• **${e.title}**: ${dateStr} at ${timeStr}${e.location ? ` (${e.location})` : ""}`;
+  }).join("\n");
+
+  return {
+    success: true,
+    message: `Here are your upcoming events:\n\n${eventList}`,
+    data: filtered
+  };
+}
+
 async function addEvent(
   params: Record<string, unknown>,
   context: ToolContext
@@ -1375,10 +1462,128 @@ async function addEvent(
   }
 }
 
+async function updateEvent(
+  params: Record<string, unknown>,
+  context: ToolContext
+): Promise<ToolResult> {
+  const events = await getCalendarEventsByTenantId(context.tenantId);
+  let targetEvent: CalendarEvent | undefined;
+
+  if (params.eventId) {
+    targetEvent = events.find(e => e.id === params.eventId);
+  } else if (params.title) {
+    const searchTitle = (params.title as string).toLowerCase();
+    targetEvent = events.find(e => e.title.toLowerCase().includes(searchTitle));
+  }
+
+  if (!targetEvent) {
+    return { success: false, message: "Event not found. Please provide a valid ID or title." };
+  }
+
+  const updates: Partial<CalendarEvent> = {};
+  let message = `Updated "${targetEvent.title}":`;
+
+  if (params.newTitle) {
+    updates.title = params.newTitle as string;
+    message += ` title changed to "${params.newTitle}"`;
+  }
+
+  // Handle date/time updates
+  const newDate = (params.date as string) || targetEvent.startTime.toISOString().split('T')[0];
+  
+  // If time provided, update time. If not, keep existing time.
+  // Need to extract existing time carefully.
+  let newTimeStr = "12:00";
+  if (params.time) {
+    newTimeStr = String(params.time).trim();
+  } else {
+    newTimeStr = targetEvent.startTime.toLocaleTimeString("en-US", { hour12: false, hour: '2-digit', minute: '2-digit' });
+    // Handle single digit hour edge case from toLocaleTimeString if locale varies, but usually HH:MM
+    if (newTimeStr.length === 4) newTimeStr = "0" + newTimeStr; 
+  }
+
+  if (params.date || params.time) {
+    const startDateTimeStr = `${newDate}T${newTimeStr.length === 5 ? newTimeStr : "12:00"}:00`;
+    const newStart = new Date(startDateTimeStr);
+    if (!isNaN(newStart.getTime())) {
+      updates.startTime = newStart;
+      message += `, moved to ${newDate} at ${newTimeStr}`;
+    }
+  }
+
+  if (params.location) {
+    updates.location = params.location as string;
+    message += `, location set to ${params.location}`;
+  }
+  if (params.category) {
+    updates.category = params.category as string;
+    message += `, category set to ${params.category}`;
+  }
+  if (params.notes) {
+    updates.description = params.notes as string;
+    message += `, notes updated`;
+  }
+
+  await updateCalendarEvent(targetEvent.id, context.tenantId, updates);
+
+  return {
+    success: true,
+    message,
+    data: { ...targetEvent, ...updates }
+  };
+}
+
+async function deleteEvent(
+  params: Record<string, unknown>,
+  context: ToolContext
+): Promise<ToolResult> {
+  const events = await getCalendarEventsByTenantId(context.tenantId);
+  let targetEvent: CalendarEvent | undefined;
+
+  if (params.eventId) {
+    targetEvent = events.find(e => e.id === params.eventId);
+  } else if (params.title) {
+    const searchTitle = (params.title as string).toLowerCase();
+    const searchDate = params.date ? new Date(params.date as string) : null;
+
+    // Filter matches
+    const matches = events.filter(e => e.title.toLowerCase().includes(searchTitle));
+    
+    if (matches.length === 1) {
+      targetEvent = matches[0];
+    } else if (matches.length > 1 && searchDate && !isNaN(searchDate.getTime())) {
+      // Disambiguate by date
+      targetEvent = matches.find(e => 
+        e.startTime.getFullYear() === searchDate.getFullYear() &&
+        e.startTime.getMonth() === searchDate.getMonth() &&
+        e.startTime.getDate() === searchDate.getDate()
+      );
+    } else if (matches.length > 1) {
+      return { 
+        success: false, 
+        message: `Found multiple events matching "${params.title}". Please specify the date to delete the correct one.` 
+      };
+    }
+  }
+
+  if (!targetEvent) {
+    return { success: false, message: "Event not found." };
+  }
+
+  await deleteCalendarEvent(targetEvent.id, context.tenantId);
+
+  return {
+    success: true,
+    message: `Deleted event: "${targetEvent.title}"`,
+    data: targetEvent
+  };
+}
+
 async function addDayOfEvent(
   params: Record<string, unknown>,
   context: ToolContext
 ): Promise<ToolResult> {
+
   const { pageId, fields } = await getOrCreatePage(context.tenantId, "day-of-schedule");
   
   const events = (fields.events as Array<Record<string, unknown>>) || [];
