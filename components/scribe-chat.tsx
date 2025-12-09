@@ -360,22 +360,23 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe", va
                           : "text-stone-800 px-0 py-1"
                       }`}
                     >
-                      <ReactMarkdown 
-                        remarkPlugins={[remarkGfm]}
-                        className={`prose prose-stone prose-sm max-w-none ${
+                      <div className={`prose prose-stone prose-sm max-w-none ${
                           msg.role === "user" ? "prose-p:my-0" : ""
-                        }`}
-                        components={{
-                          // Override paragraph to avoid double wrapping if needed, or style specific elements
-                          p: ({node, ...props}) => <p className="leading-relaxed mb-3 last:mb-0" {...props} />,
-                          ul: ({node, ...props}) => <ul className="my-3 list-disc list-outside pl-4" {...props} />,
-                          ol: ({node, ...props}) => <ol className="my-3 list-decimal list-outside pl-4" {...props} />,
-                          li: ({node, ...props}) => <li className="mb-1" {...props} />,
-                          a: ({node, ...props}) => <a className="text-blue-600 hover:underline" {...props} />,
-                        }}
-                      >
-                        {msg.content}
-                      </ReactMarkdown>
+                        }`}>
+                        <ReactMarkdown 
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            // Override paragraph to avoid double wrapping if needed, or style specific elements
+                            p: ({node, ...props}) => <p className="leading-relaxed mb-3 last:mb-0" {...props} />,
+                            ul: ({node, ...props}) => <ul className="my-3 list-disc list-outside pl-4" {...props} />,
+                            ol: ({node, ...props}) => <ol className="my-3 list-decimal list-outside pl-4" {...props} />,
+                            li: ({node, ...props}) => <li className="mb-1" {...props} />,
+                            a: ({node, ...props}) => <a className="text-blue-600 hover:underline" {...props} />,
+                          }}
+                        >
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
                     </div>
                   </div>
                 ))}
