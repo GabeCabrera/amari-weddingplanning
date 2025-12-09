@@ -1092,6 +1092,24 @@ export const tools: ToolDefinition[] = [
     }
   },
   {
+    name: "update_checklist_item",
+    description: "Toggle the status of a checklist item (decision) directly. Use when user clicks a checkbox or says 'check/uncheck X'.",
+    parameters: {
+      type: "object",
+      properties: {
+        decisionName: {
+          type: "string",
+          description: "The decision/item name"
+        },
+        isChecked: {
+          type: "boolean",
+          description: "Whether it should be marked as done (true) or not started (false)"
+        }
+      },
+      required: ["decisionName", "isChecked"]
+    }
+  },
+  {
     name: "show_checklist",
     description: "Show the wedding planning checklist with all decisions and their status.",
     parameters: {

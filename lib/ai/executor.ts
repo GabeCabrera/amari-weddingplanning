@@ -129,6 +129,8 @@ export async function executeToolCall(
         return await handleUpdateDecision(parameters, context);
       case "mark_decision_complete":
         return await handleMarkDecisionComplete(parameters, context);
+      case "update_checklist_item":
+        return await handleUpdateChecklistItem(parameters, context);
       case "lock_decision":
         return await handleLockDecision(parameters, context);
       case "skip_decision":
@@ -2362,6 +2364,35 @@ async function handleMarkDecisionComplete(
   );
 
   return { success: result.success, message: result.message };
+}
+
+async function handleUpdateChecklistItem(
+  params: Record<string, unknown>,
+  context: ToolContext
+): Promise<ToolResult> {
+  await initializeDecisionsForTenant(context.tenantId);
+
+  const isChecked = params.isChecked as boolean;
+  const status = isChecked ? "decided" : "not_started";
+
+  const result = await updateDecisionFn(
+    context.tenantId,
+    params.decisionName as string,
+    {
+      status
+    }
+  );
+
+  // If unchecking, we might want to clear the choice name/amount if it was just a simple check-off
+  // But for now, we'll just change the status. 
+  // If the user wants to "reset" the decision fully, they might need a different action, 
+  // but "unchecking" usually just means "I haven't done it yet".
+
+  return { 
+    success: result.success, 
+    message: result.message,
+    data: { status, decisionName: params.decisionName }
+  };
 }
 
 async function handleLockDecision(

@@ -15,7 +15,7 @@ export interface WeddingKernel {
   budgetTotal?: number;
   vibe?: string[];
   formality?: string;
-  colorBoard?: string[];
+  colorPalette?: string[];
   priorities?: string[];
   stressors?: string[];
   biggestConcern?: string;
