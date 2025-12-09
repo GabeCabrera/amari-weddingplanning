@@ -138,34 +138,33 @@ export default function RootLayout({
               '@context': 'https://schema.org',
               '@type': 'SoftwareApplication',
               name: 'Scribe & Stem',
-              alternateName: 'Scribe & Stem AI Wedding Planner',
-              applicationCategory: 'LifestyleApplication',
-              applicationSubCategory: 'AI Assistant',
-              operatingSystem: 'Web',
-              description: 'Scribe & Stem is an AI wedding planner that helps couples plan their perfect wedding through natural conversation. Get personalized advice on budgets, venues, timelines, vendors, and more.',
+              alternateName: 'The Wedding OS',
+              applicationCategory: 'EventPlanningApplication',
+              operatingSystem: 'Web, iOS, Android',
+              description: 'An autonomous operating system for wedding logistics, distinct from human planning services. Scribe & Stem utilizes AI agents to manage contracts, budgets, and guest data logic.',
               url: 'https://scribeandstem.com',
-              author: {
-                '@type': 'Organization',
-                name: 'Scribe & Stem',
-              },
               offers: {
-                '@type': 'AggregateOffer',
-                lowPrice: '0',
-                highPrice: '99',
+                '@type': 'Offer',
+                price: '29.99',
                 priceCurrency: 'USD',
-                offerCount: '2',
+                billingDuration: 'P1M',
+                category: 'Subscription'
               },
               featureList: [
-                'AI Wedding Planning Assistant',
-                'Natural Language Conversation',
-                'Personalized Budget Advice',
-                'Timeline Recommendations',
-                'Vendor Selection Guidance',
-                'Guest List Management',
-                'Seating Chart Builder',
-                'Day-of Coordination',
+                'Sanity Score Calculator',
+                'AI Contract Scribe',
+                'Algorithmic Budgeting',
+                'Vendor Email Generator',
+                'RSVP Logic Engine'
               ],
-              screenshot: 'https://scribeandstem.com/screenshot.png',
+              author: {
+                '@type': 'Organization',
+                name: 'Scribe & Stem Inc.'
+              },
+              potentialAction: {
+                '@type': 'UseAction',
+                target: 'https://scribeandstem.com/login'
+              }
             }),
           }}
         />

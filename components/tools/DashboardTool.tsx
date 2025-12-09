@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { usePlannerData, formatCurrency } from "@/lib/hooks/usePlannerData";
 import { useBrowser } from "@/components/layout/browser-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { calculateSanityScore } from "@/lib/algorithms/sanity-engine";
 import { 
   RefreshCw, 
   Clock, 
@@ -16,7 +17,9 @@ import {
   CreditCard, 
   Users, 
   Store, 
-  ArrowRight 
+  ArrowRight,
+  BrainCircuit,
+  Activity
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -31,6 +34,7 @@ export default function DashboardTool() {
   const browser = useBrowser();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [timeAgo, setTimeAgo] = useState("just now");
+  const [familyFriction, setFamilyFriction] = useState(1);
 
   useEffect(() => {
     const updateTimeAgo = () => setTimeAgo(formatTimeAgo(lastRefresh));
@@ -63,6 +67,40 @@ export default function DashboardTool() {
     browser.openTool(toolId);
   };
 
+  const sanityData = useMemo(() => {
+    if (!data) return { score: 100, alerts: [] };
+    
+    const { budget, guests, vendors, summary } = data;
+    
+    // Calculate critical unsigned
+    const essentialVendors = ["venue", "catering"];
+    const bookedCategories = vendors.list
+      .filter(v => ["booked", "confirmed", "paid"].includes(v.status || ""))
+      .map(v => (v.category || "").toLowerCase());
+      
+    const criticalUnsigned = essentialVendors.some(
+      req => !bookedCategories.some(booked => booked.includes(req))
+    );
+
+    return calculateSanityScore({
+      budget: { 
+        planned: budget.total, 
+        actual: budget.spent 
+      },
+      logistics: { 
+        daysToEvent: summary.daysUntil || 365, 
+        totalGuests: guests.stats.total, 
+        pendingRSVPs: guests.stats.pending 
+      },
+      contracts: { 
+        totalRequired: 10, // heuristic estimate or derive from decisions
+        signed: vendors.stats.booked, 
+        criticalUnsigned 
+      },
+      friction: { familyIndex: familyFriction }
+    });
+  }, [data, familyFriction]);
+
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center p-6">
@@ -79,10 +117,19 @@ export default function DashboardTool() {
   const kernel = data?.kernel;
 
   const alerts: Array<{
-    type: "warning" | "info" | "success";
+    type: "warning" | "info" | "success" | "critical";
     message: string;
     toolId?: string;
   }> = [];
+
+  // Sanity Alerts
+  sanityData.alerts.forEach(alert => {
+    alerts.push({
+      type: "critical",
+      message: alert,
+      toolId: "dashboard" // or link to specific tool if parsed
+    });
+  });
 
   // Calculate alerts/priorities
   if (budget && budget.total > 0 && budget.percentUsed > 100) {
@@ -184,6 +231,73 @@ export default function DashboardTool() {
         </div>
       </div>
 
+      {/* Sanity Score Card */}
+      <div className="grid grid-cols-1 gap-6">
+        <div className="bg-white rounded-3xl p-6 border border-border shadow-sm flex flex-col md:flex-row items-center gap-6">
+          <div className="relative flex items-center justify-center h-32 w-32 shrink-0">
+             {/* Simple Circle Progress */}
+             <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 100 100">
+               <circle
+                 className="text-muted/20"
+                 strokeWidth="8"
+                 stroke="currentColor"
+                 fill="transparent"
+                 r="40"
+                 cx="50"
+                 cy="50"
+               />
+               <circle
+                 className={cn(
+                   "transition-all duration-1000 ease-out",
+                   sanityData.score > 70 ? "text-green-500" : sanityData.score > 40 ? "text-amber-500" : "text-red-500"
+                 )}
+                 strokeWidth="8"
+                 strokeDasharray={251.2}
+                 strokeDashoffset={251.2 - (251.2 * sanityData.score) / 100}
+                 strokeLinecap="round"
+                 stroke="currentColor"
+                 fill="transparent"
+                 r="40"
+                 cx="50"
+                 cy="50"
+               />
+             </svg>
+             <div className="absolute flex flex-col items-center">
+               <span className="text-3xl font-bold font-sans" data-testid="sanity-score">{Math.round(sanityData.score)}</span>
+               <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Sanity</span>
+             </div>
+          </div>
+          
+          <div className="flex-1 space-y-4 w-full">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="h-5 w-5 text-muted-foreground" />
+              <h3 className="font-medium text-lg">System Status</h3>
+            </div>
+            
+            <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Family Friction Index</span>
+                  <span className="font-medium">{familyFriction}/10</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="10" 
+                  step="1"
+                  value={familyFriction}
+                  onChange={(e) => setFamilyFriction(parseInt(e.target.value))}
+                  className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                />
+            </div>
+             <p className="text-sm text-muted-foreground">
+              {sanityData.score > 80 ? "Systems nominal. You are in a state of Zen." : 
+               sanityData.score > 50 ? "Minor logistical turbulence detected." : 
+               "Logistical entropy is high. Immediate intervention recommended."}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Alerts */}
       {alerts.length > 0 && (
         <div className="space-y-2">
@@ -193,16 +307,18 @@ export default function DashboardTool() {
               onClick={() => handleToolClick(alert.toolId || "dashboard")}
               className={cn(
                 "w-full flex items-center p-4 rounded-xl text-sm font-medium transition-all hover:scale-[1.01] shadow-sm border text-left",
+                alert.type === "critical" && "bg-red-50 text-red-900 border-red-100 hover:bg-red-100",
                 alert.type === "warning" && "bg-orange-50 text-orange-900 border-orange-100 hover:bg-orange-100",
                 alert.type === "info" && "bg-blue-50 text-blue-900 border-blue-100 hover:bg-blue-100",
                 alert.type === "success" && "bg-green-50 text-green-900 border-green-100 hover:bg-green-100"
               )}
             >
+              {alert.type === "critical" && <BrainCircuit className="h-4 w-4 mr-3 shrink-0" />}
               {alert.type === "warning" && <AlertTriangle className="h-4 w-4 mr-3 shrink-0" />}
               {alert.type === "info" && <Info className="h-4 w-4 mr-3 shrink-0" />}
               {alert.type === "success" && <CheckCircle className="h-4 w-4 mr-3 shrink-0" />}
-              {alert.message}
-              <ArrowRight className="h-4 w-4 ml-auto opacity-50" />
+              <span className="flex-1">{alert.message}</span>
+              <ArrowRight className="h-4 w-4 ml-3 opacity-50 shrink-0" />
             </button>
           ))}
         </div>

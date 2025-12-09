@@ -774,62 +774,6 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          {/* Template Usage & Engagement */}
-          <div className="grid lg:grid-cols-2 gap-6 mb-6">
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="font-medium text-warm-800 flex items-center gap-2 mb-6">
-                  <FileText className="w-5 h-5 text-warm-400" />
-                  Most Used Templates
-                </h2>
-                <div className="space-y-3">
-                  {stats.productInsights.templateUsage.rankings.length > 0 ? (
-                    stats.productInsights.templateUsage.rankings.slice(0, 6).map((template, i) => (
-                      <div key={template.templateId} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="w-6 h-6 bg-warm-100 rounded text-xs flex items-center justify-center text-warm-500 font-medium">
-                            {i + 1}
-                          </span>
-                          <span className="text-sm text-warm-700">{formatTemplateId(template.templateId)}</span>
-                        </div>
-                        <span className="text-sm font-medium text-warm-600">{template.count}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-warm-400 text-center py-8">No data yet</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="font-medium text-warm-800 flex items-center gap-2 mb-6">
-                  <CheckCircle className="w-5 h-5 text-warm-400" />
-                  Template Completion Rates
-                </h2>
-                <div className="space-y-3">
-                  {stats.productInsights.templateUsage.engagement.length > 0 ? (
-                    stats.productInsights.templateUsage.engagement.slice(0, 6).map((template) => (
-                      <div key={template.templateId}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm text-warm-700">{formatTemplateId(template.templateId)}</span>
-                          <span className="text-sm font-medium text-warm-600">{template.avgCompletion}%</span>
-                        </div>
-                        <ProgressBar 
-                          value={template.avgCompletion} 
-                          color={template.avgCompletion > 60 ? "green" : template.avgCompletion > 30 ? "amber" : "rose"} 
-                        />
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-warm-400 text-center py-8">No data yet</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
           {/* Wedding Data Insights */}
           <div className="grid lg:grid-cols-3 gap-6 mb-6">
             <Card>

@@ -52,12 +52,6 @@ const navItems: NavItem[] = [
     description: "Broadcasts & subscribers",
   },
   {
-    label: "Templates",
-    href: "/manage-x7k9/templates",
-    icon: FileText,
-    description: "Wedding planner templates",
-  },
-  {
     label: "Marketing",
     href: "/manage-x7k9/marketing",
     icon: Image,

@@ -223,7 +223,7 @@ export default function CalendarTool() {
   if (loading && !events.length) {
     return (
       <div className="flex h-full items-center justify-center p-6">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" data-testid="loading-spinner" />
       </div>
     );
   }

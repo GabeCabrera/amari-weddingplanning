@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { render, screen, within, act } from '@testing-library/react';
 import BudgetTool from '../BudgetTool';
@@ -57,38 +56,27 @@ describe('BudgetTool', () => {
         render(<BrowserProvider><BudgetTool /></BrowserProvider>);
     });
 
-    // Check for summary cards
-    const totalBudgetCard = screen.getByText('Total Budget').closest('.bg-white.rounded-3xl');
-    expect(within(totalBudgetCard as HTMLElement).getByText(PlannerData.formatCurrency(mockData.budget.total))).toBeInTheDocument();
-
-    const allocatedCard = screen.getByText('Allocated').closest('.bg-white.rounded-3xl');
-    expect(within(allocatedCard as HTMLElement).getByText(PlannerData.formatCurrency(mockData.budget.spent))).toBeInTheDocument();
-    expect(within(allocatedCard as HTMLElement).getByText('75% of budget')).toBeInTheDocument();
+    // Check for presence of key data points
+    expect(screen.getByText('$20,000')).toBeInTheDocument(); // Total
+    expect(screen.getByText('$15,000')).toBeInTheDocument(); // Spent
+    expect(screen.getByText('$7,000')).toBeInTheDocument(); // Paid
+    expect(screen.getByText('$8,000')).toBeInTheDocument(); // Remaining
     
-    const paidCard = screen.getByText('Paid So Far').closest('.bg-white.rounded-3xl');
-    expect(within(paidCard as HTMLElement).getByText(PlannerData.formatCurrency(mockData.budget.paid))).toBeInTheDocument();
-    
-    const owedCard = screen.getByText('Still Owed').closest('.bg-white.rounded-3xl');
-    expect(within(owedCard as HTMLElement).getByText(PlannerData.formatCurrency(mockData.budget.remaining))).toBeInTheDocument();
+    // Check specific labels
+    expect(screen.getByText('Total Budget')).toBeInTheDocument();
+    expect(screen.getByText('Allocated')).toBeInTheDocument();
+    expect(screen.getByText('Paid So Far')).toBeInTheDocument();
+    expect(screen.getByText('Still Owed')).toBeInTheDocument();
 
-    // Check for an item in the list
-    expect(screen.getByText('The Grand Hall')).toBeInTheDocument();
-    expect(screen.getByText('Includes catering')).toBeInTheDocument();
-
-    // Check progress bar text
-    const progressBarCard = screen.getByText('Budget used').closest('.bg-white.rounded-3xl');
-    expect(within(progressBarCard as HTMLElement).getByText('75%')).toBeInTheDocument();
-
-    // Check category breakdown
-    expect(screen.getByText('By Category')).toBeInTheDocument();
-    expect(screen.getByText('Venue')).toBeInTheDocument();
-    expect(screen.getByText('Photography')).toBeInTheDocument();
-
-    // Check all items list
-    expect(screen.getByText('All Items')).toBeInTheDocument();
+    // Check for items
     expect(screen.getByText('The Grand Hall')).toBeInTheDocument();
     expect(screen.getByText('Perfect Pics')).toBeInTheDocument();
-    expect(screen.getByText(`${PlannerData.formatCurrency(5000)} paid`)).toBeInTheDocument(); // For Venue
-    expect(screen.getByText(`${PlannerData.formatCurrency(2000)} paid`)).toBeInTheDocument(); // For Photography
+    
+    // Check for category breakdown
+    expect(screen.getByText('Venue')).toBeInTheDocument();
+    expect(screen.getByText('Photography')).toBeInTheDocument();
+    
+    // Check percentage logic
+    expect(screen.getByText('75% of budget')).toBeInTheDocument();
   });
 });

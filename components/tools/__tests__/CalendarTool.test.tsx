@@ -58,14 +58,11 @@ describe('CalendarTool', () => {
     (global.fetch as jest.Mock).mockImplementation(() => fetchPromise);
 
     render(<CalendarTool />);
-    // Check if loading spinner or some loading state exists. 
-    // The component returns early with a loader if loading && !events.length
-    // We can look for the Loader2 icon which likely renders an svg
-    const loader = document.querySelector('.animate-spin');
-    // Or simpler, check that "Calendar" title is NOT there
-    expect(screen.queryByText('Calendar')).not.toBeInTheDocument();
     
-    // Cleanup
+    // Check for loading spinner using the testId we just added
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
+    
+    // Cleanup to prevent open handles
     resolveFetch({ ok: true, json: async () => ({ events: [] }) });
     await act(async () => {}); 
   });

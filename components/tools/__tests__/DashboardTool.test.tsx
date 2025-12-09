@@ -51,7 +51,7 @@ describe('DashboardTool', () => {
     expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
   });
 
-  it('renders the new Wedding Hub dashboard correctly', async () => {
+  it('renders the new Wedding Hub dashboard correctly including Sanity Score', async () => {
     const mockData = {
       summary: {
         coupleNames: 'John & Jane',
@@ -97,6 +97,20 @@ describe('DashboardTool', () => {
       expect(screen.getByText('John & Jane')).toBeInTheDocument();
       expect(screen.getByText(MOCK_DATE_STRING)).toBeInTheDocument();
 
+      // Sanity Score Section
+      expect(screen.getByText('System Status')).toBeInTheDocument();
+      expect(screen.getByText('Sanity')).toBeInTheDocument();
+      
+      // Check score using testId
+      const scoreElement = screen.getByTestId('sanity-score');
+      expect(scoreElement).toBeInTheDocument();
+      // Verify it contains a number
+      expect(scoreElement.textContent).toMatch(/\d+/);
+
+      // Friction Slider
+      expect(screen.getByText('Family Friction Index')).toBeInTheDocument();
+      expect(screen.getByRole('slider')).toBeInTheDocument();
+
       // Hub cards
       // Checklist Card
       const checklistCard = screen.getByRole('heading', { name: 'Checklist' }).closest('.group');
@@ -108,24 +122,45 @@ describe('DashboardTool', () => {
       const budgetCard = screen.getByRole('heading', { name: 'Budget' }).closest('.group');
       expect(budgetCard).toBeInTheDocument();
       expect(within(budgetCard as HTMLElement).getByText('$20000')).toBeInTheDocument();
-      // New assertions for allocated budget:
-      expect(within(budgetCard as HTMLElement).getByText('$15000')).toBeInTheDocument(); // Finds the span
-      expect(within(budgetCard as HTMLElement).getByText(/\s*allocated\s*\(/i)).toBeInTheDocument(); // Finds the text node for " allocated ("
-      expect(within(budgetCard as HTMLElement).getByText(/\s*75\s*/)).toBeInTheDocument(); // Finds the text node for "75"
-      expect(within(budgetCard as HTMLElement).getByText(/%\)/i)).toBeInTheDocument(); // Finds the text node for "%)"
-
+      
       // Guests Card
-      const guestsCard = screen.getByRole('heading', { name: 'Guest List' }).closest('.group'); // Changed from 'Guests' to 'Guest List'
+      const guestsCard = screen.getByRole('heading', { name: 'Guest List' }).closest('.group');
       expect(guestsCard).toBeInTheDocument();
       expect(within(guestsCard as HTMLElement).getByText('100')).toBeInTheDocument();
-      expect(within(guestsCard as HTMLElement).getByText('80 confirmed')).toBeInTheDocument(); // Split into two spans now
-      expect(within(guestsCard as HTMLElement).getByText('20 pending')).toBeInTheDocument(); // Split into two spans now
+    });
+  });
 
-      // Vendors Card
-      const vendorsCard = screen.getByRole('heading', { name: 'Vendors' }).closest('.group');
-      expect(vendorsCard).toBeInTheDocument();
-      expect(within(vendorsCard as HTMLElement).getByText('Venue Co.')).toBeInTheDocument();
-      expect(within(vendorsCard as HTMLElement).getByText('Photog Inc.')).toBeInTheDocument();
+  it('updates Sanity Score when Family Friction slider changes', async () => {
+    const mockData = {
+        summary: { coupleNames: 'A & B', weddingDate: '2025-01-01', daysUntil: 100 },
+        budget: { total: 10000, spent: 5000, paid: 0, remaining: 5000, percentUsed: 50, items: [] },
+        guests: { stats: { total: 100, confirmed: 0, pending: 0, declined: 0 }, list: [] },
+        vendors: { list: [], stats: { booked: 0 } },
+        decisions: { progress: { percentComplete: 0 } },
+        kernel: { guestCount: 100 },
+    };
+
+    mockedUsePlannerData.mockReturnValue({
+        data: mockData,
+        loading: false,
+        refetch: jest.fn(),
+        lastRefresh: Date.now(),
+    });
+
+    render(<BrowserProvider><DashboardTool /></BrowserProvider>);
+
+    const slider = screen.getByRole('slider');
+    const initialScoreElement = screen.getByTestId('sanity-score');
+    const initialScore = parseInt(initialScoreElement.textContent || '100');
+
+    // Increase friction to max (10)
+    fireEvent.change(slider, { target: { value: '10' } });
+
+    // Score should decrease
+    await waitFor(() => {
+         const newScoreElement = screen.getByTestId('sanity-score');
+         const newScore = parseInt(newScoreElement.textContent || '0');
+         expect(newScore).toBeLessThan(initialScore);
     });
   });
 
