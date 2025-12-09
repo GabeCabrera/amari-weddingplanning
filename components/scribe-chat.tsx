@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Sparkles, RotateCcw, X, Minimize2, Crown, ClipboardList, MessageCircle } from "lucide-react";
+import { Send, Sparkles, RotateCcw, X, Minimize2, Crown, ClipboardList, MessageCircle, StopCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Typewriter } from "@/components/ui/typewriter";
 import { AnimatedInput } from "@/components/ui/animated-input";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 import { broadcastPlannerDataChanged } from "@/lib/hooks/usePlannerData";
 
@@ -16,7 +17,6 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: string;
-  animate?: boolean;
 }
 
 interface AIAccess {
@@ -94,7 +94,11 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe", va
       const res = await fetch("/api/scribe");
       if (res.ok) {
         const data = await res.json();
-        const loadedMessages = (data.messages || []).map((msg: Message) => ({ ...msg, animate: false }));
+        const loadedMessages = (data.messages || []).map((msg: Message) => ({ 
+          role: msg.role, 
+          content: msg.content, 
+          timestamp: msg.timestamp 
+        }));
         setMessages(loadedMessages);
         setAiAccess(data.aiAccess || null);
         setHasLoaded(true);
@@ -119,7 +123,6 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe", va
       role: "user",
       content: userMessage,
       timestamp: new Date().toISOString(),
-      animate: true, // Animate user message too as requested
     };
     setMessages((prev) => [...prev, tempUserMessage]);
 
@@ -149,7 +152,6 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe", va
         role: "assistant",
         content: data.message,
         timestamp: new Date().toISOString(),
-        animate: true,
       };
       setMessages((prev) => [...prev, assistantMessage]);
 
@@ -215,42 +217,42 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe", va
   // Container classes based on variant
   const containerClasses = variant === "overlay"
     ? "fixed inset-0 z-50 flex items-end justify-end p-4 sm:p-6 pointer-events-none"
-    : "h-full w-full flex flex-col bg-white"; // Full mode
+    : "h-full w-full flex flex-col bg-stone-50/50"; // Full mode background
 
   // Window classes based on variant
   const windowClasses = variant === "overlay"
-    ? `relative w-full max-w-[420px] h-[600px] max-h-[85vh] bg-white rounded-2xl shadow-2xl border border-warm-200/60 flex flex-col pointer-events-auto transition-all duration-300 ease-out ${
+    ? `relative w-full max-w-[420px] h-[600px] max-h-[85vh] bg-white rounded-2xl shadow-2xl border border-stone-200 flex flex-col pointer-events-auto transition-all duration-300 ease-out ${
         isAnimating ? "opacity-0 translate-y-4 scale-[0.98]" : "opacity-100 translate-y-0 scale-100"
       }`
-    : "flex-1 flex flex-col h-full"; // Full mode: take up available space
+    : "flex-1 flex flex-col h-full max-w-5xl mx-auto w-full bg-white border-x border-stone-100 shadow-sm"; // Full mode: centered
 
   return (
     <div className={containerClasses}>
       {/* Chat Window */}
       <div className={windowClasses}>
         {/* Header */}
-        <div className={`flex-shrink-0 flex items-center justify-between px-5 py-4 border-b border-warm-100 bg-gradient-to-r from-warm-50 to-rose-50/50 ${variant === "overlay" ? "rounded-t-2xl" : ""}`}>
+        <div className={`flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-stone-100 bg-white/80 backdrop-blur-md sticky top-0 z-10 ${variant === "overlay" ? "rounded-t-2xl" : ""}`}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-400 to-amber-400 flex items-center justify-center shadow-sm">
-              <Sparkles className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-full bg-stone-900 flex items-center justify-center shadow-sm">
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h2 className="font-serif text-lg text-warm-800 leading-tight">{aiName}</h2>
-              <p className="text-xs text-warm-500">Your wedding planner</p>
+              <h2 className="font-sans font-medium text-sm text-stone-900 leading-tight">{aiName}</h2>
+              <p className="text-[10px] font-medium text-stone-500 tracking-wide uppercase">Assistant</p>
             </div>
           </div>
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-1">
             {aiAccess && !aiAccess.hasFullAccess && aiAccess.messagesRemaining !== "unlimited" && (
-              <span className="text-xs text-warm-400 mr-2 tabular-nums">
+              <span className="text-xs text-stone-500 mr-3 bg-stone-100 px-2 py-1 rounded-full">
                 {aiAccess.messagesRemaining} left
               </span>
             )}
             <button
               onClick={clearConversation}
-              className="p-2 hover:bg-warm-100 rounded-lg transition-colors"
-              title="New conversation"
+              className="p-2 hover:bg-stone-100 rounded-full transition-colors text-stone-400 hover:text-stone-600"
+              title="Clear chat"
             >
-              <RotateCcw className="w-4 h-4 text-warm-400" />
+              <RotateCcw className="w-4 h-4" />
             </button>
             
             {/* Only show Minimize/Close in overlay mode */}
@@ -258,17 +260,17 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe", va
               <>
                 <button
                   onClick={handleMinimize}
-                  className="p-2 hover:bg-warm-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-stone-100 rounded-full transition-colors text-stone-400 hover:text-stone-600"
                   title="Minimize"
                 >
-                  <Minimize2 className="w-4 h-4 text-warm-400" />
+                  <Minimize2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-warm-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-stone-100 rounded-full transition-colors text-stone-400 hover:text-stone-600"
                   title="Close"
                 >
-                  <X className="w-4 h-4 text-warm-400" />
+                  <X className="w-4 h-4" />
                 </button>
               </>
             )}
@@ -276,67 +278,65 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe", va
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto overscroll-contain">
-          <div className="p-5 space-y-4 min-h-full">
+        <div className="flex-1 overflow-y-auto overscroll-contain bg-white">
+          <div className="p-4 md:p-8 space-y-8 min-h-full">
             {showUpgradePrompt ? (
-              <div className="h-full flex flex-col items-center justify-center text-center px-4 py-8">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-100 to-rose-100 flex items-center justify-center mb-5">
+              <div className="h-full flex flex-col items-center justify-center text-center px-4 py-12">
+                <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mb-6">
                   <Crown className="w-8 h-8 text-amber-500" />
                 </div>
-                <h3 className="text-xl font-serif text-warm-800 mb-2">
-                  You've used your free messages
+                <h3 className="text-xl font-serif text-stone-900 mb-3">
+                  Usage Limit Reached
                 </h3>
-                <p className="text-warm-500 text-sm leading-relaxed mb-6 max-w-[280px]">
-                                     Upgrade to Stem to get unlimited access to {aiName},                  plus all premium planning templates.
+                <p className="text-stone-500 text-sm leading-relaxed mb-8 max-w-[280px]">
+                  Upgrade to Stem to get unlimited access to {aiName} and all premium planning tools.
                 </p>
                 <Link href="/choose-plan" onClick={onClose}>
-                  <Button className="bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white px-8 h-11 rounded-xl shadow-sm">
+                  <Button className="bg-stone-900 hover:bg-stone-800 text-white px-8 h-11 rounded-full shadow-lg">
                     <Crown className="w-4 h-4 mr-2" />
                     Upgrade to Stem
                   </Button>
                 </Link>
-                <p className="text-xs text-warm-400 mt-4">
+                <p className="text-xs text-stone-400 mt-6">
                   Monthly and annual plans available
                 </p>
               </div>
             ) : messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center px-2 py-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-100 to-amber-100 flex items-center justify-center mb-5">
-                  <Sparkles className="w-8 h-8 text-rose-400" />
+              <div className="h-full flex flex-col items-center justify-center text-center px-4 py-12 max-w-xl mx-auto">
+                <div className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center mb-6">
+                  <Sparkles className="w-6 h-6 text-stone-400" />
                 </div>
-                <h3 className="text-xl font-serif text-warm-800 mb-2">
-                  Hey{coupleNames ? `, ${coupleNames.split("&")[0]?.trim()}` : ""}!
+                <h3 className="text-2xl font-serif text-stone-900 mb-3">
+                  Hello{coupleNames ? `, ${coupleNames.split("&")[0]?.trim()}` : ""}
                 </h3>
-                <p className="text-warm-500 text-sm leading-relaxed max-w-[300px]">
-                  I'm {aiName}, your wedding planner. I can help you discover your wedding vibe, 
-                  answer planning questions, and find vendors that match your style.
+                <p className="text-stone-500 text-base leading-relaxed mb-12">
+                  I can help you find vendors, manage your budget, or just brainstorm ideas. What's on your mind?
                 </p>
-                {aiAccess && !aiAccess.hasFullAccess && (
-                  <p className="text-xs text-warm-400 mt-3">
-                    {aiAccess.messagesRemaining} free messages remaining
-                  </p>
-                )}
-                <div className="mt-6 space-y-2.5 w-full">
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
                   <button
-                    onClick={() => setInput("Help me figure out my wedding vibe")}
-                    className="w-full text-left px-4 py-3 bg-warm-50 hover:bg-warm-100 rounded-xl text-sm text-warm-700 transition-colors flex items-center gap-3 border border-warm-100"
+                    onClick={() => setInput("Find me a photographer in Utah under $3k")}
+                    className="text-left p-4 rounded-xl bg-stone-50 hover:bg-stone-100 transition-colors border border-stone-100 group"
                   >
-                    <Sparkles className="w-4 h-4 text-rose-400 flex-shrink-0" />
-                    <span>Help me figure out my wedding vibe</span>
+                    <Sparkles className="w-5 h-5 text-stone-400 mb-3 group-hover:text-rose-400 transition-colors" />
+                    <span className="block text-sm font-medium text-stone-900 mb-1">Find Vendors</span>
+                    <span className="block text-xs text-stone-500">Photographers, venues...</span>
                   </button>
                   <button
-                    onClick={() => setInput("What should I be doing right now in my planning?")}
-                    className="w-full text-left px-4 py-3 bg-warm-50 hover:bg-warm-100 rounded-xl text-sm text-warm-700 transition-colors flex items-center gap-3 border border-warm-100"
+                    onClick={() => setInput("Review my budget breakdown")}
+                    className="text-left p-4 rounded-xl bg-stone-50 hover:bg-stone-100 transition-colors border border-stone-100 group"
                   >
-                    <ClipboardList className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                    <span>What should I be doing right now?</span>
+                    <ClipboardList className="w-5 h-5 text-stone-400 mb-3 group-hover:text-blue-400 transition-colors" />
+                    <span className="block text-sm font-medium text-stone-900 mb-1">Budget Check</span>
+                    <span className="block text-xs text-stone-500">Am I on track?</span>
                   </button>
                   <button
-                    onClick={() => setInput("I'm feeling overwhelmed with planning")}
-                    className="w-full text-left px-4 py-3 bg-warm-50 hover:bg-warm-100 rounded-xl text-sm text-warm-700 transition-colors flex items-center gap-3 border border-warm-100"
+                    onClick={() => setInput("I'm feeling overwhelmed with the guest list")}
+                    className="text-left p-4 rounded-xl bg-stone-50 hover:bg-stone-100 transition-colors border border-stone-100 group"
                   >
-                    <MessageCircle className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                    <span>I'm feeling overwhelmed</span>
+                    <MessageCircle className="w-5 h-5 text-stone-400 mb-3 group-hover:text-purple-400 transition-colors" />
+                    <span className="block text-sm font-medium text-stone-900 mb-1">Vent & Advice</span>
+                    <span className="block text-xs text-stone-500">Get unstuck</span>
                   </button>
                 </div>
               </div>
@@ -345,39 +345,53 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe", va
                 {messages.map((msg, idx) => (
                   <div
                     key={idx}
-                    className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-1 duration-200`}
-                    style={{ animationDelay: `${idx * 50}ms` }}
+                    className={`flex gap-4 ${msg.role === "user" ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}
                   >
+                    {msg.role === "assistant" && (
+                      <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 mt-1">
+                        <Sparkles className="w-4 h-4 text-stone-500" />
+                      </div>
+                    )}
+                    
                     <div
-                      className={`max-w-[85%] px-4 py-3 ${
+                      className={`max-w-[85%] md:max-w-[75%] ${
                         msg.role === "user"
-                          ? "bg-warm-800 text-white rounded-2xl rounded-br-lg"
-                          : "bg-warm-100 text-warm-800 rounded-2xl rounded-bl-lg"
+                          ? "bg-stone-100 text-stone-900 px-5 py-3 rounded-2xl rounded-br-sm"
+                          : "text-stone-800 px-0 py-1"
                       }`}
                     >
-                      {msg.animate ? (
-                        <Typewriter text={msg.content} onComplete={() => {
-                          // Optional: update message to stop animating once complete
-                          // setMessages(...)
-                        }} />
-                      ) : (
-                        <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
-                      )}
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        className={`prose prose-stone prose-sm max-w-none ${
+                          msg.role === "user" ? "prose-p:my-0" : ""
+                        }`}
+                        components={{
+                          // Override paragraph to avoid double wrapping if needed, or style specific elements
+                          p: ({node, ...props}) => <p className="leading-relaxed mb-3 last:mb-0" {...props} />,
+                          ul: ({node, ...props}) => <ul className="my-3 list-disc list-outside pl-4" {...props} />,
+                          ol: ({node, ...props}) => <ol className="my-3 list-decimal list-outside pl-4" {...props} />,
+                          li: ({node, ...props}) => <li className="mb-1" {...props} />,
+                          a: ({node, ...props}) => <a className="text-blue-600 hover:underline" {...props} />,
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
                     </div>
                   </div>
                 ))}
                 {isLoading && (
-                  <div className="flex justify-start animate-in fade-in duration-200">
-                    <div className="bg-warm-100 px-4 py-3 rounded-2xl rounded-bl-lg">
-                      <div className="flex gap-1.5 items-center h-5">
-                        <span className="w-2 h-2 bg-warm-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                        <span className="w-2 h-2 bg-warm-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                        <span className="w-2 h-2 bg-warm-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                      </div>
+                  <div className="flex gap-4 justify-start animate-in fade-in duration-300">
+                    <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 mt-1">
+                      <Sparkles className="w-4 h-4 text-stone-500" />
+                    </div>
+                    <div className="flex items-center gap-1.5 h-8">
+                      <span className="w-1.5 h-1.5 bg-stone-300 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-1.5 h-1.5 bg-stone-300 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-1.5 h-1.5 bg-stone-300 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                     </div>
                   </div>
                 )}
-                <div ref={messagesEndRef} />
+                <div ref={messagesEndRef} className="h-4" />
               </>
             )}
           </div>
@@ -385,25 +399,41 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe", va
 
         {/* Input Area */}
         {!showUpgradePrompt && (
-          <div className={`flex-shrink-0 p-4 border-t border-warm-100 bg-white ${variant === "overlay" ? "rounded-b-2xl" : ""}`}>
-            <div className="flex items-end gap-3">
-              <div className="flex-1 relative">
+          <div className="flex-shrink-0 p-4 md:p-6 bg-white relative z-20">
+            <div className="max-w-3xl mx-auto relative">
+              <div className="relative shadow-lg rounded-2xl bg-white border border-stone-200 overflow-hidden focus-within:ring-2 focus-within:ring-stone-900/10 focus-within:border-stone-300 transition-all duration-200">
                 <AnimatedInput
                   value={input}
                   onChange={setInput}
                   onKeyDown={handleKeyDown}
-                  placeholder={`Message ${aiName}...`}
+                  placeholder={`Ask ${aiName} anything...`}
                   disabled={isLoading}
-                  className="bg-warm-50 rounded-2xl border border-warm-200 focus-within:border-rose-300 focus-within:ring-4 focus-within:ring-rose-100 transition-shadow duration-200"
+                  className="w-full px-4 py-4 pr-14 bg-transparent border-none focus:ring-0 text-base max-h-[200px] min-h-[60px] resize-none placeholder:text-stone-400"
                 />
+                <div className="absolute bottom-3 right-3">
+                  {isLoading ? (
+                    <Button
+                      size="icon"
+                      className="h-8 w-8 rounded-lg bg-stone-100 text-stone-500 hover:bg-stone-200"
+                      disabled
+                    >
+                      <StopCircle className="w-4 h-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={sendMessage}
+                      disabled={!input.trim()}
+                      size="icon"
+                      className="h-8 w-8 rounded-lg bg-stone-900 text-white hover:bg-stone-800 disabled:opacity-50 disabled:hover:bg-stone-900 transition-all"
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
-              <Button
-                onClick={sendMessage}
-                disabled={!input.trim() || isLoading}
-                className="h-12 w-12 p-0 bg-warm-800 hover:bg-warm-700 disabled:bg-warm-300 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md disabled:shadow-none"
-              >
-                <Send className="w-4 h-4" />
-              </Button>
+              <p className="text-center text-[10px] text-stone-400 mt-3">
+                Scribe can make mistakes. Verify important details with your vendors.
+              </p>
             </div>
           </div>
         )}
@@ -417,11 +447,10 @@ export function ScribeTrigger({ onClick, aiName = "Scribe" }: { onClick: () => v
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-6 right-6 z-40 flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-full shadow-lg hover:from-primary/90 hover:to-primary hover:shadow-xl hover:scale-[1.02] transition-all duration-200 group"
+      className="fixed bottom-6 right-6 z-40 flex items-center gap-3 px-5 py-3.5 bg-stone-900 text-white rounded-full shadow-xl hover:scale-[1.02] transition-all duration-200 group"
     >
       <div className="relative">
         <Sparkles className="w-5 h-5" />
-        <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-400 rounded-full animate-pulse" />
       </div>
       <span className="font-medium">Ask {aiName}</span>
     </button>
