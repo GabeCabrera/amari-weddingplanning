@@ -233,9 +233,6 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe", va
         {/* Header */}
         <div className={`flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-stone-100 bg-white/80 backdrop-blur-md sticky top-0 z-10 ${variant === "overlay" ? "rounded-t-2xl" : ""}`}>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-stone-900 flex items-center justify-center shadow-sm">
-              <span className="text-white font-serif italic">S</span>
-            </div>
             <div>
               <h2 className="font-sans font-medium text-sm text-stone-900 leading-tight">{aiName}</h2>
             </div>
@@ -346,11 +343,6 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe", va
                     key={idx}
                     className={`flex gap-4 ${msg.role === "user" ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}
                   >
-                    {msg.role === "assistant" && (
-                      <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 mt-1">
-                        <span className="text-stone-500 font-serif italic text-xs">S</span>
-                      </div>
-                    )}
                     
                     <div
                       className={`max-w-[85%] md:max-w-[75%] ${
@@ -381,9 +373,6 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe", va
                 ))}
                 {isLoading && (
                   <div className="flex gap-4 justify-start animate-in fade-in duration-300">
-                    <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center shrink-0 mt-1">
-                      <span className="text-stone-500 font-serif italic text-xs">S</span>
-                    </div>
                     <div className="flex items-center gap-1.5 h-8">
                       <span className="w-1.5 h-1.5 bg-stone-300 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                       <span className="w-1.5 h-1.5 bg-stone-300 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
@@ -450,7 +439,7 @@ export function ScribeTrigger({ onClick, aiName = "Scribe" }: { onClick: () => v
       className="fixed bottom-6 right-6 z-40 flex items-center gap-3 px-5 py-3.5 bg-stone-900 text-white rounded-full shadow-xl hover:scale-[1.02] transition-all duration-200 group"
     >
       <div className="relative">
-        <span className="font-serif italic text-lg">S</span>
+        <Sparkles className="w-5 h-5" />
       </div>
       <span className="font-medium">Ask {aiName}</span>
     </button>
