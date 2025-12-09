@@ -65,6 +65,25 @@ export async function middleware(request: NextRequest) {
     route === "/" ? pathname === "/" : pathname.startsWith(route)
   );
 
+  // FORCE REDIRECT: Redirect Vercel preview domains to production for Auth consistency.
+  // The 'State cookie was missing' error happens when users start on a preview URL
+  // but are redirected to the production URL by NextAuth (due to NEXTAUTH_URL env var).
+  // We force them to production immediately to ensure cookies are set on the correct domain.
+  const host = request.headers.get("host") || "";
+  if (
+    process.env.NODE_ENV === "production" && 
+    host.includes("vercel.app") && 
+    !host.includes("localhost")
+  ) {
+    // Only redirect if we are sure we want to enforce production domain.
+    // Assuming 'scribeandstem.com' is the canonical URL from the logs.
+    const canonicalUrl = new URL(request.url);
+    canonicalUrl.host = "scribeandstem.com";
+    canonicalUrl.protocol = "https:";
+    // console.log(`[MIDDLEWARE] Redirecting preview ${host} to canonical ${canonicalUrl.host}`);
+    return NextResponse.redirect(canonicalUrl);
+  }
+
   // Check authentication for protected routes
   const token = await getToken({
     req: request,
