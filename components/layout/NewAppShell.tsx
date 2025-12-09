@@ -80,7 +80,7 @@ function MainContent({ children }: { children: React.ReactNode }) {
     <div className="flex flex-col h-full bg-canvas/50 border-r border-border backdrop-blur-xl">
       {/* Header */}
       <div className="h-16 flex items-center px-6 border-b border-border/50">
-        <span className="font-serif text-2xl font-medium tracking-tight text-foreground">Scribe</span>
+        <span className="font-serif text-2xl font-medium tracking-tight text-foreground">Scribe & Stem</span>
       </div>
 
       {/* Navigation */}
@@ -205,7 +205,7 @@ function MainContent({ children }: { children: React.ReactNode }) {
           <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)} className="-ml-2">
             <Menu className="h-5 w-5" />
           </Button>
-                        <span className="ml-2 font-serif text-lg font-medium">Scribe</span>        </div>
+                        <span className="ml-2 font-serif text-lg font-medium">Scribe & Stem</span>        </div>
 
         {/* Content Scroll Area */}
         <div className="flex-1 overflow-y-auto scroll-smooth p-4 md:p-8">
