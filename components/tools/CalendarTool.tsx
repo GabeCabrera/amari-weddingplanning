@@ -393,6 +393,8 @@ export default function CalendarTool() {
             --fc-neutral-bg-color: #fafaf9;
             --fc-list-event-hover-bg-color: #f5f5f4;
             font-family: inherit;
+            height: 100%;
+            width: 100%;
           }
           .fc .fc-toolbar-title {
             font-size: 1.5rem;
@@ -425,7 +427,7 @@ export default function CalendarTool() {
           }
         `}</style>
         
-        <CardContent className="flex-1 p-6 bg-white overflow-y-auto">
+        <CardContent className="flex-1 p-6 bg-white h-full flex flex-col">
           <FullCalendar
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
