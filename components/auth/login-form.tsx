@@ -24,6 +24,7 @@ export function LoginForm() {
     setIsLoading(true);
 
     try {
+      console.log("[LOGIN] Attempting login for:", email);
       const result = await signIn("credentials", {
         email,
         password,
@@ -31,12 +32,17 @@ export function LoginForm() {
         callbackUrl,
       });
 
+      console.log("[LOGIN] Result:", result);
+
       if (result?.error) {
+        console.error("[LOGIN] Error:", result.error);
         toast.error("Invalid email or password.");
       } else if (result?.ok) {
+        console.log("[LOGIN] Success. Redirecting to:", callbackUrl);
         window.location.href = callbackUrl;
       }
     } catch (e) {
+      console.error("[LOGIN] Exception:", e);
       toast.error("An unexpected error occurred.");
     } finally {
       setIsLoading(false);

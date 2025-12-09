@@ -71,6 +71,8 @@ export async function middleware(request: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   });
 
+  // console.log(`[MIDDLEWARE] Path: ${pathname}, Token: ${token ? "Found" : "Missing"}`);
+
   // Special case: Redirect authenticated users from Landing Page to Planner
   if (pathname === "/" && token) {
     return NextResponse.redirect(new URL("/planner", request.url));
