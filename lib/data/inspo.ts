@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { boards, ideas, users, tenants } from "@/lib/db/schema";
+import { boards, ideas, users, tenants, follows } from "@/lib/db/schema";
 import { eq, and, desc, count } from "drizzle-orm";
 
 export async function getBoard(boardId: string) {
@@ -61,7 +61,7 @@ export async function getMyBoards(tenantId: string) {
   }));
 }
 
-export async function getPublicProfile(tenantId: string) {
+export async function getPublicProfile(tenantId: string, viewerTenantId?: string) {
   const tenant = await db.query.tenants.findFirst({
     where: eq(tenants.id, tenantId),
     columns: {
@@ -69,6 +69,8 @@ export async function getPublicProfile(tenantId: string) {
       displayName: true,
       weddingDate: true,
       slug: true,
+      bio: true,
+      socialLinks: true,
     }
   });
 
@@ -86,14 +88,64 @@ export async function getPublicProfile(tenantId: string) {
         orderBy: [desc(ideas.createdAt)]
       },
       tenant: {
-        columns: { displayName: true } // Explicitly select displayName
+        columns: { displayName: true }
       }
     },
     orderBy: [desc(boards.updatedAt)]
   });
 
+  const stats = await getSocialStats(tenantId);
+  const isFollowing = viewerTenantId ? await getFollowStatus(viewerTenantId, tenantId) : false;
+
   return {
     ...tenant,
-    boards: publicBoards
+    boards: publicBoards,
+    stats,
+    isFollowing
+  };
+}
+
+
+export async function getFollowStatus(followerId: string, followingId: string) {
+  const follow = await db.query.follows.findFirst({
+    where: and(
+      eq(follows.followerId, followerId),
+      eq(follows.followingId, followingId)
+    )
+  });
+  return !!follow;
+}
+
+export async function followTenant(followerId: string, followingId: string) {
+  if (followerId === followingId) return; // Cannot follow self
+  
+  await db.insert(follows)
+    .values({ followerId, followingId })
+    .onConflictDoNothing();
+}
+
+export async function unfollowTenant(followerId: string, followingId: string) {
+  await db.delete(follows)
+    .where(and(
+      eq(follows.followerId, followerId),
+      eq(follows.followingId, followingId)
+    ));
+}
+
+export async function getSocialStats(tenantId: string) {
+  // This is a simplified count. For scale, use count() query or aggregate table.
+  const followers = await db.query.follows.findMany({
+    where: eq(follows.followingId, tenantId),
+    columns: { followerId: true }
+  });
+  
+  const following = await db.query.follows.findMany({
+    where: eq(follows.followerId, tenantId),
+    columns: { followingId: true }
+  });
+
+  return {
+    followersCount: followers.length,
+    followingCount: following.length
   };
 }

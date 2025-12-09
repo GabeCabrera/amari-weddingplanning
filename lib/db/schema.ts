@@ -158,6 +158,7 @@ import {
   jsonb,
   uuid,
   uniqueIndex,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -189,6 +190,11 @@ export const tenants = pgTable(
     // User's custom name for their AI planner
     plannerName: text("planner_name").default("Planner"),
     
+    // Social Profile
+    bio: text("bio"),
+    socialLinks: jsonb("social_links").default({}), // { instagram: "handle", tiktok: "handle", website: "url" }
+    profileImage: text("profile_image"), // URL
+    
     // Legacy: for existing "complete" one-time purchases
     hasLegacyAccess: boolean("has_legacy_access").default(false).notNull(),
     
@@ -206,6 +212,8 @@ export const tenantsRelations = relations(tenants, ({ many, one }) => ({
   planner: one(planners),
   rsvpForms: many(rsvpForms),
   boards: many(boards),
+  followers: many(follows, { relationName: "followers" }),
+  following: many(follows, { relationName: "following" }),
 }));
 
 // ============================================================================
@@ -530,6 +538,30 @@ export const calendarSyncLogRelations = relations(calendarSyncLog, ({ one }) => 
   event: one(calendarEvents, {
     fields: [calendarSyncLog.eventId],
     references: [calendarEvents.id],
+  }),
+}));
+
+// ============================================================================
+// SOCIAL GRAPH - Tenant-to-Tenant following
+// ============================================================================
+export const follows = pgTable("follows", {
+  followerId: uuid("follower_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+  followingId: uuid("following_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.followerId, table.followingId] }),
+}));
+
+export const followsRelations = relations(follows, ({ one }) => ({
+  follower: one(tenants, {
+    fields: [follows.followerId],
+    references: [tenants.id],
+    relationName: "following",
+  }),
+  following: one(tenants, {
+    fields: [follows.followingId],
+    references: [tenants.id],
+    relationName: "followers",
   }),
 }));
 

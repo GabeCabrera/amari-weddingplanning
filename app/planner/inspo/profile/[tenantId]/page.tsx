@@ -17,7 +17,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
     redirect("/login");
   }
 
-  const profileData = await getPublicProfile(params.tenantId);
+  const profileData = await getPublicProfile(params.tenantId, session.user.tenantId);
 
   if (!profileData) {
     notFound();
@@ -26,7 +26,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
   return (
     <div className="h-full flex flex-col">
       <div className="flex-1 overflow-y-auto">
-        <UserProfile profile={profileData} />
+        <UserProfile profile={profileData as any} />
       </div>
     </div>
   );
