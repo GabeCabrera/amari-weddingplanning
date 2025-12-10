@@ -15,9 +15,11 @@ jest.mock("next-auth/react", () => ({
 
 // Mock next/link because it's used in the component
 jest.mock("next/link", () => {
-  return ({ children, href }: { children: React.ReactNode; href: string }) => {
+  const MockLink = ({ children, href }: { children: React.ReactNode; href: string }) => {
     return <a href={href}>{children}</a>;
   };
+  MockLink.displayName = "MockLink";
+  return MockLink;
 });
 
 // Mock sonner

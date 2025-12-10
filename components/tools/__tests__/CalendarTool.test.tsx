@@ -31,7 +31,7 @@ let mockFullCalendarProps: any = {};
 // Mock FullCalendar
 jest.mock('@fullcalendar/react', () => {
   const React = require('react');
-  return React.forwardRef((props: any, ref: any) => {
+  const MockFullCalendar = React.forwardRef((props: any, ref: any) => {
     // Capture props
     mockFullCalendarProps = props; 
     return (
@@ -45,6 +45,8 @@ jest.mock('@fullcalendar/react', () => {
       </div>
     );
   });
+  MockFullCalendar.displayName = "MockFullCalendar";
+  return MockFullCalendar;
 });
 
 jest.mock('@fullcalendar/daygrid', () => ({}));
