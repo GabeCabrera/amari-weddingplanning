@@ -58,7 +58,7 @@ export default function ForgotPasswordPage() {
                 Check Your Email
               </Typography>
               <Typography color="text.secondary">
-                If an account exists for **{email}**, you'll receive a password reset link shortly.
+                If an account exists for **{email}**, you&apos;ll receive a password reset link shortly.
               </Typography>
             </>
           ) : (
@@ -68,7 +68,7 @@ export default function ForgotPasswordPage() {
                   Reset Password
                 </Typography>
                 <Typography color="text.secondary">
-                  Enter your email and we'll send you a link to reset your password.
+                  Enter your email and we&apos;ll send you a link to reset your password.
                 </Typography>
               </Box>
               <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

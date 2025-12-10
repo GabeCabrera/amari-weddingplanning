@@ -134,10 +134,10 @@ export default function TimelineTool({ initialData }: TimelineToolProps) {
           <Card className="mt-6 p-4 text-left shadow-none border-border/70 bg-background">
             <CardTitle className="font-sans text-lg mb-2">Example things to tell me:</CardTitle>
             <ul className="list-disc list-inside text-muted-foreground text-sm space-y-1">
-              <li>"Ceremony starts at 4pm"</li>
-              <li>"Hair and makeup from 10am to 1pm"</li>
-              <li>"First dance right after dinner"</li>
-              <li>"We want to do a sparkler exit at 10pm"</li>
+              <li>&quot;Ceremony starts at 4pm&quot;</li>
+              <li>&quot;Hair and makeup from 10am to 1pm&quot;</li>
+              <li>&quot;First dance right after dinner&quot;</li>
+              <li>&quot;We want to do a sparkler exit at 10pm&quot;</li>
             </ul>
           </Card>
         </Card>

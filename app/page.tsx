@@ -86,7 +86,7 @@ export default function LandingPage() {
           </div>
           
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mb-12 font-light leading-relaxed">
-            Scribe & Stem isn't just a checklist. It's an intelligent operating system for your wedding that manages your budget, guests, and sanity.
+            Scribe & Stem isn&apos;t just a checklist. It&apos;s an intelligent operating system for your wedding that manages your budget, guests, and sanity.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">

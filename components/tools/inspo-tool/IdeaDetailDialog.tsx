@@ -35,9 +35,10 @@ interface IdeaDetailDialogProps {
 }
 
 export function IdeaDetailDialog({ idea, open, onClose, onDelete, onEdit, isOwner, onSave, myBoards }: IdeaDetailDialogProps) {
+    const [openSaveDialog, setOpenSaveDialog] = useState(false); // Local state for SaveIdeaDialog
+    
     if (!idea) return null;
 
-    const [openSaveDialog, setOpenSaveDialog] = useState(false); // Local state for SaveIdeaDialog
     const handleSaveIdeaClick = () => {
         setOpenSaveDialog(true);
     };

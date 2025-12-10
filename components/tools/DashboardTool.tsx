@@ -175,9 +175,11 @@ export default function DashboardTool({ initialData }: DashboardToolProps) {
             <p className="text-xl text-muted-foreground mt-2 font-light">
               {(() => {
                 const dateStr = summary.weddingDate;
-                const date = dateStr.includes("T")
-                  ? new Date(dateStr)
-                  : new Date(dateStr + "T12:00:00");
+                // Ensure dateStr is a string before calling includes
+                const safeDateStr = typeof dateStr === 'string' ? dateStr : new Date(dateStr).toISOString();
+                const date = safeDateStr.includes("T")
+                  ? new Date(safeDateStr)
+                  : new Date(safeDateStr + "T12:00:00");
                 return date.toLocaleDateString("en-US", {
                   weekday: "long",
                   year: "numeric",

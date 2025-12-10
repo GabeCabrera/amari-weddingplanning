@@ -118,7 +118,7 @@ function SubscriptionSuccessContent() {
         <div className="bg-warm-50 rounded-xl p-6 mb-8 text-left">
           <h3 className="font-medium text-warm-800 mb-4 flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-rose-400" />
-            What's now available
+            What&apos;s now available
           </h3>
           <div className="space-y-3 text-sm">
             <div className="flex items-center gap-3">

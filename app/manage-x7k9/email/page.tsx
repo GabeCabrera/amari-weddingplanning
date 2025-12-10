@@ -395,8 +395,8 @@ Keep it personal and helpful!"
         <h3 className="font-medium text-blue-800 mb-3">Tips for Effective Emails</h3>
         <ul className="space-y-2 text-sm text-blue-700">
           <li>• Keep subject lines under 50 characters</li>
-          <li>• Lead with value — what's in it for them?</li>
-          <li>• Use personal language ("you" and "your")</li>
+          <li>• Lead with value — what&apos;s in it for them?</li>
+          <li>• Use personal language (&quot;you&quot; and &quot;your&quot;)</li>
           <li>• Include a clear call-to-action</li>
           <li>• Emails are styled with your brand colors automatically</li>
           <li>• Unsubscribe link is added automatically to broadcast emails</li>

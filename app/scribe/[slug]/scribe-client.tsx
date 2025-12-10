@@ -130,11 +130,11 @@ export function ScribeClient({ form, coupleNames, weddingDate }: ScribeClientPro
                 <Check />
             </Avatar>
             <Typography variant="h4" component="h1" gutterBottom>
-              You're All Set!
+              You&apos;re All Set!
             </Typography>
             <Typography color="text.secondary">
               {formData.attending 
-                ? `${coupleNames} can't wait to celebrate with you!`
+                ? `${coupleNames} can&apos;t wait to celebrate with you!`
                 : `Thank you for letting ${coupleNames} know.`
               }
             </Typography>
@@ -213,7 +213,7 @@ export function ScribeClient({ form, coupleNames, weddingDate }: ScribeClientPro
                   {fields.plusOne && (
                     <FormControlLabel
                         control={<Checkbox checked={formData.plusOne} onChange={(e) => updateField("plusOne", e.target.checked)} />}
-                        label="I'll be bringing a guest"
+                        label="I&apos;ll be bringing a guest"
                     />
                   )}
                   {formData.plusOne && fields.plusOneName && (
@@ -254,7 +254,7 @@ export function ScribeClient({ form, coupleNames, weddingDate }: ScribeClientPro
                     rows={3}
                     value={formData.notes}
                     onChange={(e) => updateField("notes", e.target.value)}
-                    placeholder="Notes, well-wishes, or anything you'd like us to know"
+                    placeholder="Notes, well-wishes, or anything you&apos;d like us to know"
                     fullWidth
                 />
               )}

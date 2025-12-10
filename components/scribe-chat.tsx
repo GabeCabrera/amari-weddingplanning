@@ -303,7 +303,7 @@ export function ScribeChat({ isOpen, onClose, coupleNames, aiName = "Scribe", va
                   Hello{coupleNames ? `, ${coupleNames.split("&")[0]?.trim()}` : ""}
                 </h3>
                 <p className="text-stone-500 text-base leading-relaxed mb-12">
-                  I can help you find vendors, manage your budget, or just brainstorm ideas. What's on your mind?
+                  I can help you find vendors, manage your budget, or just brainstorm ideas. What&apos;s on your mind?
                 </p>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">

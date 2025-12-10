@@ -19,7 +19,7 @@ export default function ScribePage() {
           </h1>
           
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl leading-relaxed">
-            Binders hold paper. Scribes read it. Deploy an autonomous agent to analyze vendor contracts for liability clauses, draft negotiation emails in seconds, and ghostwrite your vows before writer's block sets in.
+            Binders hold paper. Scribes read it. Deploy an autonomous agent to analyze vendor contracts for liability clauses, draft negotiation emails in seconds, and ghostwrite your vows before writer&apos;s block sets in.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
@@ -33,7 +33,7 @@ export default function ScribePage() {
 
           <div className="mt-12 p-6 bg-muted/30 rounded-2xl border border-border/50 max-w-3xl">
             <blockquote className="text-lg font-medium text-muted-foreground italic border-l-4 border-primary pl-4">
-              "You are managing a $40,000 project with 15 contractors and 150 stakeholders. That is not a party; that is a logistics operation. Stop using a spreadsheet. Start using an Operating System."
+              &quot;You are managing a $40,000 project with 15 contractors and 150 stakeholders. That is not a party; that is a logistics operation. Stop using a spreadsheet. Start using an Operating System.&quot;
             </blockquote>
           </div>
         </div>
@@ -48,7 +48,7 @@ export default function ScribePage() {
             </div>
             <h3 className="font-serif text-2xl">AI Contract Review</h3>
             <p className="text-muted-foreground">
-              Upload PDF contracts. Scribe identifies hidden fees, cancellation clauses, and "force majeure" gaps instantly.
+              Upload PDF contracts. Scribe identifies hidden fees, cancellation clauses, and &quot;force majeure&quot; gaps instantly.
             </p>
           </div>
 
@@ -58,7 +58,7 @@ export default function ScribePage() {
             </div>
             <h3 className="font-serif text-2xl">Vendor Email Generator</h3>
             <p className="text-muted-foreground">
-              Negotiate rates and request changes with professionally drafted emails. Tone-adjusted for "Firm but Polite."
+              Negotiate rates and request changes with professionally drafted emails. Tone-adjusted for &quot;Firm but Polite.&quot;
             </p>
           </div>
 
@@ -68,7 +68,7 @@ export default function ScribePage() {
             </div>
             <h3 className="font-serif text-2xl">Vow Assistant</h3>
             <p className="text-muted-foreground">
-              Convert bullet points of memories into cohesive, structured vows. Writer's block elimination protocol.
+              Convert bullet points of memories into cohesive, structured vows. Writer&apos;s block elimination protocol.
             </p>
           </div>
         </div>

@@ -121,7 +121,7 @@ export function UserProfile({ profile }: UserProfileProps) {
 
         {profile.bio && (
           <p className="text-lg text-muted-foreground max-w-xl leading-relaxed italic">
-            "{profile.bio}"
+            &quot;{profile.bio}&quot;
           </p>
         )}
         
@@ -195,7 +195,7 @@ export function UserProfile({ profile }: UserProfileProps) {
 
         {profile.boards.length === 0 ? (
           <div className="text-center py-24 text-muted-foreground border-2 border-dashed border-border/50 rounded-3xl bg-muted/5">
-            <p>This couple hasn't shared any boards publicly yet.</p>
+            <p>This couple hasn&apos;t shared any boards publicly yet.</p>
           </div>
         ) : (
           <ResponsiveMasonry columnsCountBreakPoints={{ 350: 1, 750: 2, 900: 3 }}>

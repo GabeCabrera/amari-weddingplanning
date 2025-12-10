@@ -75,7 +75,7 @@ export default function BudgetTool({ initialData }: BudgetToolProps) {
           </div>
           <CardTitle className="font-serif text-2xl text-foreground mb-2">No budget items yet</CardTitle>
           <p className="text-muted-foreground mb-6">
-            Tell me about your wedding expenses in chat and I'll track them here.
+            Tell me about your wedding expenses in chat and I&apos;ll track them here.
           </p>
           <Button onClick={() => router.push('/planner/chat')} className="rounded-full px-6 shadow-soft">
             Go to chat

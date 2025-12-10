@@ -66,7 +66,7 @@ export default function WelcomePage() {
 
         <div className="space-y-2">
           <h1 className="font-serif text-4xl text-warm-900">Welcome to Stem</h1>
-          <p className="text-warm-600">Let's set up your workspace.</p>
+          <p className="text-warm-600">Let&apos;s set up your workspace.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white p-8 rounded-3xl shadow-soft border border-warm-100 space-y-6 text-left">
@@ -81,7 +81,7 @@ export default function WelcomePage() {
               className="h-12"
             />
             <p className="text-xs text-muted-foreground">
-              It's okay if you don't have an exact date yet.
+              It&apos;s okay if you don&apos;t have an exact date yet.
             </p>
           </div>
 

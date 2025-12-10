@@ -12,7 +12,7 @@ export function PricingSection() {
             Pricing
           </h2>
           <p className="text-lg text-warm-500">
-            Free to start. Upgrade when you're ready.
+            Free to start. Upgrade when you&apos;re ready.
           </p>
         </div>
 

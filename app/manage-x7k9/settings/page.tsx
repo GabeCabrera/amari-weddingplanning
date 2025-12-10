@@ -247,7 +247,7 @@ export default function SettingsPage() {
             </Button>
           </div>
           <p className="text-xs text-warm-400 mt-2">
-            This permanently upgrades the user's account. Great for influencers, partners, and friends.
+            This permanently upgrades the user&apos;s account. Great for influencers, partners, and friends.
           </p>
         </div>
       </div>

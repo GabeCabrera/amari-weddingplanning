@@ -74,7 +74,7 @@ export default function PrivacyPage() {
               </p>
               <ul className="list-disc pl-6 space-y-2 mb-6">
                 <li><strong>Account Information:</strong> Name, email address, password.</li>
-                <li><strong>Wedding Details:</strong> Partner's name, wedding date, venue information, budget.</li>
+                <li><strong>Wedding Details:</strong> Partner&apos;s name, wedding date, venue information, budget.</li>
                 <li><strong>Planning Data:</strong> Guest lists, RSVP responses, vendor contracts, notes, and preferences.</li>
                 <li><strong>Communications:</strong> Messages you send to our AI assistant.</li>
               </ul>

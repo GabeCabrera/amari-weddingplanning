@@ -524,7 +524,7 @@ export default function UsersPage() {
         <div className="text-sm text-amber-800">
           <p className="font-medium mb-1">About Test Accounts</p>
           <p className="text-amber-700">
-            Test accounts are excluded from your real stats (shown with "real" label). 
+            Test accounts are excluded from your real stats (shown with &quot;real&quot; label). 
             Use this to mark demo/test accounts that shouldn&apos;t count towards your metrics. 
             Deleting a user removes all their data permanently.
           </p>

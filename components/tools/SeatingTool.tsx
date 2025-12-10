@@ -92,7 +92,7 @@ export default function SeatingTool({ initialData }: SeatingToolProps) {
           </div>
           <CardTitle className="font-serif text-2xl text-foreground mb-2">No tables created yet</CardTitle>
           <p className="text-muted-foreground mb-6">
-            Tell me to "Create a table for 8 people" or "Assign guests to tables".
+            Tell me to &quot;Create a table for 8 people&quot; or &quot;Assign guests to tables&quot;.
           </p>
           <Button onClick={() => router.push('/planner/chat')} className="rounded-full px-6 shadow-soft">
             Go to chat

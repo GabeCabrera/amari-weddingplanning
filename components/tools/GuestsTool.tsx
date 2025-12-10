@@ -182,7 +182,7 @@ export default function GuestsTool({ initialData }: GuestsToolProps) {
           </div>
           <CardTitle className="font-serif text-2xl text-foreground mb-2">No guests yet</CardTitle>
           <p className="text-muted-foreground mb-6">
-            Tell me about your guests in chat and I'll add them to your list.
+            Tell me about your guests in chat and I&apos;ll add them to your list.
           </p>
           <Button onClick={() => router.push('/planner/chat')} className="rounded-full px-6 shadow-soft">
             Go to chat

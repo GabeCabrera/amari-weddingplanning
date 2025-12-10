@@ -100,7 +100,7 @@ export function ExploreFeed({ initialBoards }: ExploreFeedProps) {
             </div>
           ) : searchResults.length === 0 ? (
             <div className="text-center py-24 text-muted-foreground">
-              <p>No ideas found matching "{searchQuery}".</p>
+              <p>No ideas found matching &quot;{searchQuery}&quot;.</p>
             </div>
           ) : (
             <ResponsiveMasonry columnsCountBreakPoints={{ 350: 1, 750: 2, 900: 3 }}>

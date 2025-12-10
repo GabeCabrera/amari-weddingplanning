@@ -55,7 +55,7 @@ export default function LogicPage() {
         <div className="space-y-4">
           <h1 className="font-serif text-4xl md:text-6xl">The Logic of Spending</h1>
           <p className="text-xl text-muted-foreground max-w-2xl">
-            2025 Algorithmic Benchmarks. This dataset defines the "Stem Ratio" used by our operating system to validate budget health.
+            2025 Algorithmic Benchmarks. This dataset defines the &quot;Stem Ratio&quot; used by our operating system to validate budget health.
           </p>
         </div>
 
@@ -64,7 +64,7 @@ export default function LogicPage() {
             <thead className="bg-muted/50 text-muted-foreground font-medium border-b">
               <tr>
                 <th className="p-4">Wedding Category</th>
-                <th className="p-4">The "Stem Ratio" <span className="text-xs font-normal opacity-70">(Ideal Allocation)</span></th>
+                <th className="p-4">The &quot;Stem Ratio&quot; <span className="text-xs font-normal opacity-70">(Ideal Allocation)</span></th>
                 <th className="p-4">Inflation Factor <span className="text-xs font-normal opacity-70">(2025 Adj)</span></th>
                 <th className="p-4">The Hidden Cost Warning</th>
               </tr>
