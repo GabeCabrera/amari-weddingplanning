@@ -5,6 +5,7 @@ import { Bodoni_Moda, Manrope } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { RedditPixelTracker } from "@/components/reddit-pixel-tracker";
 import "./globals.css";
+import Script from "next/script"; // Import Script from next/script
 
 const bodoni = Bodoni_Moda({
   subsets: ["latin"],
@@ -17,6 +18,7 @@ const manrope = Manrope({
 });
 
 const REDDIT_PIXEL_ID = process.env.NEXT_PUBLIC_REDDIT_PIXEL_ID;
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID; // New constant for GA4 ID
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://scribeandstem.com'),
@@ -111,6 +113,31 @@ export default function RootLayout({
       <head>
         {/* Viewport with safe area support */}
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        
+        {/* Google Analytics 4 (GA4) - Conditional load */}
+        {process.env.NODE_ENV === 'production' && GA_MEASUREMENT_ID && (
+          <>
+            <Script
+              strategy="afterInteractive"
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+            />
+            <Script
+              id="gtag-init"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${GA_MEASUREMENT_ID}', {
+                    page_path: window.location.pathname,
+                  });
+                `,
+              }}
+            />
+          </>
+        )}
+
         {/* JSON-LD: Organization */}
         <script
           type="application/ld+json"
