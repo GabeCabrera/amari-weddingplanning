@@ -46,6 +46,14 @@ export default function DashboardTool({ initialData }: DashboardToolProps) {
     }
     
     const { budget, guests, vendors, summary } = data;
+
+    // Safely extract numerical values with default to 0 to prevent NaN
+    const plannedBudget = budget.total || 0;
+    const actualBudget = budget.spent || 0;
+    const daysToEvent = summary.daysUntil || 0; // Days until can realistically be 0 or negative
+    const totalGuests = guests.stats.total || 0;
+    const pendingRSVPs = guests.stats.pending || 0;
+    const signedContracts = vendors.stats.booked || 0;
     
     // Calculate critical unsigned
     const essentialVendors = ["venue", "catering"];
@@ -59,18 +67,18 @@ export default function DashboardTool({ initialData }: DashboardToolProps) {
 
     return calculateSanityScore({
       budget: { 
-        planned: budget.total, 
-        actual: budget.spent 
+        planned: plannedBudget,
+        actual: actualBudget,
       },
       logistics: { 
-        daysToEvent: summary.daysUntil || 365, 
-        totalGuests: guests.stats.total, 
-        pendingRSVPs: guests.stats.pending 
+        daysToEvent: daysToEvent,
+        totalGuests: totalGuests,
+        pendingRSVPs: pendingRSVPs,
       },
       contracts: { 
         totalRequired: 10, // heuristic estimate or derive from decisions
-        signed: vendors.stats.booked, 
-        criticalUnsigned 
+        signed: signedContracts,
+        criticalUnsigned: criticalUnsigned,
       },
       friction: { familyIndex: familyFriction }
     });

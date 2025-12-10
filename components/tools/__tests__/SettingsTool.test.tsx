@@ -65,7 +65,27 @@ describe('SettingsTool', () => {
     expect(screen.getByText('?')).toBeInTheDocument(); // Default avatar initials
   });
 
-  it('handles button clicks (example)', () => {
+  it('opens and closes the Edit Profile dialog', () => {
+    (useSession as jest.Mock).mockReturnValue({
+      data: { user: { name: 'Test User' } },
+      status: 'authenticated',
+    });
+
+    render(<SettingsTool />);
+
+    const editProfileButton = screen.getByRole('button', { name: 'Edit Profile' });
+    fireEvent.click(editProfileButton);
+
+    expect(screen.getByRole('dialog', { name: 'Edit Your Profile' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Display Name')).toHaveValue('Test User');
+
+    const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+    fireEvent.click(cancelButton);
+
+    expect(screen.queryByRole('dialog', { name: 'Edit Your Profile' })).not.toBeInTheDocument();
+  });
+
+  it('handles Upgrade button click', () => {
     (useSession as jest.Mock).mockReturnValue({
       data: { user: { name: 'Test User' } },
       status: 'authenticated',
@@ -75,14 +95,23 @@ describe('SettingsTool', () => {
 
     const upgradeButton = screen.getByRole('link', { name: /Upgrade/i });
     fireEvent.click(upgradeButton);
-    // In a real scenario, you might expect a navigation or modal to appear.
+    // In a real scenario, you might expect a navigation to /choose-plan.
     // For this test, we just ensure it's clickable without error.
+  });
 
-    const editProfileButton = screen.getByRole('button', { name: 'Edit Profile' });
-    fireEvent.click(editProfileButton);
+  it('handles Delete Account button click', () => {
+    (useSession as jest.Mock).mockReturnValue({
+      data: { user: { name: 'Test User' } },
+      status: 'authenticated',
+    });
+
+    render(<SettingsTool />);
     
+    // The Delete button is on the main page, outside any dialog initially
     const deleteButton = screen.getByRole('button', { name: /Delete/i });
     fireEvent.click(deleteButton);
-    // Similar to upgrade, check for side effects in a full app.
+    // If there were a confirmation dialog, we would assert its presence here.
+    // For now, we just ensure it's clickable.
   });
+
 });

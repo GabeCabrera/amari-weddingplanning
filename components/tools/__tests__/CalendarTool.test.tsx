@@ -25,14 +25,22 @@ jest.mock('sonner', () => ({
   },
 }));
 
+// Variable to store props passed to mocked FullCalendar
+let mockFullCalendarProps: any = {};
+
 // Mock FullCalendar
 jest.mock('@fullcalendar/react', () => {
   const React = require('react');
   return React.forwardRef((props: any, ref: any) => {
+    // Capture props
+    mockFullCalendarProps = props; 
     return (
       <div data-testid="full-calendar-mock" ref={ref}>
+        {/* Render a simplified version if needed for visual debugging, but primarily capture props */}
         {props.events && props.events.map((e: any) => (
-          <div key={e.id}>{e.title}</div>
+          <div key={e.id}>
+            <span className="truncate" data-testid="calendar-event-title">{e.title}</span>
+          </div>
         ))}
       </div>
     );
@@ -50,6 +58,7 @@ global.fetch = jest.fn();
 describe('CalendarTool', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFullCalendarProps = {}; // Clear captured props for each test
   });
 
   it('renders loading state initially', async () => {
@@ -57,12 +66,10 @@ describe('CalendarTool', () => {
     const fetchPromise = new Promise(resolve => { resolveFetch = resolve; });
     (global.fetch as jest.Mock).mockImplementation(() => fetchPromise);
 
-    render(<CalendarTool initialEvents={[]} />); // Added initialEvents={[]}
+    render(<CalendarTool initialEvents={[]} />);
     
-    // Check for loading spinner using the testId we just added
     expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
     
-    // Cleanup to prevent open handles
     resolveFetch({ ok: true, json: async () => ({ events: [] }) });
     await act(async () => {}); 
   });
@@ -73,7 +80,7 @@ describe('CalendarTool', () => {
         {
           id: '1',
           title: 'Test Wedding Event',
-          startTime: new Date().toISOString(), // Today
+          startTime: new Date().toISOString(),
           category: 'milestone',
           description: 'Testing',
         },
@@ -95,17 +102,17 @@ describe('CalendarTool', () => {
       });
 
     await act(async () => {
-      render(<CalendarTool initialEvents={[]} />); // Added initialEvents={[]}
+      render(<CalendarTool initialEvents={[]} />);
     });
 
-    // Check for title
     await waitFor(() => {
       expect(screen.getByText('Calendar')).toBeInTheDocument();
     });
 
-    // Check if our mock calendar rendered the event
+    // Assert that the mock FullCalendar received the correct events
     await waitFor(() => {
-        expect(screen.getByText('Test Wedding Event')).toBeInTheDocument();
+      expect(mockFullCalendarProps.events).toHaveLength(1);
+      expect(mockFullCalendarProps.events[0].title).toBe('Test Wedding Event');
     });
   });
 
@@ -121,14 +128,15 @@ describe('CalendarTool', () => {
       });
 
     await act(async () => {
-      render(<CalendarTool initialEvents={[]} />); // Added initialEvents={[]}
+      render(<CalendarTool initialEvents={[]} />);
     });
 
     await waitFor(() => {
       expect(screen.getByText('Calendar')).toBeInTheDocument();
     });
     
-    // Check if the mock calendar is present
     expect(screen.getByTestId('full-calendar-mock')).toBeInTheDocument();
+    // Also assert that no events were passed to the mock
+    expect(mockFullCalendarProps.events).toHaveLength(0);
   });
 });

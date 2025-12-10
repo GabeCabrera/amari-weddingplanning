@@ -1,6 +1,8 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { LoginForm } from "../login-form";
 import { signIn } from "next-auth/react";
+// Import mockPush directly from the __mocks__ file
+import { mockPush, useSearchParams } from "../../../__mocks__/next/navigation"; 
 import { toast } from "sonner";
 
 // Mock next-auth/react
@@ -8,16 +10,8 @@ jest.mock("next-auth/react", () => ({
   signIn: jest.fn(),
 }));
 
-// Mock next/navigation
-jest.mock("next/navigation", () => ({
-  useSearchParams: jest.fn(() => ({
-    get: jest.fn((key) => {
-      if (key === "callbackUrl") return "/planner";
-      if (key === "error") return null;
-      return null;
-    }),
-  })),
-}));
+// The actual useRouter and useSearchParams from next/navigation will now be
+// resolved to the global mock defined in __mocks__/next/navigation.ts.
 
 // Mock next/link because it's used in the component
 jest.mock("next/link", () => {
@@ -36,6 +30,16 @@ jest.mock("sonner", () => ({
 describe("LoginForm", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPush.mockClear(); // Clear the mockPush calls for each test
+    // Reset useSearchParams mock if needed for specific tests
+    (useSearchParams as jest.Mock).mockReturnValue(new URLSearchParams());
+    (useSearchParams as jest.Mock).mockImplementation(() => ({
+      get: jest.fn((key) => {
+        if (key === "callbackUrl") return "/planner";
+        if (key === "error") return null;
+        return null;
+      }),
+    }));
   });
 
   it("renders the login form correctly", () => {
@@ -68,6 +72,8 @@ describe("LoginForm", () => {
         redirect: false,
         callbackUrl: "/planner",
       });
+      // Assert that mockPush was called
+      expect(mockPush).toHaveBeenCalledWith("/planner");
     });
   });
 
@@ -87,6 +93,7 @@ describe("LoginForm", () => {
     await waitFor(() => {
       expect(signIn).toHaveBeenCalled();
       expect(toast.error).toHaveBeenCalledWith("Invalid email or password.");
+      expect(mockPush).not.toHaveBeenCalled(); // Ensure no redirection on error
     });
   });
 
@@ -100,6 +107,11 @@ describe("LoginForm", () => {
 
     await waitFor(() => {
       expect(signIn).toHaveBeenCalledWith("google", { callbackUrl: "/planner" });
+      // The redirection for Google Sign-in is handled internally by next-auth,
+      // so we don't expect mockPush to be called explicitly here.
+      // If the component were to manually call router.push after signIn('google'),
+      // then this assertion would be valid.
+      // expect(mockPush).toHaveBeenCalledWith("/planner"); 
     });
   });
 });

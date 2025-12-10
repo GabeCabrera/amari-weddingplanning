@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 
 export function LoginForm() {
   const searchParams = useSearchParams();
+  const router = useRouter(); // Initialize useRouter
   const callbackUrl = searchParams.get("callbackUrl") || "/planner";
   const error = searchParams.get("error");
   
@@ -39,7 +40,7 @@ export function LoginForm() {
         toast.error("Invalid email or password.");
       } else if (result?.ok) {
         console.log("[LOGIN] Success. Redirecting to:", callbackUrl);
-        window.location.href = callbackUrl;
+        router.push(callbackUrl); // Use router.push for navigation
       }
     } catch (e) {
       console.error("[LOGIN] Exception:", e);

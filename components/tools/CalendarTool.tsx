@@ -84,8 +84,8 @@ export default function CalendarTool({ initialEvents }: CalendarToolProps) {
   // Fetch Data
   const fetchData = useCallback(async () => {
     try {
-      // Only set loading if no initial events, otherwise it's a background refresh
-      if (events.length === 0) setLoading(true); 
+      // Always set loading true when starting a fetch operation
+      setLoading(true); 
       
       // Fetch events
       const eventsRes = await fetch("/api/calendar/events");
@@ -128,7 +128,8 @@ export default function CalendarTool({ initialEvents }: CalendarToolProps) {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, [events.length]); // Depend on events.length to control loading state
+  }, []); // Removed events.length from dependency array
+
 
   useEffect(() => {
     if (initialEvents.length > 0) {
