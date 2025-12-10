@@ -25,23 +25,23 @@ const onboardingRoutes = [
 
 // Add security headers to response
 function addSecurityHeaders(response: NextResponse): NextResponse {
-  // Prevent clickjacking
-  response.headers.set("X-Frame-Options", "DENY");
+  // // Prevent clickjacking
+  // response.headers.set("X-Frame-Options", "DENY");
   
-  // Prevent MIME type sniffing
-  response.headers.set("X-Content-Type-Options", "nosniff");
+  // // Prevent MIME type sniffing
+  // response.headers.set("X-Content-Type-Options", "nosniff");
   
-  // Enable XSS filter
-  response.headers.set("X-XSS-Protection", "1; mode=block");
+  // // Enable XSS filter
+  // response.headers.set("X-XSS-Protection", "1; mode=block");
   
-  // Control referrer information
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  // // Control referrer information
+  // response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   
-  // Permissions policy
-  response.headers.set(
-    "Permissions-Policy", 
-    "camera=(), microphone=(), geolocation=(), interest-cohort=()"
-  );
+  // // Permissions policy
+  // response.headers.set(
+  //   "Permissions-Policy", 
+  //   "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+  // );
 
   return response;
 }
@@ -57,7 +57,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api/manage-x7k9") ||
     pathname.includes(".") // static files
   ) {
-    return addSecurityHeaders(NextResponse.next());
+    return NextResponse.next();
+    // return addSecurityHeaders(NextResponse.next());
   }
 
   // Check if route is public (exact match for "/" or startsWith for others)
@@ -98,7 +99,8 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isPublicRoute) {
-    return addSecurityHeaders(NextResponse.next());
+    return NextResponse.next();
+    // return addSecurityHeaders(NextResponse.next());
   }
 
   if (!token) {
@@ -110,7 +112,8 @@ export async function middleware(request: NextRequest) {
   // Allow onboarding routes for authenticated users
   const isOnboardingRoute = onboardingRoutes.some((route) => pathname.startsWith(route));
   if (isOnboardingRoute) {
-    return addSecurityHeaders(NextResponse.next());
+    return NextResponse.next();
+    // return addSecurityHeaders(NextResponse.next());
   }
 
   // Check if user must change password
@@ -118,7 +121,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/change-password", request.url));
   }
 
-  return addSecurityHeaders(NextResponse.next());
+  return NextResponse.next();
+  // return addSecurityHeaders(NextResponse.next());
 }
 
 export const config = {

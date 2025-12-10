@@ -52,6 +52,8 @@ export function RegisterForm() {
     }
 
     setIsLoading(true);
+    console.log("[REGISTER] Attempting registration for:", formData.email);
+
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -60,15 +62,20 @@ export function RegisterForm() {
       });
 
       const data = await response.json();
+      console.log("[REGISTER] API Response:", response.status, data);
+
       if (!response.ok) {
         throw new Error(data.error || "Registration failed.");
       }
 
+      console.log("[REGISTER] Registration successful. Attempting auto-login...");
       const signInResult = await signIn("credentials", {
         email: formData.email,
         password: formData.password,
         redirect: false,
       });
+
+      console.log("[REGISTER] Auto-login result:", signInResult);
 
       if (signInResult?.error) {
         throw new Error(signInResult.error);
@@ -78,6 +85,7 @@ export function RegisterForm() {
       redditPixel.trackSignUp();
       window.location.href = "/welcome";
     } catch (error) {
+      console.error("[REGISTER] Error:", error);
       toast.error(error instanceof Error ? error.message : "An unknown error occurred.");
     } finally {
       setIsLoading(false);
