@@ -348,19 +348,28 @@ async function updateBudgetItem(
     return { success: false, message: "Budget item not found" };
   }
 
+  const item = items[itemIndex];
+  const changes: string[] = [];
+
   // Store as string in CENTS
   if (params.estimatedCost !== undefined) {
-    items[itemIndex].totalCost = String((params.estimatedCost as number) * 100);
+    item.totalCost = String((params.estimatedCost as number) * 100);
+    changes.push(`cost to $${(params.estimatedCost as number).toLocaleString()}`);
   }
   if (params.amountPaid !== undefined) {
-    items[itemIndex].amountPaid = String((params.amountPaid as number) * 100);
+    item.amountPaid = String((params.amountPaid as number) * 100);
+    changes.push(`paid amount to $${(params.amountPaid as number).toLocaleString()}`);
   }
   if (params.vendor !== undefined) {
-    items[itemIndex].vendor = params.vendor;
+    item.vendor = params.vendor;
+    changes.push(`vendor to ${params.vendor}`);
   }
   if (params.notes !== undefined) {
-    items[itemIndex].notes = params.notes;
+    item.notes = params.notes;
+    changes.push(`notes`);
   }
+
+  items[itemIndex] = item;
 
   await db.update(pages)
     .set({ fields: { ...fields, items }, updatedAt: new Date() })
@@ -368,7 +377,7 @@ async function updateBudgetItem(
 
   return {
     success: true,
-    message: "Budget item updated",
+    message: `Updated ${item.category || "item"}: changed ${changes.join(", ")}`,
     data: items[itemIndex]
   };
 }
@@ -638,68 +647,68 @@ async function updateGuest(
   }
 
   const guest = guests[guestIndex];
-  const updates: string[] = [];
+  const changes: string[] = [];
 
   // Update all provided fields
   if (params.name !== undefined) {
     guest.name = params.name as string;
-    updates.push("name");
+    changes.push("name");
   }
   if (params.email !== undefined) {
     guest.email = params.email as string;
-    updates.push("email");
+    changes.push("email");
   }
   if (params.phone !== undefined) {
     guest.phone = params.phone as string;
-    updates.push("phone");
+    changes.push("phone");
   }
   if (params.address !== undefined) {
     guest.address = params.address as string;
-    updates.push("address");
+    changes.push("address");
   }
   if (params.side !== undefined) {
     guest.side = params.side as string;
-    updates.push("side");
+    changes.push("side");
   }
   if (params.group !== undefined) {
     guest.group = params.group as string;
-    updates.push("group");
+    changes.push("group");
   }
   if (params.plusOne !== undefined) {
     guest.plusOne = params.plusOne as boolean;
-    updates.push("plus one");
+    changes.push("plus one");
   }
   if (params.plusOneName !== undefined) {
     guest.plusOneName = params.plusOneName as string;
-    updates.push("plus one name");
+    changes.push("plus one name");
   }
   if (params.rsvp !== undefined) {
     guest.rsvp = params.rsvp as string;
-    updates.push(`RSVP: ${params.rsvp}`);
+    changes.push(`RSVP to ${params.rsvp}`);
   }
   if (params.mealChoice !== undefined) {
     guest.mealChoice = params.mealChoice as string;
-    updates.push(`meal: ${params.mealChoice}`);
+    changes.push(`meal to ${params.mealChoice}`);
   }
   if (params.dietaryRestrictions !== undefined) {
     guest.dietaryRestrictions = params.dietaryRestrictions as string;
-    updates.push("dietary restrictions");
+    changes.push("dietary restrictions");
   }
   if (params.tableNumber !== undefined) {
     guest.tableNumber = params.tableNumber as number;
-    updates.push(`table ${params.tableNumber}`);
+    changes.push(`table to ${params.tableNumber}`);
   }
   if (params.giftReceived !== undefined) {
     guest.giftReceived = params.giftReceived as boolean;
-    updates.push(params.giftReceived ? "gift received" : "gift not received");
+    changes.push(params.giftReceived ? "marked gift received" : "marked gift not received");
   }
   if (params.thankYouSent !== undefined) {
     guest.thankYouSent = params.thankYouSent as boolean;
-    updates.push(params.thankYouSent ? "thank you sent" : "thank you not sent");
+    changes.push(params.thankYouSent ? "marked thank you sent" : "marked thank you not sent");
   }
   if (params.notes !== undefined) {
     guest.notes = params.notes as string;
-    updates.push("notes");
+    changes.push("notes");
   }
 
   guests[guestIndex] = guest;
@@ -710,7 +719,7 @@ async function updateGuest(
 
   return {
     success: true,
-    message: `Updated ${guest.name}: ${updates.join(", ")}`,
+    message: `Updated ${guest.name}: changed ${changes.join(", ")}`,
     data: { guest, pageId }
   };
 }
@@ -1758,48 +1767,48 @@ async function updateVendor(
   }
 
   const vendor = vendors[vendorIndex];
-  const updates: string[] = [];
+  const changes: string[] = [];
   
   // Update fields if provided
   if (params.name !== undefined) {
     vendor.name = params.name;
-    updates.push("name");
+    changes.push("name");
   }
   if (params.category !== undefined) {
     vendor.category = params.category;
-    updates.push("category");
+    changes.push("category");
   }
   if (params.contactName !== undefined) {
     vendor.contactName = params.contactName;
-    updates.push("contact info");
+    changes.push("contact info");
   }
   if (params.email !== undefined) {
     vendor.email = params.email;
-    updates.push("email");
+    changes.push("email");
   }
   if (params.phone !== undefined) {
     vendor.phone = params.phone;
-    updates.push("phone");
+    changes.push("phone");
   }
   if (params.status !== undefined) {
     vendor.status = params.status;
-    updates.push(`status to ${params.status}`);
+    changes.push(`status to ${params.status}`);
   }
   if (params.price !== undefined) {
     vendor.price = (params.price as number) * 100; // Convert to cents
-    updates.push(`price to $${params.price}`);
+    changes.push(`price to $${params.price}`);
   }
   if (params.notes !== undefined) {
     vendor.notes = params.notes;
-    updates.push("notes");
+    changes.push("notes");
   }
   if (params.depositPaid !== undefined) {
     vendor.depositPaid = params.depositPaid;
-    updates.push(params.depositPaid ? "deposit paid" : "deposit unpaid");
+    changes.push(params.depositPaid ? "deposit paid" : "deposit unpaid");
   }
   if (params.contractSigned !== undefined) {
     vendor.contractSigned = params.contractSigned;
-    updates.push(params.contractSigned ? "contract signed" : "contract unsigned");
+    changes.push(params.contractSigned ? "contract signed" : "contract unsigned");
   }
 
   await db.update(pages)
@@ -1827,7 +1836,7 @@ async function updateVendor(
 
   return {
     success: true,
-    message: `Updated ${vendor.name}: ${updates.join(", ")}`,
+    message: `Updated ${vendor.name}: changed ${changes.join(", ")}`,
     data: vendors[vendorIndex]
   };
 }
