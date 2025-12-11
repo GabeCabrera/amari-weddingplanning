@@ -2,8 +2,8 @@ import { db } from "@/lib/db";
 import { tenants } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
-// Free tier AI message limit
-export const FREE_AI_MESSAGE_LIMIT = 10;
+// Free tier AI message limit (per day)
+export const DAILY_FREE_AI_MESSAGE_LIMIT = 5;
 
 // Subscription prices (set these in Stripe dashboard and copy the IDs here)
 export const STRIPE_PRICES = {
@@ -38,6 +38,23 @@ export interface PlanAccess {
 }
 
 /**
+ * Check if usage should be reset based on the last reset timestamp
+ */
+function shouldResetUsage(lastReset: Date | null): boolean {
+  if (!lastReset) return true;
+  
+  const now = new Date();
+  const resetDate = new Date(lastReset);
+  
+  // Reset if it's a different calendar day
+  return (
+    now.getFullYear() !== resetDate.getFullYear() ||
+    now.getMonth() !== resetDate.getMonth() ||
+    now.getDate() !== resetDate.getDate()
+  );
+}
+
+/**
  * Check what access a tenant has based on their plan
  */
 export async function getTenantAccess(tenantId: string): Promise<PlanAccess | null> {
@@ -55,19 +72,23 @@ export async function getTenantAccess(tenantId: string): Promise<PlanAccess | nu
   // Full access if: subscribed, or legacy complete purchaser
   const hasFullAccess = isSubscribed || isLegacy;
   
-  // AI access if: has full access, OR still has free messages remaining
-  const aiMessagesUsed = tenant.aiMessagesUsed;
-  const hasAIAccess = hasFullAccess || aiMessagesUsed < FREE_AI_MESSAGE_LIMIT;
+  // Check if we need to reset usage display (optimistic check)
+  // Note: We don't write to DB here (read-only), so we just calculate what the usage WOULD be
+  const needsReset = shouldResetUsage(tenant.aiMessagesResetAt);
+  const currentUsage = needsReset ? 0 : tenant.aiMessagesUsed;
+  
+  // AI access if: has full access, OR still has free messages remaining for the day
+  const hasAIAccess = hasFullAccess || currentUsage < DAILY_FREE_AI_MESSAGE_LIMIT;
   
   const aiMessagesRemaining = hasFullAccess 
     ? "unlimited" 
-    : Math.max(0, FREE_AI_MESSAGE_LIMIT - aiMessagesUsed);
+    : Math.max(0, DAILY_FREE_AI_MESSAGE_LIMIT - currentUsage);
 
   return {
     plan,
     hasFullAccess,
     hasAIAccess,
-    aiMessagesUsed,
+    aiMessagesUsed: currentUsage,
     aiMessagesRemaining,
     isLegacy,
     subscriptionStatus: tenant.subscriptionStatus,
@@ -80,45 +101,64 @@ export async function getTenantAccess(tenantId: string): Promise<PlanAccess | nu
  * Returns the new count, or null if they've hit the limit (free tier)
  */
 export async function incrementAIUsage(tenantId: string): Promise<{ allowed: boolean; newCount: number; remaining: number | "unlimited" }> {
-  const access = await getTenantAccess(tenantId);
+  // We need to fetch fresh tenant data to handle the reset logic atomically-ish
+  const [tenant] = await db.select().from(tenants).where(eq(tenants.id, tenantId));
   
-  if (!access) {
+  if (!tenant) {
     return { allowed: false, newCount: 0, remaining: 0 };
   }
 
+  const isSubscribed = tenant.subscriptionStatus === "active" || tenant.subscriptionStatus === "trialing";
+  const hasFullAccess = isSubscribed || tenant.hasLegacyAccess;
+
   // Unlimited for paid users
-  if (access.hasFullAccess) {
-    // Still increment for tracking, but always allow
+  if (hasFullAccess) {
     await db
       .update(tenants)
       .set({ 
-        aiMessagesUsed: access.aiMessagesUsed + 1,
+        aiMessagesUsed: tenant.aiMessagesUsed + 1,
         updatedAt: new Date(),
       })
       .where(eq(tenants.id, tenantId));
     
-    return { allowed: true, newCount: access.aiMessagesUsed + 1, remaining: "unlimited" };
+    return { allowed: true, newCount: tenant.aiMessagesUsed + 1, remaining: "unlimited" };
   }
 
-  // Check limit for free users
-  if (access.aiMessagesUsed >= FREE_AI_MESSAGE_LIMIT) {
-    return { allowed: false, newCount: access.aiMessagesUsed, remaining: 0 };
+  // Handle Free Tier
+  const needsReset = shouldResetUsage(tenant.aiMessagesResetAt);
+  let currentUsage = tenant.aiMessagesUsed;
+  
+  if (needsReset) {
+    // It's a new day! Reset counter.
+    currentUsage = 0;
+    // We will update the DB with the reset timestamp below
   }
 
-  // Increment and return
-  const newCount = access.aiMessagesUsed + 1;
+  // Check limit
+  if (currentUsage >= DAILY_FREE_AI_MESSAGE_LIMIT) {
+    return { allowed: false, newCount: currentUsage, remaining: 0 };
+  }
+
+  // Increment
+  const newCount = currentUsage + 1;
+  const updateData: any = {
+    aiMessagesUsed: newCount,
+    updatedAt: new Date(),
+  };
+
+  if (needsReset) {
+    updateData.aiMessagesResetAt = new Date();
+  }
+
   await db
     .update(tenants)
-    .set({ 
-      aiMessagesUsed: newCount,
-      updatedAt: new Date(),
-    })
+    .set(updateData)
     .where(eq(tenants.id, tenantId));
 
   return { 
     allowed: true, 
     newCount, 
-    remaining: FREE_AI_MESSAGE_LIMIT - newCount,
+    remaining: DAILY_FREE_AI_MESSAGE_LIMIT - newCount,
   };
 }
 

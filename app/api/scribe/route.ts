@@ -11,7 +11,7 @@ import {
 } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import Anthropic from "@anthropic-ai/sdk";
-import { getTenantAccess, incrementAIUsage, FREE_AI_MESSAGE_LIMIT } from "@/lib/subscription";
+import { getTenantAccess, incrementAIUsage, DAILY_FREE_AI_MESSAGE_LIMIT } from "@/lib/subscription";
 import { executeToolCall } from "@/lib/ai/executor"; // Import executeToolCall
 import { getAnthropicTools } from "@/lib/ai/tools"; // Import tool definitions
 
@@ -312,7 +312,7 @@ export async function GET() {
         hasFullAccess: access?.hasFullAccess ?? false,
         messagesUsed: access?.aiMessagesUsed ?? 0,
         messagesRemaining: access?.aiMessagesRemaining ?? 0,
-        limit: FREE_AI_MESSAGE_LIMIT,
+        limit: DAILY_FREE_AI_MESSAGE_LIMIT,
       },
     });
   } catch (error) {
@@ -350,7 +350,7 @@ export async function POST(request: NextRequest) {
           error: "AI message limit reached",
           limitReached: true,
           messagesUsed: usageResult.newCount,
-          limit: FREE_AI_MESSAGE_LIMIT,
+          limit: DAILY_FREE_AI_MESSAGE_LIMIT,
         },
         { status: 403 }
       );
